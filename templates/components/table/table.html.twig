@@ -1,0 +1,35 @@
+<div class="p-8 mx-1 min-h-screen bg-white shadow-sm">
+    {% if title is defined %}
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h1 class="text-2xl font-semibold text-mocha">{{ title }}</h1>
+            {% if new_path is defined %}
+                <a href="{{ path(new_path) }}"
+                    class="px-4 py-2 rounded-xl bg-success text-white text-sm font-semibold hover:bg-success-hover transition-all">
+                    Create New
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="overflow-x-auto">
+        <table id="{{ id|default('data-table') }}" class="min-w-full border border-border-color rounded-xl overflow-hidden text-sm">
+            {% if headers is defined %}
+                <thead class="bg-mocha text-left text-cream font-semibold">
+                    <tr>
+                        {% for header in headers %}
+                            <th class="py-3 px-4">{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+            {% endif %}
+
+            <tbody class="bg-white divide-y divide-border-color">
+                {% block rows %}
+                    <tr>
+                        <td colspan="{{ headers|length }}" class="py-6 text-center text-text-muted">No data available</td>
+                    </tr>
+                {% endblock %}
+            </tbody>
+        </table>
+    </div>
+</div>

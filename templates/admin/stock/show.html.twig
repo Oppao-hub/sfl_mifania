@@ -1,0 +1,116 @@
+{% extends 'admin/dashboard.html.twig' %}
+
+{% block title %}Stock Detail: {{ stock.id }}{% endblock %}
+
+{% block main_content %}
+<div class="p-8 m-1 min-h-screen bg-white dark:bg-gray-800 rounded-2xl shadow-md">
+
+    {% set product = stock.product %}
+
+    <!-- Header and Title -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-mocha dark:text-white">
+            Stock Record ID: 00{{ stock.id }}
+        </h1>
+    </div>
+
+    <div class="bg-gray-50 p-6 mb-4 rounded-xl border border-gray-200">
+        <h2 class="text-xl font-semibold text-mocha mb-4 border-b pb-2">Stock Information</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 pb-8">
+            <!-- Left Column: Product Image -->
+            <img
+                src="{{ product.image ? asset('uploads/products/' ~ product.image) : asset('images/default-product.png') }}"
+                alt="{{ product.name }}"
+                class="rounded-lg shadow-md w-full object-cover"
+            />
+
+            <!-- Right Column: Stock Details -->
+            <div class="space-y-4 text-sm">
+                <p>
+                    <strong class="text-gray-500">Stock ID:</strong>
+                    <span class="text-mocha font-medium">{{ stock.id }}</span>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Associated Product:</strong>
+                    <a href="{{ path('app_admin_product_show', { 'id': product.id }) }}"
+                       class="text-mocha font-semibold hover:text-primary-dark-violet hover:underline transition">
+                        {{ product.name }}
+                    </a>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Quantity:</strong>
+                    <span class="text-mocha font-medium">{{ stock.quantity|number_format(0, '.', ',') }} units</span>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Unit Cost Price:</strong>
+                    <span class="text-mocha font-medium">₱{{ stock.product.cost|number_format(2) }}</span>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Location:</strong>
+                    <span class="text-mocha font-medium">{{ stock.location ?: '—' }}</span>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Status:</strong>
+                    {% set statusClass = 'bg-gray-100 text-gray-800' %}
+                    {% if stock.quantity > 50 %}
+                        {% set statusClass = 'text-green-800' %}
+                    {% elseif stock.quantity > 0 and stock.quantity < 50 %}
+                        {% set statusClass = 'text-yellow-800' %}
+                    {% else %}
+                        {% set statusClass = 'text-red-800' %}
+                    {% endif %}
+                    <span class="inline-flex text-sm leading-5 font-medium rounded-full {{ statusClass }}">
+                        {{ stock.status.value ?: (stock.quantity > 0 ? 'In Stock' : 'Out of Stock') }}
+                    </span>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Date Created:</strong>
+                    <span class="text-mocha font-medium">{{ stock.createdAt|date('Y-m-d H:i:s') }}</span>
+                </p>
+
+                <p>
+                    <strong class="text-gray-500">Last Updated:</strong>
+                    <span class="text-mocha font-medium">{{ stock.updatedAt|date('Y-m-d H:i:s') }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+        {# Edit button #}
+        <a href="{{ path('app_admin_stock_edit', { 'id': stock.id }) }}"
+            class="px-4 py-2 bg-success hover:bg-success-hover text-white text-sm font-semibold rounded-xl transition">
+            Edit
+        </a>
+
+        {# Delete button #}
+        <button
+            type="button"
+            @click.prevent="
+                $dispatch('open-delete-modal', {
+                    id: {{ stock.id }},
+                    route: '{{ path('app_admin_stock_delete', { 'id': 'PLACEHOLDER' }) }}',
+                    name: 'Stock ID: {{ stock.id }}'
+                })
+            "
+            class="px-4 py-2 bg-danger text-white text-sm font-medium rounded-xl hover:bg-danger-hover transition"
+        >
+            Delete
+        </button>
+
+        {# Back button #}
+        <a href="{{ path('app_admin_stock_index') }}"
+            class="px-4 py-2 bg-white border border-gray-300 text-mocha text-sm font-medium rounded-xl hover:bg-gray-200 transition">
+            Back
+        </a>
+    </div>
+</div>
+{% include 'components/modal/delete_confirmation.html.twig' %}
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'admin/dashboard.html.twig' %}
+
+{% block title %}Customer Profile{% endblock %}
+
+{% block main_content %}
+<div class="mx-1 min-h-screen bg-white p-8 rounded-xl shadow-md">
+    <div class="container mx-auto p-2">
+        <!-- Personal Information Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Personal Information</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-sm">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-sm">
+                    <div>
+                        <dt class="font-medium text-gray-500">First Name</dt>
+                        <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.firstName }}</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">Last Name</dt>
+                        <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.lastName }}</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">Email address</dt>
+                        <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.user.email ?: 'N/A' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">Phone</dt>
+                        <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.contactNumber ?: 'N/A' }}</dd>
+                    </div>
+                    {% if customer.dateOfBirth %}
+                        <div>
+                            <dt class="font-medium text-gray-500">Date of Birth</dt>
+                            <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.dateOfBirth|date('F jS, Y') }}</dd>
+                        </div>
+                        {% set age = date('now').diff(customer.dateOfBirth).y %}
+                        <div>
+                            <dt class="font-medium text-gray-500">Age</dt>
+                            <dd class="mt-1 text-gray-900 text-base font-medium">{{ age }} years old</dd>
+                        </div>
+                    {% endif %}
+                    <div class="col-span-1 md:col-span-2">
+                        <dt class="font-medium text-gray-500">Street Address</dt>
+                        <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.address ?: 'No street address provided.' }}</dd>
+                    </div>
+                </dl>
+
+                <div class="bg-white shadow-lg rounded-lg p-6 mb-6 flex items-center justify-between border border-gray-100">
+                    <div class="flex items-center">
+                        {% set avatarPath = customer.avatar is defined and customer.avatar ? customer.avatar : 'images/default-avatar.png' %}
+                        <img class="w-20 h-20 rounded-full object-cover mr-4 border-2 border-blue-100"
+                            src="{{ asset(avatarPath) }}"
+                            alt="{{ customer.firstName }}'s Avatar"
+                            onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.png') }}';"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Geographic Information</h2>
+            </div>
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-sm">
+                <div>
+                    <dt class="font-medium text-gray-500">Country</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.country ?: 'N/A' }}</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">State / Region</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.state ?: 'N/A' }}</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">City</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.city ?: 'N/A' }}</dd>
+                </div>
+                {# Postal Code and TAX ID removed as they do not exist in the provided entity structure #}
+            </dl>
+        </div>
+
+        <!-- Account Status Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Account & Verification Status</h2>
+            </div>
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-sm">
+                <div>
+                    <dt class="font-medium text-gray-500">Account Status</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">
+                        {% set status = customer.accountStatusValue|default('N/A') %}
+                        {% set color = 'bg-green-100 text-green-800' %}
+                        {% if status == 'Inactive' %}{% set color = 'bg-red-100 text-red-800' %}
+                        {% elseif status == 'Suspended' %}{% set color = 'bg-yellow-100 text-yellow-800' %}{% endif %}
+                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium {{ color }} capitalize">
+                            {{ status }}
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">Verification Status</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">
+                        {% set verification = customer.verificationStatusValue|default('N/A') %}
+                        {% set vColor = 'bg-red-100 text-red-800' %}
+                        {% if verification == 'Verified' %}{% set vColor = 'bg-green-100 text-green-800' %}
+                        {% elseif verification == 'Review' %}{% set vColor = 'bg-yellow-100 text-yellow-800' %}{% endif %}
+                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium {{ vColor }} capitalize">
+                            {{ verification }}
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">Reward Points</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.rewardPoints|number_format(0, '.', ',') }} points</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">Customer Since</dt>
+                    <dd class="mt-1 text-gray-900 text-base font-medium">{{ customer.createdAt|date('F jS, Y') }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{{ form_start(form, form_attr: { class: "product-form" , novalidate: "novalidate" }) }}
+{% for field in form %} {% if field.vars.name != '_token' %}
+<div class="form-group">
+    {{ form_label(field) }}
+    {{ form_widget(field) }}
+</div>
+{% endif %} {% endfor %}
+{{ form_end(form) }}

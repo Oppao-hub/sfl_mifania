@@ -1,0 +1,46 @@
+<div
+    x-data="{ open: false, id: null, route: '', name: '', token: '' }"
+    @open-delete-modal.window="
+        open = true;
+        id = $event.detail.id;
+        route = $event.detail.route;
+        name = $event.detail.name;
+        token = $event.detail.token;
+    "
+
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+    @keydown.escape.window="open = false"
+    **data-turbo-permanent**
+>
+    <div
+        x-show="open"
+        x-transition
+        @click.outside="open = false"
+        class="bg-white rounded-lg shadow-lg max-w-md w-full p-6"
+    >
+        <h2 class="text-lg font-bold mb-4">Confirm Deletion</h2>
+        <p class="text-sm text-mocha mb-6">
+            Are you sure you want to delete
+            <span x-text="name" class="font-semibold"></span>?
+            This action cannot be undone.
+        </p>
+
+        <div class="flex justify-end gap-3">
+            <form :action="route.replace('PLACEHOLDER', id)" method="POST">
+                <input type="hidden" name="_token" :value="token">
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700">
+                    Delete
+                </button>
+            </form>
+            <button
+                type="button"
+                @click="open = false"
+                class="px-4 py-2 text-mocha text-sm font-medium rounded hover:bg-gray-100">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>

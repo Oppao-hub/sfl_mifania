@@ -1,0 +1,15 @@
+{% extends 'admin/dashboard.html.twig' %}
+
+{% block title %}Add Product{% endblock %}
+
+{% block main_content %}
+<div class="mx-1 min-h-screen bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold text-mocha mb-6">Add New Product</h1>
+
+    {{ include('admin/product/_form.html.twig', {
+        form: form,
+        button_label: 'Add Product',
+        button_class: 'px-3 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover'
+    }) }}
+</div>
+{% endblock %}

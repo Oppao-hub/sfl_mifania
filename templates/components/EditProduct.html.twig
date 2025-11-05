@@ -1,0 +1,113 @@
+<div class="bg-white p-6 md:p-10 rounded-xl shadow-lg max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold primary-violet mb-8">
+        Update Product Details (ID: {{ product.id }})
+    </h2>
+
+    <form id="productEditForm" class="space-y-6" onsubmit="handleFormSubmission(event)">
+        <!-- Basic Details Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input
+                    type="text" id="productName" name="productName" required
+                    value="{{ product.name }}"
+                    class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet transition duration-150">
+            </div>
+            <div>
+                <label for="sku" class="block text-sm font-medium text-gray-700 mb-1">SKU (Stock Keeping Unit)</label>
+                <input
+                    type="text" id="sku" name="sku" required
+                    value="{{ product.sku }}"
+                    class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet transition duration-150">
+            </div>
+        </div>
+
+        <!-- Pricing and Stock Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price (Tk)</label>
+                <input
+                    type="number" id="price" name="price" required min="0.01" step="0.01"
+                    value="{{ product.price }}"
+                    class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet transition duration-150">
+            </div>
+            <div>
+                <label for="stock" class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+                <input
+                    type="number" id="stock" name="stock" required min="0"
+                    value="{{ product.stock }}"
+                    class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet transition duration-150">
+            </div>
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select id="category" name="category" required
+                        class="w-full p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-violet transition duration-150">
+                    <option value="">Select Category</option>
+                    {% for key, label in categories %}
+                        <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
+            <textarea id="description" name="description" rows="5" required
+                    class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet transition duration-150">{{ product.description }}</textarea>
+        </div>
+
+        <!-- Image Upload -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+            <div class="mb-4 flex items-center space-x-4">
+                <span class="inline-block h-24 w-24 overflow-hidden rounded-lg bg-gray-100 p-2 border border-gray-200">
+                    <img src="{{ product.imageUrl }}" class="w-full h-full object-cover rounded-lg" alt="{{ product.name }}">
+                </span>
+                <div>
+                    <p class="text-sm text-gray-500">Current Image: {{ product.imageName }}</p>
+                    <button type="button" onclick="document.getElementById('file-upload').click();" class="mt-2 text-sm text-primary-violet hover:text-primary-dark-violet font-medium">
+                        Change Image
+                    </button>
+                </div>
+            </div>
+
+            <div id="dropzone" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-primary-violet transition duration-300 cursor-pointer">
+                <div class="space-y-1 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28l-8-8 12.828-12.828a4 4 0 015.656 0L28 28z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="flex text-sm text-gray-600">
+                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-primary-violet hover:text-primary-dark-violet">
+                            <span>Drag new file here</span>
+                            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/*">
+                        </label>
+                        <p class="pl-1">or click to browse</p>
+                    </div>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    <p id="fileNameDisplay" class="text-sm font-medium text-green-600 hidden mt-2"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submission Feedback -->
+        <div id="messageBox" class="p-4 rounded-xl hidden" role="alert">
+            <p id="messageText" class="font-medium"></p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 flex justify-between space-x-4">
+            <button type="button" class="px-6 py-3 border border-red-300 rounded-xl text-red-600 hover:bg-red-50 transition duration-150">
+                Delete Product
+            </button>
+            <div class="flex space-x-4">
+                <button type="button" class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition duration-150">
+                    Cancel
+                </button>
+                <button type="submit" class="px-6 py-3 bg-primary-violet text-white font-semibold rounded-xl shadow-md hover:bg-primary-dark-violet transition duration-150">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

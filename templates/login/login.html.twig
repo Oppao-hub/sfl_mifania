@@ -1,0 +1,100 @@
+{% extends "auth.html.twig" %}
+{% block title %}Log In{% endblock %}
+{% block user_form %}
+<div
+    class="flex justify-center items-center min-h-screen bg-[#F9F1E8] font-[Montserrat] text-[#422B1C]"
+>
+    <div class="bg-white p-8 rounded-xl w-full max-w-md shadow-lg animate-fadeIn">
+        <div class="text-center mb-6">
+            <img
+                src="{{ asset('images/symbol.svg') }}"
+                alt="Logo"
+                class="h-14 mx-auto mb-6"
+            />
+            <h2 class="text-2xl font-bold text-[#422B1C]">
+                Sign in to your account
+            </h2>
+        </div>
+
+        {% if error %}
+        <div
+            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4 text-sm text-center font-medium animate-fadeIn"
+        >
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+        {% endif %} {% if app.user %}
+        <div
+            class="bg-green-100 border border-green-300 text-green-900 px-4 py-3 rounded-md mb-4 flex justify-between items-center shadow-sm animate-fadeIn"
+        >
+            <span>You are logged in as {{ app.user.userIdentifier }}</span>
+            <a
+                href="{{ path('app_logout') }}"
+                class="bg-red-600 text-white px-3 py-1 rounded-md font-semibold text-sm hover:bg-red-700 transition"
+            >
+                Logout
+            </a>
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-5" novalidate>
+            <div>
+                <label
+                    for="email"
+                    class="block mb-2 text-sm font-medium text-[#422B1C]"
+                    >Email</label
+                >
+                <input
+                    type="email"
+                    {# value="{{ last_username }}" #}
+                    value="lopao0012@gmail.com"
+                    name="email"
+                    id="email"
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-[#645D1E] focus:border-[#645D1E] outline-none"
+                    autocomplete="email"
+                    required
+                    autofocus
+                />
+            </div>
+
+            <div>
+                <label
+                    for="password"
+                    class="block mb-2 text-sm font-medium text-[#422B1C]"
+                    >Password</label
+                >
+                <input
+                    type="password"
+                    name="password"
+                    value="password"
+                    class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-[#645D1E] focus:border-[#645D1E] outline-none"
+                    autocomplete="current-password"
+                    required
+                />
+                <input
+                    type="hidden"
+                    name="_csrf_token"
+                    data-controller="csrf-protection"
+                    value="{{ csrf_token('authenticate') }}"
+                />
+            </div>
+
+            <button
+                type="submit"
+                class="w-full py-3 rounded-md bg-[#422B1C] text-white font-semibold text-lg hover:bg-[#645D1E] hover:text-[#F9F1E8] transition-colors"
+            >
+                Log in
+            </button>
+
+            <p class="text-center text-sm text-gray-600 mt-4">
+                Not a member?
+                <a
+                    href="{{ path('app_register_credentials') }}"
+                    class="font-bold text-[#422B1C] hover:underline"
+                >
+                    Register here
+                </a>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

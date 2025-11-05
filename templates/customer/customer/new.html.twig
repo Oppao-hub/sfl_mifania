@@ -1,0 +1,19 @@
+{% block body %}
+<link rel="stylesheet" href="{{ asset('styles/register.css') }}" />
+<div class="register-wrapper">
+    <div class="register-container">
+        <div class="register-header">
+            <img
+                src="{{ asset('images/symbol.svg') }}"
+                alt="Logo"
+                class="logo"
+            />
+            <h1>Create an Account</h1>
+        </div>
+        {{ include("customer/_form.html.twig") }}
+        <div class="cancel-btn">
+            <a href="{{ path('app_home') }}">Cancel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

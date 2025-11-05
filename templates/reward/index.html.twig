@@ -1,0 +1,58 @@
+{% extends 'admin/dashboard.html.twig' %} {% block title %}Reward index{%
+endblock %} {% block main_content %}
+<div class="content-wrapper">
+    <div class="content-container">
+        <div class="content-header">
+            <h1>Reward</h1>
+        </div>
+        <div class="table-responsive">
+            <table id="adminTable" class="content-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Points Required</th>
+                        <th>Is Active</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reward in rewards %}
+                    <tr>
+                        <td>{{ reward.id }}</td>
+                        <td>{{ reward.name }}</td>
+                        <td>{{ reward.description }}</td>
+                        <td>{{ reward.pointsRequired }}</td>
+                        <td>{{ reward.isActive ? "Yes" : "No" }}</td>
+                        <td>
+                            {{ reward.createdAt ? reward.createdAt|date('Y-m-d H:i:s') : '' }}
+                        </td>
+                        <td>
+                            <a
+                                href="{{
+                                    path('app_reward_show', { id: reward.id })
+                                }}"
+                                >show</a
+                            >
+                            <a
+                                href="{{
+                                    path('app_reward_edit', { id: reward.id })
+                                }}"
+                                >edit</a
+                            >
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">no records found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# <a href="{{ path('app_reward_new') }}">Create new</a> #}
+    </div>
+</div>
+{% endblock %}

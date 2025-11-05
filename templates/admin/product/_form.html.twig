@@ -1,0 +1,131 @@
+{{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+<div class="bg-gray-50 p-6 mb-4 rounded-xl border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+            {{ form_label(form.name, '',{ label_attr: {'class': 'font-semibold'} })}}
+            {{ form_widget(form.name, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+
+        <div>
+            {{ form_label(form.category, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.category, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.category) }}
+        </div>
+
+        <div>
+            {{ form_label(form.qrTag, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.qrTag, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.qrTag) }}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        <div>
+            {{ form_label(form.material, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.material, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.material) }}
+        </div>
+        <div>
+            {{ form_label(form.size, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.size, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.size) }}
+        </div>
+        <div>
+            {{ form_label(form.color, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.color, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.color) }}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        <div>
+            {{ form_label(form.price, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.price, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.price) }}
+        </div>
+        <div>
+            {{ form_label(form.cost, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.cost, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.cost) }}
+        </div>
+        <div>
+            {{ form_label(form.points, '',{ label_attr: {'class': 'font-semibold'} }) }}
+            {{ form_widget(form.points, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+            {{ form_errors(form.points) }}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        {{ form_label(form.description, '',{ label_attr: {'class': 'font-semibold'} }) }}
+        {{ form_widget(form.description, {'attr': {'class': 'w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+        {{ form_errors(form.description) }}
+    </div>
+
+    <div class="mt-4">
+        {{ form_label(form.ecoInfo, '',{ label_attr: {'class': 'font-semibold'} }) }}
+        {{ form_widget(form.ecoInfo, {'attr': {'class': 'w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'}}) }}
+        {{ form_errors(form.ecoInfo) }}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-4">
+        <div>
+            <label class="block text-sm font-semibold text-mocha mb-1">Product Image</label>
+            <div id="dropzone"
+                class="mt-1 w-full h-full flex items-center justify-center border-2 border-gray-300 border-dashed rounded-xl hover:border-mocha transition duration-300 cursor-pointer">
+                <div class="space-y-1 text-center">
+                    <svg
+                        class="mx-auto h-12 w-12 text-gray-400"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+
+                    <div class="flex text-sm text-gray-600">
+                        <label for="{{ form.image.vars.id }}"
+                            class="relative cursor-pointer bg-white rounded-md font-medium text-mocha
+                            hover:text-mocha focus-within:outline-none focus-within:ring-2
+                            focus-within:ring-offset-2 focus-within:ring-mocha">
+                            <span>Upload a file.</span>
+
+                            {{ form_widget(form.image, {
+                                'attr': {
+                                    'id': form.image.vars.id,
+                                    'name': form.image.vars.full_name,
+                                    'class': 'sr-only',
+                                    'accept': 'image/*'
+                                }
+                            }) }}
+                        </label>
+                    </div>
+
+                    <p class="text-xs text-mocha">PNG, JPG, GIF up to 5MB</p>
+                    <p id="fileNameDisplay" class="text-sm font-medium text-green-600 hidden"></p>
+                </div>
+            </div>
+        </div>
+
+        {% if form.vars.value and form.vars.value.image %}
+            <div>
+                <p class="text-left text-sm font-semibold text-mocha">Current Image:</p>
+                <img src="{{ asset('uploads/products/' ~ form.vars.value.image) }}"
+                    class="w-full object-cover rounded-lg border border-gray-300 mt-1">
+            </div>
+        {% endif %}
+        {{ form_errors(form.image) }}
+    </div>
+</div>
+
+    <div class="mt-6 flex justify-end gap-3">
+        <button type="submit" class="{{ button_class|default('px-4 py-2 text-sm font-semibold bg-success text-white rounded-xl cursor-pointer') }}">
+            {{ button_label|default('Save') }}
+        </button>
+        <a href="{{ path('app_admin_product_index') }}" class="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-xl text-mocha  hover:bg-gray-200 transition">
+            Cancel
+        </a>
+    </div>
+{{ form_end(form) }}

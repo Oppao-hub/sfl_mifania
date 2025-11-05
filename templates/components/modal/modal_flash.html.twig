@@ -1,0 +1,23 @@
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div
+            x-data="{ show: true }"
+            x-show="show"
+            x-transition
+            class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+        >
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+                <h3 class="text-lg font-semibold text-[#422B1C] mb-2">
+                    {% if label == 'error' %}Error{% else %}Notice{% endif %}
+                </h3>
+                <p class="text-gray-700">{{ message }}</p>
+                <button
+                    @click="show = false"
+                    class="mt-4 px-4 py-2 bg-[#422B1C] text-white rounded-md hover:bg-[#645D1E]"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+{% endfor %}

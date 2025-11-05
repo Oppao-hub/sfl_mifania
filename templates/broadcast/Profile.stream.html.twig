@@ -1,0 +1,15 @@
+{# Learn how to use Turbo Streams:
+https://github.com/symfony/ux-turbo#broadcast-doctrine-entities-update #} {%
+block create %}
+<turbo-stream action="append" target="profiles">
+    <template>
+        <div id="{{ 'profile_' ~ id }}">#{{ id }} created</div>
+    </template>
+</turbo-stream>
+{% endblock %} {% block update %}
+<turbo-stream action="update" target="profile_{{ id }}">
+    <template> #{{ id }} updated </template>
+</turbo-stream>
+{% endblock %} {% block remove %}
+<turbo-stream action="remove" target="profile_{{ id }}"></turbo-stream>
+{% endblock %}

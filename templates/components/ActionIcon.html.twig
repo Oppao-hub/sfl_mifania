@@ -1,0 +1,18 @@
+{# templates/components/action_icon.html.twig #}
+<a
+    href="{{ path }}"
+    {{ attributes }}
+    class="flex items-center justify-center rounded-lg p-2 hover:bg-cream transition-all"
+    title="{{ label|default('') }}"
+>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="{{ class|default('w-5 h-5') }}"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        stroke-width="2"
+    >
+        <path d="{{ svgPath }}" />
+    </svg>
+</a>

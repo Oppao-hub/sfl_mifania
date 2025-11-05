@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %} {% block title %}Product{% endblock %} {% block
+body %}
+<link rel="stylesheet" href="{{ asset('styles/admin/show.css') }}" />
+<div class="show-wrapper">
+    <div class="show-container">
+        <div class="show-header">
+            <h1>Product List</h1>
+        </div>
+        <div class="show-body">
+            <div class="show-details">
+                <table class="show-table">
+                    <tbody>
+                        <tr>
+                            <th>Id</th>
+                            <td>{{ product.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Product Name</th>
+                            <td>{{ product.productName }}</td>
+                        </tr>
+                        <tr>
+                            <th>Category</th>
+                            <td>{{ product.category }}</td>
+                        </tr>
+                        <tr>
+                            <th>Material</th>
+                            <td>{{ product.material }}</td>
+                        </tr>
+                        <tr>
+                            <th>Size</th>
+                            <td>{{ product.size }}</td>
+                        </tr>
+                        <tr>
+                            <th>Color</th>
+                            <td>{{ product.color }}</td>
+                        </tr>
+                        <tr>
+                            <th>Price</th>
+                            <td>PHP {{ product.price }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ product.description }}</td>
+                        </tr>
+                        <tr>
+                            <th>Image</th>
+                            <td>{{ product.image }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="actions">
+            <a href="{{ path('app_product_index') }}">BACK</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

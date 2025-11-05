@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{
+            encore_entry_link_tags("app")
+        }}
+        <meta charset="UTF-8" />
+        <title>{% block title %}Welcome to MIFANIA{% endblock %}</title>
+        <link
+            rel="icon"
+            type="image/x-icon"
+            href="{{ asset('favicon.ico') }}"
+        />
+        {{
+            encore_entry_script_tags("app")
+        }}
+    </head>
+    <body>
+        <!-- HEADER -->
+        <header
+            class="flex justify-between items-center px-10 py-4 sticky top-0 bg-[#F9F1E8] shadow-[0_0_12px_rgba(63,44,30,0.6)] z-[1000]"
+        >
+            <!-- Logo -->
+            <div class="w-[270px]">
+                <a href="{{ path('app_home') }}">
+                    <img
+                        src="{{ asset('images/logo.svg') }}"
+                        alt="Fashion Logo"
+                    />
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex space-x-8 text-center">
+                <a
+                    href="{{ path('app_home') }}"
+                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
+                    >Home</a
+                >
+                <a
+                    href="{{ path('app_dashboard') }}"
+                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
+                    >Dashboard</a
+                >
+                <a
+                    href="#"
+                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
+                    >Products</a
+                >
+                <a
+                    href="#"
+                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
+                    >About</a
+                >
+                <a
+                    href="#"
+                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
+                    >Contact</a
+                >
+            </nav>
+
+            <!-- Navigation Icons -->
+            <nav class="flex items-center gap-6">
+                <a href="#">
+                    <img
+                        src="{{ asset('icons/magnifying-glass.svg') }}"
+                        alt="Search"
+                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
+                    />
+                </a>
+                <a href="{{ path('app_cart_show') }}">
+                    <img
+                        src="{{ asset('icons/shopping-cart-simple.svg') }}"
+                        alt="Cart"
+                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
+                    />
+                </a>
+                <a href="#">
+                    <img
+                        src="{{ asset('icons/heart.svg') }}"
+                        alt="Wishlist"
+                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
+                    />
+                </a>
+
+                {% if app.user %}
+                <a href="{{ path('app_account') }}">
+                    <img
+                        src="{{ asset('icons/user-circle.svg') }}"
+                        alt="Account"
+                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
+                    />
+                </a>
+                <a
+                    href="#"
+                    @click.prevent="$dispatch('open-logout-modal')"
+                >
+                    <img
+                        src="{{ asset('icons/sign-out.svg') }}"
+                        alt="Logout"
+                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
+                    />
+                </a>
+                {% else %}
+                <a href="{{ path('app_login') }}">
+                    <img
+                        src="{{ asset('icons/user-circle.svg') }}"
+                        alt="Account"
+                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
+                    />
+                </a>
+                {% endif %}
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        {% block main_content %}{% endblock %}
+
+        <!-- FOOTER -->
+        <footer class="flex flex-col">
+            <!-- Top Section -->
+            <div
+                class="grid grid-cols-1 md:grid-cols-3 text-center bg-white text-mocha p-6 gap-6"
+            >
+                <div>
+                    <h5 class="font-semibold text-lg">WEAR THE CHANGE</h5>
+                    <p class="text-sm mt-2">
+                        Sign up for our email newsletter and GET 10% OFF. It's
+                        like having a stylish BFF. Opt out any time.
+                    </p>
+                </div>
+
+                <div>
+                    <h5 class="font-semibold text-lg">HELP US IMPROVE</h5>
+                    <p class="text-sm mt-2">
+                        Take a brief survey about today's visit.
+                    </p>
+                    <a
+                        href="#"
+                        class="text-sm font-bold border-b-2 border-mocha hover:border-transparent transition duration-300"
+                        >BEGIN SURVEY</a
+                    >
+                </div>
+
+                <div>
+                    <h5 class="font-semibold text-lg">GET MIFANIA ON THE GO</h5>
+                    <p class="text-sm mt-2">Browse our products.</p>
+                </div>
+            </div>
+
+            <!-- Middle Section -->
+            <div
+                class="w-full h-[40vh] bg-mocha border-b border-white/20"
+            ></div>
+
+            <!-- Bottom Section -->
+            <div
+                class="flex flex-col md:flex-row justify-between items-center bg-mocha text-[#F9F1E8] px-10 py-5 gap-4"
+            >
+                <div class="text-xs">
+                    &copy; {{ "now"|date("Y") }} MIFANIA Sustainable Fashion
+                    Line. All rights reserved.
+                </div>
+
+                <div class="flex gap-6 text-xs">
+                    <a href="#" class="hover:underline">Terms & Conditions</a>
+                    <a href="#" class="hover:underline">Privacy Policy</a>
+                    <a href="#" class="hover:underline">Contact Us</a>
+                </div>
+            </div>
+        </footer>
+
+        <button
+            id="back-to-top"
+            class="fixed bottom-6 right-6 p-3 bg-light-brown text-white rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 z-50"
+            aria-label="Back to top"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+            </svg>
+        </button>
+        {% include 'components/modal/logout_confirmation.html.twig' %}
+        {% block javascripts %}
+            <script src="{{ asset('js/back_to_top.js') }}"></script>
+            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        {% endblock %}
+    </body>
+</html>

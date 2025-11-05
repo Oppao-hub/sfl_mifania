@@ -1,0 +1,25 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "livePreview.defaultPreviewPath": "/templates/admin/customer/index.html.twig",
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3307,
+            "driver": "MariaDB",
+            "name": "mySQL local",
+            "database": "mifania_db",
+            "username": "symfony",
+            "password": "symfony"
+        }
+    ],
+    "[xml]": {
+        "editor.defaultFormatter": "redhat.vscode-xml"
+    },
+    "emmet.triggerExpansionOnTab": true
+}

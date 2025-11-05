@@ -1,0 +1,41 @@
+<h2>Your Shopping Cart</h2>
+
+{% if cart.cartItems|length > 0 %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in cart.cartItems %}
+        <tr>
+            <td>{{ item.product.productName }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.subtotal }}</td>
+            <td>
+                <form
+                    action="{{ path('app_cart_remove', { id: item.id }) }}"
+                    method="POST"
+                >
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        Remove
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p><strong>Total: </strong>{{ total }}</p>
+
+<a href="{{ path('app_checkout') }}" class="btn btn-success">Checkout</a>
+{% else %}
+<p>Your cart is empty.</p>
+{% endif %}
