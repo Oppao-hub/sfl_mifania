@@ -1,0 +1,11 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Edit Order: {{ order.id }} {% endblock %}
+
+{% block main_content %}
+    {{ include('dashboard/order/_form.html.twig', {
+        form: form,
+        button_label: 'Update Order',
+        button_class: 'cursor-pointer px-4 py-2 bg-success text-sm font-semibold text-white rounded-xl hover:bg-success-hover'
+    }) }}
+{% endblock %}

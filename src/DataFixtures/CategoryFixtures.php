@@ -8,33 +8,20 @@ use Doctrine\Persistence\ObjectManager;
 
 class CategoryFixtures extends Fixture
 {
-    public const BAGS_CATEGORY_REFERENCE = 'category-bags';
-
+    public const CLOTHING_CATEGORY_REFERENCE = 'category-clothing';
+    public const DRESSES_CATEGORY_REFERENCE = 'category-dresses';
+    public const SHOES_CATEGORY_REFERENCE = 'category-shoes';
+    public const ACCESSORIES_CATEGORY_REFERENCE = 'category-accessories';
     public function load(ObjectManager $manager): void
     {
-        $subcategories = [
-            ['Tops & Shirts', 'Eco-friendly tops for everyday wear'],
-            ['Pants & Bottoms', 'Sustainable trousers and skirts'],
-            ['Dresses & Skirts', 'Stylish dresses made from organic fabrics'],
-            ['Outerwear', 'Jackets and coats from recycled materials'],
-            ['Activewear', 'Comfortable, sustainable activewear'],
-            ['Casual Shoes', 'Everyday shoes crafted responsibly'],
-            ['Sneakers', 'Trend-conscious sneakers made sustainably'],
-            ['Sandals', 'Lightweight, eco-friendly sandals'],
-            ['Boots', 'Durable boots with eco-conscious materials'],
-            ['Bags & Backpacks', 'Functional bags from recycled materials'],
-            ['Hats & Caps', 'Eco-friendly headwear'],
-            ['Scarves & Gloves', 'Sustainable accessories for daily use'],
-            ['Jewelry', 'Ethically sourced or recycled jewelry'],
-            ['Reusable Masks', 'Comfortable, eco-conscious masks'],
-            ['Water Bottles & Gear', 'Sustainable lifestyle essentials'],
-            ['Rain Gear & Outerwear', 'Eco-friendly raincoats and ponchos'],
-            ['Upcycled / Recycled', 'Fashion made from repurposed materials'],
-            ['Organic Cotton', 'Clothes made from certified organic cotton'],
-            ['Vegan Leather', 'Animal-free leather alternatives'],
+        $categories = [
+            ['Clothing', 'Sustainable wardrobe staples that blend comfort, quality, and eco-conscious materials. Designed to be versatile, stylish, and planet-friendly.'],
+            ['Dresses', 'A curated collection of ethically made dresses designed for comfort, confidence, and conscious living. Every piece is crafted from eco-friendly fabrics and made to last.'],
+            ['Shoes', 'Eco-friendly footwear that unites sustainable craftsmanship with timeless design. Each pair is made using recycled, vegan, or natural materials.'],
+            ['Accessories', 'Thoughtfully crafted accessories that complete your sustainable look. Each piece tells a story of ethical craftsmanship and circular design.'],
         ];
 
-        foreach ($subcategories as [$name, $description]) {
+        foreach ($categories as [$name, $description]) {
             $category = new Category();
             $category->setName($name);
             $category->setDescription($description);
@@ -42,9 +29,19 @@ class CategoryFixtures extends Fixture
             $category->setUpdatedAt(new \DateTimeImmutable());
             $manager->persist($category);
 
-            // Add a reference for the specific category we need in other fixtures
-            if ($name === 'Bags & Backpacks') {
-                $this->addReference(self::BAGS_CATEGORY_REFERENCE, $category);
+            switch ($name) {
+                case 'Clothing':
+                    $this->addReference(self::CLOTHING_CATEGORY_REFERENCE, $category);
+                    break;
+                case 'Dresses':
+                    $this->addReference(self::DRESSES_CATEGORY_REFERENCE, $category);
+                    break;
+                case 'Shoes':
+                    $this->addReference(self::SHOES_CATEGORY_REFERENCE, $category);
+                    break;
+                case 'Accessories':
+                    $this->addReference(self::ACCESSORIES_CATEGORY_REFERENCE, $category);
+                    break;
             }
         }
 

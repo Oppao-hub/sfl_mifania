@@ -1,0 +1,173 @@
+{# templates/dashboard/order/show.html.twig #}
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Order #{{ order.id }} - Mifania{% endblock %}
+
+{% block main_content %}
+<div class="p-4 md:p-10 animate-fadeIn">
+
+    {# 1. Top Navigation & Action Header #}
+    <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
+        <div class="flex items-center gap-5">
+            <a href="{{ path('app_dashboard_order_index') }}"
+               class="p-3 bg-white rounded-xl border border-cream-200 text-dashboard-mocha hover:text-dashboard-olive transition-all shadow-sm active:scale-95">
+                {{ ux_icon('lucide:arrow-left', {class: 'w-5 h-5'}) }}
+            </a>
+            <div>
+                <h1 class="text-4xl font-black text-dashboard-mocha tracking-tighter leading-none uppercase">
+                    Order <span class="text-dashboard-olive">#{{ order.id }}</span>
+                </h1>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] text-dashboard-mocha/40 uppercase font-black tracking-widest italic">Electronic Manifest</span>
+                    <span class="px-2 py-0.5 bg-dashboard-bg text-dashboard-mocha/60 rounded-md text-[10px] font-bold font-mono uppercase tracking-tighter">Processed: {{ order.createdAt|date('M d, Y') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+             <a href="{{ path('app_dashboard_order_edit', { id: order.id }) }}"
+               class="px-6 py-3 bg-dashboard-olive text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-dashboard-mocha transition-all shadow-xl shadow-dashboard-olive/10 flex items-center gap-2">
+                {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
+                Modify Order
+            </a>
+            <button type="button"
+                @click="$dispatch('open-delete-modal', {
+                    url: '{{ path('app_dashboard_order_delete', {id: order.id}) }}',
+                    name: 'Order #{{ order.id }}',
+                    token: '{{ csrf_token('delete' ~ order.id) }}'
+                })"
+                class="px-6 py-3 bg-white border border-red-100 text-red-500 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-50 transition-all flex items-center gap-2 active:scale-95">
+                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                Void
+            </button>
+        </div>
+    </div>
+
+    {# 2. Summary Dashboard Grid #}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+
+        {# Helper Macro for Boutique Tags #}
+        {% macro detailCard(label, value, icon, color='text-dashboard-mocha') %}
+            <div class="bg-white p-6 rounded-xl border border-cream-200 shadow-[0_10px_30px_rgba(66,43,28,0.03)] flex items-start gap-4">
+                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                    {{ ux_icon(icon, {class: 'w-4 h-4'}) }}
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-dashboard-mocha/30 mb-1 leading-none">{{ label }}</p>
+                    <p class="text-sm font-bold {{ color }} leading-tight">{{ value|default('N/A') }}</p>
+                </div>
+            </div>
+        {% endmacro %}
+
+        {{ _self.detailCard('Customer Record', order.customer ? order.customer.firstName ~ ' ' ~ order.customer.lastName : 'Guest Client', 'lucide:user') }}
+        {{ _self.detailCard('Financial Total', '₱' ~ order.totalAmount|number_format(2), 'lucide:banknote', 'text-dashboard-olive') }}
+
+        {# Status Badge with logic #}
+        <div class="bg-white p-6 rounded-xl border border-cream-200 shadow-[0_10px_30px_rgba(66,43,28,0.03)] flex items-start gap-4">
+            <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                {{ ux_icon('lucide:package-check', {class: 'w-4 h-4'}) }}
+            </div>
+            <div>
+                <p class="text-[9px] font-black uppercase tracking-[0.2em] text-dashboard-mocha/30 mb-1 leading-none">Order Status</p>
+                <span class="text-[10px] font-black uppercase tracking-widest
+                    {% if order.orderStatus.value == 'Completed' %} text-green-600 {% else %} text-orange-500 {% endif %}">
+                    {{ order.orderStatus.value }}
+                </span>
+            </div>
+        </div>
+
+        {{ _self.detailCard('Loyalty Points', order.rewardPoints|default(0) ~ ' Credited', 'lucide:sparkles', 'text-terracotta') }}
+    </div>
+
+    {# 3. Detailed Logistics Grid #}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        {# Left: Line Items Table #}
+        <div class="lg:col-span-8 bg-white rounded-xl border border-cream-200 shadow-xl shadow-dashboard-mocha/5 overflow-hidden">
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-black text-dashboard-mocha tracking-tighter uppercase">Order Inventory</h2>
+                <span class="px-3 py-1 bg-dashboard-bg text-dashboard-mocha/50 rounded-lg text-[9px] font-black tracking-widest border border-cream-200 uppercase">
+                    {{ order.orderItems|length }} SKUs
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-dashboard-bg/30 text-left text-[10px] font-black uppercase tracking-[0.2em] text-dashboard-mocha/40">
+                            <th class="px-8 py-4">Article</th>
+                            <th class="px-8 py-4 text-center">Qty</th>
+                            <th class="px-8 py-4 text-right">Unit Value</th>
+                            <th class="px-8 py-4 text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for item in order.orderItems %}
+                            <tr class="hover:bg-dashboard-bg/20 transition-colors">
+                                <td class="px-8 py-5">
+                                    <span class="text-sm font-bold text-dashboard-mocha block">{{ item.product.name }}</span>
+                                    <span class="text-[9px] text-dashboard-mocha/40 font-black uppercase tracking-tighter">REF: #{{ item.product.id }}</span>
+                                </td>
+                                <td class="px-8 py-5 text-center text-sm font-bold text-dashboard-mocha">
+                                    {{ item.quantity }}
+                                </td>
+                                <td class="px-8 py-5 text-right text-sm font-bold text-dashboard-mocha/60 italic">
+                                    ₱{{ item.price|number_format(2) }}
+                                </td>
+                                <td class="px-8 py-5 text-right text-sm font-black text-dashboard-mocha">
+                                    ₱{{ item.subtotal|number_format(2) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-dashboard-bg/40 border-t border-cream-200">
+                        <tr>
+                            <td colspan="3" class="px-8 py-6 text-right text-[10px] font-black uppercase tracking-[0.3em] text-dashboard-mocha/40">Manifest Total:</td>
+                            <td class="px-8 py-6 text-right text-xl font-black text-dashboard-olive tracking-tighter">
+                                ₱{{ order.totalAmount|number_format(2) }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        {# Right: Payment & Processing Info #}
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-dashboard-mocha p-8 rounded-xl text-white shadow-2xl">
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-white/30 mb-6">Payment Resolution</h3>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-[9px] font-black uppercase tracking-widest text-white/40 block mb-1">Method</label>
+                        <p class="text-sm font-bold flex items-center gap-2">
+                            {{ ux_icon('lucide:credit-card', {class: 'w-4 h-4 opacity-50'}) }}
+                            {{ order.paymentMethod.value|default('Pending Verification') }}
+                        </p>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase tracking-widest text-white/40 block mb-1">Status</label>
+                        <span class="px-3 py-1 bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-dashboard-mint">
+                            {{ order.paymentStatus.value|default('Unpaid') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl border border-cream-200">
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-dashboard-mocha/30 mb-6">Audit Trail</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="font-black uppercase tracking-widest text-dashboard-mocha/40">Initialized</span>
+                        <span class="font-bold text-dashboard-mocha">{{ order.createdAt|date('d.m.Y H:i') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="font-black uppercase tracking-widest text-dashboard-mocha/40">Last Revision</span>
+                        <span class="font-bold text-dashboard-mocha">{{ order.updatedAt|date('d.m.Y H:i') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

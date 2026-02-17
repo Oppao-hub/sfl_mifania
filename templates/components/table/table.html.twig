@@ -1,35 +1,40 @@
-<div class="p-8 mx-1 min-h-screen bg-white shadow-sm">
-    {% if title is defined %}
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h1 class="text-2xl font-semibold text-mocha">{{ title }}</h1>
-            {% if new_path is defined %}
-                <a href="{{ path(new_path) }}"
-                    class="px-4 py-2 rounded-xl bg-success text-white text-sm font-semibold hover:bg-success-hover transition-all">
-                    Create New
-                </a>
-            {% endif %}
-        </div>
-    {% endif %}
+<div class="bg-white rounded-2xl shadow-lg[0_20px_50px_rgba(66,43,28,0.05)] border border-cream-200 overflow-hidden">
 
-    <div class="overflow-x-auto">
-        <table id="{{ id|default('data-table') }}" class="min-w-full border border-border-color rounded-xl overflow-hidden text-sm">
-            {% if headers is defined %}
-                <thead class="bg-mocha text-left text-cream font-semibold">
-                    <tr>
+    {# 1. Top Header Area (Title & Add Button) #}
+    <div class="p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-3xl font-black text-dashboard-mocha tracking-tighter">{{ title|default('Records') }}</h1>
+
+            <p class="text-xs text-dashboard-mocha/40 mt-1 uppercase font-bold tracking-widest">Sustainable Inventory Management</p>
+        </div>
+
+        {% if new_path is defined %}
+            <a href="{{ path(new_path) }}"
+                class="px-8 py-3 rounded-2xl bg-dashboard-olive text-white text-xs font-black uppercase tracking-widest hover:bg-dashboard-olive/90 transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-dashboard-olive/10">
+                {{ ux_icon('lucide:plus', {class: 'w-4 h-4'}) }}
+                Add New Record
+            </a>
+        {% endif %}
+    </div>
+
+    {# 2. The Unified DataTable Container #}
+    {# DataTables will inject search/length inside this wrapper via the 'dom' property #}
+    <div class="px-8 pb-8">
+        <div class="overflow-x-auto">
+            <table id="{{ id|default('dashboard-table') }}"
+                class="js-datatable min-w-full border-separate border-spacing-y-3 text-sm">
+                <thead>
+                    <tr class="text-dashboard-olive uppercase text-[10px] font-black tracking-[0.2em]">
                         {% for header in headers %}
-                            <th class="py-3 px-4">{{ header }}</th>
+                            <th class="pb-4 px-6 text-left whitespace-nowrap">{{ header }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
-            {% endif %}
 
-            <tbody class="bg-white divide-y divide-border-color">
-                {% block rows %}
-                    <tr>
-                        <td colspan="{{ headers|length }}" class="py-6 text-center text-text-muted">No data available</td>
-                    </tr>
-                {% endblock %}
-            </tbody>
-        </table>
+                <tbody>
+                    {% block rows %}{% endblock %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

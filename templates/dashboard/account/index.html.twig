@@ -1,0 +1,101 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}My Account{% endblock %}
+
+{% block main_content %}
+{# --- 1. SETUP VARIABLES (Determine Role & Avatar) --- #}
+{% set avatarPath = 'images/default/default_avatar.jpg' %}
+{% set userRole = 'User' %}
+{% set profileName = app.user.userIdentifier %}
+
+{% if is_granted('ROLE_ADMIN') and app.user.admin %}
+    {% set userRole = 'Administrator' %}
+    {% set profileName = app.user.admin.firstName ~ ' ' ~ app.user.admin.lastName %}
+    {% if app.user.admin.avatar %}
+        {% set avatarPath = 'uploads/admin/avatars/' ~ app.user.admin.avatar %}
+    {% endif %}
+{% elseif is_granted('ROLE_STAFF') and app.user.staff %}
+    {% set userRole = 'Staff' %}
+    {% set profileName = app.user.staff.firstName ~ ' ' ~ app.user.staff.lastName %}
+    {% if app.user.staff.avatar %}
+        {% set avatarPath = 'uploads/staff/avatars/' ~ app.user.staff.avatar %}
+    {% endif %}
+{% endif %}
+
+<div class="p-4 md:p-8 lg:p-10 animate-fadeIn">
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+
+        {# Left Sidebar Navigation #}
+        <aside class="w-full lg:w-80 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 lg:sticky lg:top-24">
+
+            {# PROFILE HEADER #}
+            <div class="flex flex-col items-center text-center mb-8 pb-6 border-b border-gray-50">
+                <div class="relative w-28 h-28 mb-4">
+                    <img
+                        src="{{ asset(avatarPath) }}"
+                        alt="Profile Picture"
+                        class="w-full h-full rounded-[2rem] object-cover border-4 border-dashboard-mint shadow-sm"
+                    >
+                    <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></span>
+                </div>
+
+                <h2 class="text-xl font-black text-mocha uppercase tracking-tight">
+                    {{ profileName }}
+                </h2>
+                <p class="text-sm text-gray-400 mb-3 font-medium">
+                    {{ app.user.email }}
+                </p>
+                <span class="inline-block px-4 py-1.5 text-[10px] font-black text-dashboard-olive bg-dashboard-mint rounded-full uppercase tracking-widest">
+                    {{ userRole }}
+                </span>
+            </div>
+
+            {# NAVIGATION #}
+            <div class="mb-4 px-2">
+                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em]">Account Settings</h3>
+            </div>
+
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <twig:ALink
+                            path="{{ path('app_account') }}"
+                            isActive="{{ app.request.attributes.get('_route') == 'app_account' }}"
+                            class="font-bold flex items-center px-4 py-3.5 rounded-2xl transition-all"
+                            label="Profile Information"
+                        />
+                    </li>
+
+                    <li>
+                        <twig:ALink
+                            path="{{ path('app_account_password') }}"
+                            isActive="{{ app.request.attributes.get('_route') == 'app_account_password' }}"
+                            class="font-bold flex items-center px-4 py-3.5 rounded-2xl transition-all"
+                            label="Security & Password"
+                        />
+                    </li>
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="pt-4 mt-4 border-t border-gray-50">
+                             <span class="px-4 text-[10px] font-black text-gray-300 uppercase tracking-[0.2em]">System</span>
+                        </li>
+                        <li>
+                             <twig:ALink
+                                path="{{ path('app_admin_activity_log_index') }}"
+                                isActive="{{ app.request.attributes.get('_route') == 'app_admin_activity_log_index' }}"
+                                class="font-bold flex items-center px-4 py-3.5 rounded-2xl transition-all"
+                                label="Activity Logs"
+                            />
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </aside>
+
+        {# Right Content Area #}
+        <main class="w-full flex-1">
+            {% block account_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

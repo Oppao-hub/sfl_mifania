@@ -1,0 +1,116 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Order #{{ order.id }}{% endblock %}
+
+{% block main_content %}
+<div class="mx-1 min-h-screen bg-white p-8 shadow-md">
+    <div class="mb-8 border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-4 sm:mb-0">Order #{{ order.id }} Details</h1>
+    </div>
+
+    {# Order Summary Grid #}
+    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Summary & Status</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+
+        {# Detail Card Helper Macro #}
+        {% macro detailCard(label, value, is_bold=false, color_class='text-gray-700') %}
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+                <p class="text-xs font-medium uppercase text-gray-500">{{ label }}</p>
+                <p class="mt-1 text-base {{ is_bold ? 'font-semibold' : 'font-normal' }} {{ color_class }}">
+                    {{ value|default('N/A') }}
+                </p>
+            </div>
+        {% endmacro %}
+
+        {# Row 1: ID, Customer, Date #}
+        {{ _self.detailCard('Order ID', order.id, true) }}
+        {{ _self.detailCard('Customer', order.customer ? order.customer.firstName ~ ' ' ~ order.customer.lastName : 'N/A', false, 'text-blue-600') }}
+        {{ _self.detailCard('Order Date', order.orderDate ? order.orderDate|date('Y-m-d') : 'N/A') }}
+
+        {# Row 2: Financials #}
+        {{ _self.detailCard('Total Amount', 'PHP ' ~ order.totalAmount|number_format(2, '.', ','), true, 'text-green-700') }}
+        {{ _self.detailCard('Payment Method', order.paymentMethod.value|default('N/A')) }}
+        {{ _self.detailCard('Payment Status', order.paymentStatus.value|default('N/A')) }}
+
+        {# Row 3: Status and Rewards #}
+        {{ _self.detailCard('Order Status', order.orderStatus.value|default('N/A'), true, 'text-indigo-600') }}
+        {{ _self.detailCard('Rewards Earned', order.rewardPointsEarned|default(0) ~ ' pts') }}
+
+        {# Row 4: Timestamps #}
+        {{ _self.detailCard('Created At', order.createdAt ? order.createdAt|date('Y-m-d H:i:s') : 'N/A', false, 'text-gray-500') }}
+        {{ _self.detailCard('Last Updated', order.updatedAt ? order.updatedAt|date('Y-m-d H:i:s') : 'N/A', false, 'text-gray-500') }}
+    </div>
+
+    {# ---------------------------------------------------------------- #}
+    {# Order Items Section #}
+    {# ---------------------------------------------------------------- #}
+    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 mt-8">
+        Items Ordered ({{ order.orderItems|length }} line{% if order.orderItems|length != 1 %}s{% endif %})
+    </h2>
+
+    <div class="overflow-x-auto shadow-lg rounded-xl border border-gray-200 mb-3">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Product</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Qty</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Unit Price</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                {% for item in order.orderItems %}
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ item.product.name }}
+                            <span class="text-xs text-gray-500 block">ID: {{ item.product.id }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                            {{ item.quantity }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
+                            PHP {{ item.price|number_format(2, '.', ',') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-800 text-right">
+                            PHP {{ item.subtotal|number_format(2, '.', ',') }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-6 text-center text-sm text-gray-500 bg-gray-50">This order contains no items.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            {# Final Total Row #}
+            <tfoot class="border-t-2 border-green-200 bg-green-50">
+                <tr>
+                    <td colspan="3" class="px-6 py-4 text-right text-base font-bold uppercase text-green-800">Grand Total:</td>
+                    <td class="px-6 py-4 text-right text-lg font-extrabold text-green-900">
+                        PHP {{ order.totalAmount|number_format(2, '.', ',') }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+        {# Edit button #}
+        <a href="{{ path('app_dashboard_order_edit', { id: order.id }) }}"
+            class="px-4 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover transition">
+            Edit
+        </a>
+
+        {# Delete form #}
+        <a
+            href="#"
+            onclick="openDeleteModal({{ order.id }}, '{{ 'Order #' ~ order.id|e('js') }}', '{{ csrf_token('delete' ~ order.id) }}')"
+            class="px-4 py-2 bg-danger text-white text-sm font-medium rounded-xl hover:bg-danger-hover transition"
+        >
+            Delete
+        <a href="{{ path('app_dashboard_customer_history', { id: order.customer.id }) }}"
+            class="px-4 py-2 bg-white border border-gray-300 text-gray-500 text-sm font-semibold rounded-xl hover:bg-row-hover transition">
+            Back
+        </a>
+    </div>
+</div>
+{% endblock %}

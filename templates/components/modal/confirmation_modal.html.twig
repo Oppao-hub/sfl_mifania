@@ -1,0 +1,69 @@
+<div x-data="{
+        open: false,
+        title: '',
+        message: '',
+        activeForm: null,
+        activeSelect: null,
+        previousValue: null,
+
+        trigger(event) {
+            this.open = true;
+            this.activeForm = event.detail.form;
+            this.activeSelect = event.detail.select;
+            this.previousValue = event.detail.originalVal;
+            this.title = event.detail.title || 'Update Status';
+            this.message = event.detail.message || `Are you sure you want to change the status from <b class='text-dashboard-mocha'>${this.previousValue}</b> to <b class='text-dashboard-olive'>${this.activeSelect.value}</b>?`;
+        },
+        confirm() {
+            if (this.activeForm) this.activeForm.submit();
+        },
+        cancel() {
+            this.open = false;
+            if (this.activeSelect) this.activeSelect.value = this.previousValue;
+        }
+    }"
+    @confirm-action.window="trigger($event)"
+    x-show="open"
+    x-cloak
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-dashboard-mocha/40 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true">
+
+    <div @click.away="cancel()"
+         class="bg-white rounded-[2rem] shadow-2xl shadow-dashboard-mocha/10 w-full max-w-md mx-4 p-8 border border-dashboard-bg">
+
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-3xl bg-dashboard-mint mb-6">
+                <svg class="h-8 w-8 text-dashboard-olive" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+            </div>
+
+            <h3 class="text-2xl font-black text-dashboard-mocha tracking-tight mb-2" x-text="title"></h3>
+
+            <div class="mt-2">
+                <p class="text-sm text-dashboard-mocha/60 leading-relaxed" x-html="message"></p>
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-center gap-4">
+            <button type="button"
+                    @click="cancel()"
+                    class="flex-1 px-6 py-3 bg-dashboard-bg text-dashboard-mocha/60 rounded-2xl hover:bg-gray-200 font-bold transition-all cursor-pointer">
+                Cancel
+            </button>
+
+            <button type="button"
+                    @click="confirm()"
+                    class="flex-1 px-6 py-3 bg-dashboard-olive text-white rounded-2xl hover:opacity-90 font-bold shadow-lg shadow-dashboard-olive/20 transition-all cursor-pointer">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>

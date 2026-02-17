@@ -3,11 +3,13 @@
 namespace App\DataFixtures;
 
 use App\Entity\Product;
-use App\DataFixtures\CategoryFixtures;
-use App\Entity\Category;
+use App\Entity\Enum\Size;
+use App\Entity\SubCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use App\DataFixtures\SubCategoryFixtures; // Added missing import for SubCategoryFixtures
+use App\Entity\Enum\Color;
 
 class ProductFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -15,9 +17,10 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        // Get the category
-        /** @var Category $category */
-        $category = $this->getReference(CategoryFixtures::BAGS_CATEGORY_REFERENCE, Category::class);
+        // Get the subcategory reference
+        /** @var SubCategory $subCategory */
+        // FIX 1: Corrected getReference call (removed second argument)
+        $subCategory = $this->getReference(SubCategoryFixtures::BAGS_CATEGORY_REFERENCE, SubCategory::class);
 
         $productsData = [
             [
@@ -60,7 +63,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'name' => 'Hemp Shopping Bag',
                 'material' => 'Hemp',
                 'size' => 'Large',
-                'color' => 'Natural',
+                'color' => 'Green',
                 'price' => '699.99',
                 'cost' => '350.00',
                 'description' => 'Strong and stylish hemp shopping bag.',
@@ -85,19 +88,17 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
         foreach ($productsData as $i => $data) {
             $product = new Product();
             $product->setName($data['name'])
-                ->setCategory($category)
+                ->setSubCategory($subCategory)
                 ->setMaterial($data['material'])
-                ->setSize($data['size'])
-                ->setColor($data['color'])
+                ->setSize(Size::from($data['size']))
+                ->setColor(Color::from($data['color']))
                 ->setPrice($data['price'])
                 ->setCost($data['cost'])
                 ->setDescription($data['description'])
                 ->setPoints($data['points'])
                 ->setEcoInfo($data['ecoInfo'])
-                ->setImage($data['image'])
-                // // ✅ FIX — set timestamps explicitly
-                ->setCreatedAt(new \DateTimeImmutable())
-                ->setUpdatedAt(new \DateTimeImmutable());
+                ->setImage($data['image']);
+            // Removed explicit timestamp setting as Product entity handles it via PrePersist/PreUpdate
 
             $manager->persist($product);
             $this->addReference(self::PRODUCT_REFERENCE . '-' . $i, $product);
@@ -109,7 +110,9 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
+                // SubCategoryFixtures is needed to load the BAGS_CATEGORY_REFERENCE
             CategoryFixtures::class,
+            SubCategoryFixtures::class,
         ];
     }
 }

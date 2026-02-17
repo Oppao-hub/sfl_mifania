@@ -1,0 +1,11 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Add Product{% endblock %}
+
+{% block main_content %}
+    {{ include('dashboard/product/_form.html.twig', {
+        form: form,
+        button_label: 'Add Product',
+        button_class: 'px-3 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover'
+    }) }}
+{% endblock %}

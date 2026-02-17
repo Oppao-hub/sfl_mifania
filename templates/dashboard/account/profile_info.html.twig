@@ -1,0 +1,71 @@
+{% extends "dashboard/account/index.html.twig" %}
+
+{% block title %}Profile Information{% endblock %}
+
+{% block account_content %}
+
+{# --- 1. SETUP VARIABLES --- #}
+{% set profile = app.user.admin ? app.user.admin : (app.user.staff ? app.user.staff : null) %}
+
+{# --- 2. CONTENT CARD --- #}
+<div class="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 h-full animate-fadeIn">
+
+    {# Header Section: Responsive layout (stacks on mobile) #}
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 border-b border-gray-50 pb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-mocha">Personal Information</h2>
+            <p class="text-sm text-gray-400 mt-1">Manage your personal details and contact info.</p>
+        </div>
+
+        {# Edit Button #}
+        <a href="{{ path('app_account_edit') }}"
+           class="inline-flex items-center justify-center px-5 py-2.5 bg-[#e8f3e1] text-[#6b703d] font-bold text-sm rounded-xl hover:bg-[#dce9d3] transition-all shadow-sm">
+            {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4 mr-2'}) }}
+            Edit Details
+        </a>
+    </div>
+
+    {# Info Fields Grid #}
+    <div class="space-y-6">
+        {# Row 1: Names #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">First Name</label>
+                <div class="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-[#3e322b] font-medium text-sm">
+                    {{ profile ? profile.firstName : 'Not set' }}
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Last Name</label>
+                <div class="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-[#3e322b] font-medium text-sm">
+                    {{ profile ? profile.lastName : 'Not set' }}
+                </div>
+            </div>
+        </div>
+
+        {# Row 2: Account Details #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                <div class="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-[#3e322b] font-medium text-sm flex items-center gap-2">
+                    {{ ux_icon('lucide:mail', {class: 'w-4 h-4 text-gray-300'}) }}
+                    <span>{{ app.user.email }}</span>
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Account Role</label>
+                <div class="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-[#3e322b] font-medium text-sm flex items-center gap-2">
+                    {{ ux_icon('lucide:shield-check', {class: 'w-4 h-4 text-gray-300'}) }}
+                    <span>
+                        {% if app.user.admin %}
+                            System Administrator
+                        {% elseif app.user.staff %}
+                            Support Staff
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

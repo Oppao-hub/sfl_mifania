@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
-use App\Entity\Enum\StockStatus;
+use App\Entity\Enum\Size;
+use App\Entity\Enum\Color;
+use App\Entity\Enum\Gender;
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,43 +22,47 @@ class Product
     private ?int $id = null;
 
     #[Assert\NotBlank(message: "Product name cannot be empty.")]
+    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(inversedBy: 'products', targetEntity: Category::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Category $category = null;
-
+    #[Assert\NotBlank(message: "Material cannot be empty.")]
+    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
     private ?string $material = null;
 
+    #[ORM\Column(length: 20, enumType: Size::class)]
+    private ?Size $size = null;
 
-    #[ORM\Column(length: 10)]
-    private ?string $size = null;
+    #[ORM\Column(length: 50, nullable: false, enumType: Color::class)]
+    private ?Color $color = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $color = null;
 
-    #[Assert\PositiveOrZero(message: "Price must be positive number.")]
+    #[ORM\Column(length: 20, enumType: Gender::class, nullable: false)]
+    private ?Gender $gender = null;
+
+
+    #[Assert\PositiveOrZero(message: "Price must be positive or zero.")]
+    #[Assert\Type(type: 'numeric', message: "Price must be a number.")]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
-    #[Assert\PositiveOrZero(message: "Price must be positive number.")]
+    #[Assert\PositiveOrZero(message: "Cost must be positive or zero.")]
+    #[Assert\Type(type: 'numeric', message: "Cost must be a number.")]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $cost = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    #[ORM\Column(length: 255, unique: true)]
+    private ?string $slug = null;
+
     #[ORM\OneToOne(mappedBy: 'product', cascade: ['persist', 'remove'])]
     private ?QRTag $qrTag = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = 'default.png';
-
-    #[Assert\PositiveOrZero(message: "Points must be positive number.")]
-    #[ORM\Column]
-    private ?int $points = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $ecoInfo = null;
@@ -85,11 +91,12 @@ class Product
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    #[ORM\ManyToOne(inversedBy: 'products')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?SubCategory $subCategory = null;
 
+    #[ORM\ManyToOne(inversedBy: 'products')]
+    private ?Category $category = null;
     public function __construct()
     {
         $this->orderItems = new ArrayCollection();
@@ -97,12 +104,55 @@ class Product
         $this->cartItems = new ArrayCollection();
     }
 
+    /**
+     * Sets createdAt and updatedAt automatically on pre-persist.
+     */
     #[ORM\PrePersist]
-    #[ORM\PreUpdate]
-    public function updateTimestamps(): void
+    public function setInitialTimestamps(): void
     {
+        // Only runs if null, ensuring existing dates are not overwritten
         $this->createdAt ??= new \DateTimeImmutable();
         $this->updatedAt ??= new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdateTimestamp(): void
+    {
+        // Always updates the timestamp on entity modification
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    /**
+     * Ensures the slug is set before persisting.
+     */
+    #[ORM\PrePersist]
+    public function generateSlugOnPersist(): void
+    {
+        if (empty($this->slug) && !empty($this->name)) {
+            $this->slug = $this->generateSlug($this->name);
+        }
+    }
+
+    /**
+     * Basic slug generation helper. In a real app, use the Symfony Slugger component.
+     */
+    private function generateSlug(string $text): string
+    {
+        // Replace non-alphanumeric characters with hyphens
+        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+        // Trim leading/trailing hyphens
+        $text = trim($text, '-');
+        // Convert to lowercase
+        $text = strtolower($text);
+
+        return $text;
+    }
+
+    // --- Accessors (Getters and Setters) ---
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getName(): ?string
@@ -113,18 +163,6 @@ class Product
     public function setName(string $name): static
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getCategory(): ?Category
-    {
-        return $this->category;
-    }
-
-    public function setCategory(?Category $category): static
-    {
-        $this->category = $category;
 
         return $this;
     }
@@ -165,26 +203,38 @@ class Product
         return $this;
     }
 
-    public function getSize(): ?string
+    public function getSize(): ?Size
     {
         return $this->size;
     }
 
-    public function setSize(string $size): static
+    public function setSize(Size $size): static
     {
         $this->size = $size;
 
         return $this;
     }
 
-    public function getColor(): ?string
+    public function getColor(): ?Color
     {
         return $this->color;
     }
 
-    public function setColor(?string $color): static
+    public function setColor(?Color $color): static
     {
         $this->color = $color;
+
+        return $this;
+    }
+
+    public function getGender(): ?Gender
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?Gender $gender): static
+    {
+        $this->gender = $gender;
 
         return $this;
     }
@@ -201,6 +251,17 @@ class Product
         return $this;
     }
 
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
+        return $this;
+    }
+
     public function getQrTag(): ?QRTag
     {
         return $this->qrTag;
@@ -208,13 +269,20 @@ class Product
 
     public function setQrTag(?QrTag $qrTag): static
     {
-        if ($qrTag && $qrTag->getProduct() !== $this) {
+        // Unset the current QRTag relationship if it exists
+        if ($this->qrTag !== null && $this->qrTag->getProduct() === $this) {
+            $this->qrTag->setProduct(null);
+        }
+
+        // Set the new QRTag relationship and ensure bidirectional link
+        if ($qrTag !== null) {
             $qrTag->setProduct($this);
         }
 
         $this->qrTag = $qrTag;
         return $this;
     }
+
 
     public function getImage(): ?string
     {
@@ -228,19 +296,7 @@ class Product
         return $this;
     }
 
-    public function getPoints(): ?int
-    {
-        return $this->points;
-    }
-
-    public function setPoints(int $points): static
-    {
-        $this->points = $points;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -347,6 +403,11 @@ class Product
         return $total;
     }
 
+    /**
+     * This method is intended for simple stock adjustment, primarily for deduction.
+     * For addition, creating a new Stock entity (e.g., via a service layer) is the better practice
+     * to accurately track inventory inflow.
+     */
     public function setTotalStockQuantity(int $newTotal): void
     {
         // 1 Get the current total stock of this product
@@ -357,13 +418,29 @@ class Product
         // 2 Calculate the difference between desired total and current total
         $difference = $newTotal - $currentTotal;
 
-        // 3 If the new total is lower, we need to deduct stock
+        // 3 If the new total is lower, we need to deduct stock (FIFO)
         if ($difference < 0) {
             $this->deductStockQuantity(abs($difference));
 
-            // 4 If the new total is higher, we can add stock (to be implemented)
+            // 4 If the new total is higher, we increase stock (LIFO for modification)
         } elseif ($difference > 0) {
-            // Add logic to increase stock (e.g., add to last stock record)
+            $this->increaseStockQuantity($difference);
+        }
+    }
+
+    public function increaseStockQuantity(int $quantityToAdd): void
+    {
+        // Sort stocks by ID in descending order to get the latest (LIFO for modification)
+        $stocks = $this->getStocks()->toArray();
+        usort($stocks, fn($a, $b) => $b->getId() <=> $a->getId());
+
+        // If stocks exist, add the quantity to the latest stock record
+        if (!empty($stocks)) {
+            $latestStock = $stocks[0];
+            $latestStock->setQuantity($latestStock->getQuantity() + $quantityToAdd);
+        } else {
+            // If no stock record exists, throw an exception as a new Stock entity should be created
+            throw new \Exception('Cannot increase stock: No existing stock record found to modify. A new Stock entity must be created via a service.');
         }
     }
 
@@ -371,7 +448,7 @@ class Product
     {
         $remainingToDeduct = $quantityToDeduct;
 
-        //sort stocks oldest first by ID
+        // Sort stocks oldest first by ID (FIFO for deduction)
         $stocks = $this->getStocks()->toArray();
         usort($stocks, fn($a, $b) => $a->getId() <=> $b->getId());
 
@@ -395,9 +472,10 @@ class Product
 
     public function getStockStatus(): string
     {
-        if ($this->getTotalStockQuantity() > 50) { // Example threshold for "In Stock"
+        $quantity = $this->getTotalStockQuantity();
+        if ($quantity > 50) { // Example threshold for "In Stock"
             return 'In Stock';
-        } elseif ($this->getTotalStockQuantity() >= 1 && $this->getTotalStockQuantity() < 50) { // Example threshold for "Low Stock"
+        } elseif ($quantity >= 1 && $quantity <= 50) { // Example threshold for "Low Stock"
             return 'Low Stock';
         } else {
             return 'Out of Stock';
@@ -436,15 +514,43 @@ class Product
 
     public function getProfitPercentage(): float
     {
-        //prevent division by zero
-        if ($this->cost <= 0) {
+        // Use floatval for accurate comparison and calculation
+        $cost = floatval($this->cost);
+        $price = floatval($this->price);
+
+        // Prevent division by zero or negative cost
+        if ($cost <= 0) {
             return 0.0;
         }
 
-        $profit = $this->price - $this->cost;
-        $profitPercentage = ($profit / $this->cost) * 100;
+        $profit = $price - $cost;
+        $profitPercentage = ($profit / $cost) * 100;
 
-        //round to 2 decimal places
+        // Round to 2 decimal places
         return round($profitPercentage, 2);
+    }
+
+    public function getSubCategory(): ?SubCategory
+    {
+        return $this->subCategory;
+    }
+
+    public function setSubCategory(?SubCategory $subCategory): static
+    {
+        $this->subCategory = $subCategory;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): static
+    {
+        $this->category = $category;
+
+        return $this;
     }
 }

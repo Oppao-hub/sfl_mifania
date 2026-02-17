@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Category;
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,6 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ProductRepository extends ServiceEntityRepository
 {
+    use DatatableTrait;
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Product::class);
@@ -24,28 +26,54 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    //    /**
-    //     * @return Product[] Returns an array of Product objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
 
-    //    public function findOneBySomeField($value): ?Product
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function countActiveProducts(): int
+    {
+        return $this->createQueryBuilder('p')
+            // Select the count of the primary key (usually 'id')
+            ->select('COUNT(p.id)')
+
+            // Add your condition here (e.g., assuming a 'isActive' property)
+            ->andWhere('p.isActive = :status')
+            ->setParameter('status', true)
+
+            // Execute the query and return the single scalar (integer) result
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findByCategory(int $categoryId): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.category', 'c')
+            ->andWhere('c.id = :categoryId')
+            ->setParameter('categoryId', $categoryId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findTopSellingProducts(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('p.name as name', 'SUM(oi.quantity) as unitsSold', 'SUM(oi.quantity * p.price) as revenue')
+            ->leftJoin('p.orderItems', 'oi')
+            ->groupBy('p.id')
+            ->orderBy('unitsSold', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByGender(string $gender)
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.gender = :gender')
+            ->orWhere('p.gender = :unisex') // Include Unisex items
+            ->setParameter('gender', $gender)
+            ->setParameter('unisex', 'Unisex')
+            ->orderBy('p.id', 'DESC')
+            ->setMaxResults(20) // Limit results for homepage
+            ->getQuery()
+            ->getResult();
+    }
 }

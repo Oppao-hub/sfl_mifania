@@ -1,20 +1,165 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello /Customer/CartController!{% endblock %}
+{% block title %}Shopping Cart{% endblock %}
 
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+{% block main_content %}
+<div class="container mx-auto px-10 py-12" >
+    <div class="text-sm text-mocha-300">
+        <a href="{{ path('app_home') }}" class="hover:underline">Home</a> /
+        <span class="text-mocha">Shopping Cart</span>
+    </div>
+    <div class="text-center mb-12">
+        <h2 class="text-4xl font-bold text-mocha mb-2">Shopping Cart</h2>
+    </div>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    {% if cart is empty %}
+        <div class="text-center p-10 bg-white shadow rounded-lg">
+            <p class="text-gray-600 text-lg">Your cart is currently empty.</p>
+            <a href="{{ path('app_home') }}" class="mt-4 inline-block text-white bg-mocha px-6 py-2 rounded hover:bg-mocha-dark transition">
+                Continue Shopping
+            </a>
+        </div>
+    {% else %}
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            {# LEFT COLUMN: Cart Items Table #}
+            <div class="w-full lg:w-2/3">
+                {# Table Header #}
+                <div class="hidden md:grid grid-cols-12 gap-4 bg-mocha text-white font-semibold py-3 px-4 rounded-t-sm">
+                    <div class="col-span-6">Product</div>
+                    <div class="col-span-2 text-center">Price</div>
+                    <div class="col-span-2 text-center">Quantity</div>
+                    <div class="col-span-2 text-right">Subtotal</div>
+                </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/Users/mifaniapaolo0012/Desktop/SchoolProjects/WEBDEV/MIFANIA 1.0/src/Controller/Customer/CartController.php</code></li>
-        <li>Your template at <code>/Users/mifaniapaolo0012/Desktop/SchoolProjects/WEBDEV/MIFANIA 1.0/templates//customer/cart/index.html.twig</code></li>
-    </ul>
+                {# Cart Items List - TWIG LOOP now drives the data #}
+                <div class="flex flex-col gap-6 md:gap-0">
+
+                    {% for cartItem in cart.cartItems %}
+                        <div class="relative grid grid-cols-1 md:grid-cols-12 gap-4 items-center border-b border-gray-100 py-6 bg-white md:px-4 shadow-sm md:shadow-none rounded-lg md:rounded-none p-4">
+
+                            {# Remove Button Form: Submits to the controller to delete the item #}
+                            <form action="{{ path('app_cart_remove', { 'id': cartItem.id }) }}" method="POST" class="absolute top-2 right-2 md:static md:col-span-1 text-gray-400 hover:text-red-600 transition">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove' ~ cartItem.id) }}">
+                                <button type="submit" title="Remove Item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </form>
+
+                            {# Product Image & Details #}
+                            <div class="col-span-12 md:col-span-5 flex items-center gap-4">
+                                <img
+                                    src="{{ cartItem.product.image ? asset('uploads/products/' ~ cartItem.product.image) : asset('images/default-product.png') }}"
+                                    alt="{{ cartItem.product.name }}"
+                                    class="w-20 h-24 object-cover rounded-md shadow-sm"
+                                >
+                                <div>
+                                    <h3 class="font-bold text-gray-800 text-lg">{{ cartItem.product.name }}</h3>
+                                    <p class="text-sm text-mocha-300">
+                                        Color : <span>{{ cartItem.product.color ? cartItem.product.color.value|capitalize : 'N/A' }}</span> |
+                                        Size : <span>{{ cartItem.product.size ? cartItem.product.size.name : 'N/A' }}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {# Price #}
+                            <div class="col-span-12 md:col-span-2 flex justify-between md:justify-center items-center">
+                                <span class="md:hidden text-mocha-300 font-medium">Price:</span>
+                                <span class="text-mocha font-medium">PHP {{ cartItem.price|number_format(2) }}</span>
+                            </div>
+
+                            {# Quantity Stepper: Uses Alpine for local UI interaction, but changes require a form submission #}
+                            <div class="col-span-12 md:col-span-2 flex justify-between md:justify-center items-center" x-data="{ quantity: {{ cartItem.quantity }} }">
+                                <span class="md:hidden text-mocha-300 font-medium">Quantity:</span>
+                                <div class="flex items-center border border-gray-300 rounded-md">
+                                    {# NOTE: Quantity changes require a dedicated update form/route, but we keep the UI controls for now #}
+                                    <button @click="if(quantity > 1) quantity--" class="px-3 py-1 text-gray-600 hover:bg-gray-100 transition">-</button>
+                                    <input type="text" class="w-10 text-center text-sm font-semibold focus:outline-none" x-model="quantity" readonly>
+                                    <button @click="quantity++" class="px-3 py-1 text-gray-600 hover:bg-gray-100 transition">+</button>
+                                </div>
+                            </div>
+
+                            {# Subtotal #}
+                            <div class="col-span-12 md:col-span-2 flex justify-between md:justify-end items-center">
+                                <span class="md:hidden text-mocha-300 font-medium">Subtotal:</span>
+                                <span class="text-gray-800 font-bold">PHP {{ cartItem.subtotal|number_format(2) }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+
+                {# Cart Actions #}
+                <div class="flex flex-col md:flex-row justify-between items-center mt-8 gap-4 border-t pt-8 border-mocha-100">
+                    <div class="flex w-full md:w-auto gap-0">
+                        <input type="text" placeholder="Coupon Code" class="border border-mocha-100 rounded-l-sm px-4 py-3 w-full md:w-64 focus:outline-none focus:border-black">
+                        <button class="bg-mocha text-white px-6 py-3 rounded-r-sm font-medium hover:bg-mocha-400 transition whitespace-nowrap cursor-pointer">Apply Coupon</button>
+                    </div>
+
+                <div class="flex w-full md:w-auto gap-4">
+                        <form action="{{ path('app_cart_clear') }}" method="POST">
+                            <input type="hidden" name="_token" value="{{ csrf_token('clear_cart') }}">
+                            <button type="submit" class="text-gray-800 font-bold border-b-2 border-gray-800 hover:text-red-600 hover:border-red-600 transition pb-1 cursor-pointer">
+                                Clear Cart
+                            </button>
+                        </form>
+
+                        <a href="{{ path('app_home') }}" class="text-gray-800 font-bold border-b-2 border-gray-800 hover:text-red-600 hover:border-red-600 transition pb-1 cursor-pointer">
+                            Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {# RIGHT COLUMN: Order Summary (Now uses the $total variable) #}
+            <div class="w-full lg:w-1/3">
+                <div class="bg-white p-8 border border-gray-200 shadow-sm rounded-sm">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
+
+                    <div class="space-y-4 text-gray-600 text-sm">
+                        <div class="flex justify-between">
+                            <span>Items</span>
+                            {# Use the count of the collection from the database #}
+                            <span class="font-medium text-gray-800">{{ cart.cartItems|length }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Sub Total</span>
+                            {# Use the total passed from the controller #}
+                            <span class="font-medium text-gray-800">PHP {{ total|number_format(2) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Shipping</span>
+                            <span class="font-medium text-gray-800">PHP 0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Taxes</span>
+                            <span class="font-medium text-gray-800">PHP 0.00</span>
+                        </div>
+                        {# Coupon Discount is now static unless you add dynamic server-side logic #}
+                        <div class="flex justify-between text-green-600">
+                            <span>Coupon Discount</span>
+                            <span class="font-medium">PHP 0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 my-6"></div>
+
+                    <div class="flex justify-between items-center mb-8">
+                        <span class="text-lg font-bold text-gray-800">Total</span>
+                        {# Display the final total from the controller #}
+                        <span class="text-xl font-bold text-gray-800">PHP {{ total|number_format(2) }}</span>
+                    </div>
+
+                    <a href="{{ path('app_place_order') }}" class="w-full px-28 bg-mocha text-white font-bold py-4 rounded-sm hover:bg-mocha-400 transition shadow-md cursor-pointer">
+                        Place Order
+                    </a>
+
+                    <a href="{{ path('app_home') }}" class="block w-full text-center mt-4 text-mocha font-semibold py-3 border border-mocha rounded-sm hover:bg-gray-50 transition">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
+

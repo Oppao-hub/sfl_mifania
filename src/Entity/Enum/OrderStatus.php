@@ -4,8 +4,10 @@ namespace App\Entity\Enum;
 
 enum OrderStatus: string
 {
-    case Completed = 'Completed';
-    case Pending = 'Pending';
-    case Processing = 'Processing';
-    case Cancelled = 'Cancelled';
+    case COMPLETED = 'Completed';
+    case PENDING = 'Pending';
+    case PROCESSING = 'Processing';
+    case SHIPPED = 'Shipped';
+    case DELIVERED = 'Delivered';
+    case CANCELLED = 'Cancelled';
 }

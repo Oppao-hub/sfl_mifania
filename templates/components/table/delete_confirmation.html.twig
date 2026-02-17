@@ -1,0 +1,19 @@
+<div x-data="{ open: false, url: '', name: '', token: '' }"
+     @open-delete-modal.window="open = true; url = $event.detail.url; name = $event.detail.name; token = $event.detail.token"
+     x-show="open"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+     x-cloak>
+
+    <div @click.away="open = false" class="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full">
+        <h2 class="text-xl font-bold text-mocha mb-2">Delete Confirmation</h2>
+        <p class="text-sm text-gray-500 mb-6">Are you sure you want to delete <span class="font-bold text-mocha" x-text="name"></span>? This action cannot be undone.</p>
+
+        <div class="flex gap-3">
+            <button @click="open = false" class="flex-1 py-3 rounded-xl bg-gray-100 font-bold text-gray-400">Cancel</button>
+            <form :action="url" method="post" class="flex-1">
+                <input type="hidden" name="_token" :value="token">
+                <button type="submit" class="w-full py-3 rounded-xl bg-red-500 font-bold text-white hover:bg-red-600">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>

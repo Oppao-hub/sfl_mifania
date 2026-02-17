@@ -1,0 +1,81 @@
+{% extends "customer/account/index.html.twig" %}
+
+{% block title %}Profile Information{% endblock %}
+
+{% block account_content %}
+<div class="lg:w-3/4 bg-white p-8 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold text-mocha mb-6">Personal Information</h2>
+
+    {# Profile Picture Section #}
+    <div class="flex items-center space-x-4 mb-8">
+        <div class="relative">
+            {# 1. Avatar Logic: Safe check & Default #}
+            {% set avatarPath = 'images/default/default_avatar.jpg' %}
+            {# Check if the customer entity has an avatar set #}
+            {% if user.avatar %}
+                {% set avatarPath = 'uploads/customer/avatars/' ~ user.avatar %}
+            {% endif %}
+
+            <img
+                src="{{ asset(avatarPath) }}"
+                alt="Profile Picture"
+                class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-sm"
+            >
+
+            {# 2. Edit Button: Points to generic edit route (controller handles ID) #}
+            <a href="{{ path('app_account_edit') }}" class="absolute bottom-0 right-0 bg-mocha text-white rounded-full p-2 text-xs border border-white hover:bg-mocha-dark transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+            </a>
+        </div>
+        <div>
+            <p class="text-lg font-semibold text-mocha">
+                {{ user.firstName }} {{ user.lastName }}
+            </p>
+            {# Email belongs to the User entity (app.user), not the Customer entity #}
+            <p class="text-sm text-gray-600">{{ app.user.email }}</p>
+        </div>
+    </div>
+
+    {# 3. Information Display (Read-Only) #}
+    {# We display values here. Editing happens on the 'Edit Profile' page #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label class="block text-sm font-medium text-mocha mb-1">First Name</label>
+            <div class="mt-1 block w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-md sm:text-sm">
+                {{ user.firstName }}
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-mocha mb-1">Last Name</label>
+            <div class="mt-1 block w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-md sm:text-sm">
+                {{ user.lastName }}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label class="block text-sm font-medium text-mocha mb-1">Email</label>
+            <div class="mt-1 block w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-md sm:text-sm">
+                {{ app.user.email }}
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-mocha mb-1">Phone</label>
+            <div class="mt-1 block w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-md sm:text-sm">
+                {{ user.contactNumber ?? 'N/A' }}
+            </div>
+        </div>
+    </div>
+
+    {# 4. Main Edit Action #}
+    <div>
+        <a href="{{ path('app_account_edit') }}" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-mocha hover:bg-mocha-dark focus:outline-none transition">
+            Edit Profile
+        </a>
+    </div>
+
+</div>
+{% endblock %}

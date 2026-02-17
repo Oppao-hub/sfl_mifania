@@ -57,6 +57,8 @@ class UserFixtures extends Fixture
         $customer->setContactNumber('09269332782');
         $customer->setAddress('Malatapay Maluay');
         $customer->setCity('Zamboanguita');
+        $customer->setCountry('Philippines');
+        $customer->setState('Negros Oriental');
         $customer->setRewardPoints(0);
         $customer->setAccountStatus(AccountStatus::Active);
         $customer->setUser($customerUser);

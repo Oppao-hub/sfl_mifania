@@ -1,0 +1,30 @@
+{% form_theme form 'form/error_theme.html.twig' %}
+
+{{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+<div class="bg-gray-50 p-6 mb-4 rounded-xl border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            {{ form_label(form.name, null, { label_attr: {'class': 'font-semibold block mb-1'} })}}
+            {{ form_widget(form.name, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-mocha'}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+
+        <div>
+        {{ form_label(form.description, null, { label_attr: {'class': 'font-semibold block mb-1'} }) }}
+            {# Note: This assumes the description field uses a textarea, hence the 'p-3' padding #}
+            {{ form_widget(form.description, {'attr': {'class': 'w-full h-10 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-mocha', 'rows': 4}}) }}
+        </div>
+    </div>
+</div>
+
+<div class="mt-6 flex justify-end gap-3">
+    <button type="submit" class="{{ button_class|default('px-4 py-2 bg-success text-white rounded-xl cursor-pointer') }}">
+        {{ button_label|default('Save') }}
+    </button>
+
+    <a href="{{ path('app_dashboard_category_index') }}" class="px-4 py-2 border border-gray-300 rounded-xl text-mocha text-sm font-semibold hover:bg-gray-50 transition">
+        Cancel
+    </a>
+</div>
+{{ form_end(form) }}

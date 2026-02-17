@@ -1,0 +1,97 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Customer History{% endblock %}
+
+{% block main_content %}
+<div class="mx-1 min-h-screen bg-white p-8 shadow-md">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-mocha">
+                {{ customer.firstName }} {{ customer.lastName }}
+            </h1>
+            <p class="text-sm text-gray-500">Customer ID: #{{ customer.id }}</p>
+        </div>
+    </div>
+
+    {# Customer Details Card #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-xs uppercase font-semibold text-gray-400 mb-2">Contact Info</h3>
+            <p class="text-mocha font-medium">{{ customer.user.email }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-xs uppercase font-semibold text-gray-400 mb-2">Shipping Address</h3>
+            <p class="text-gray-600 text-sm">{{ customer.address }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-xs uppercase font-semibold text-gray-400 mb-2">Stats</h3>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Total Orders:</span>
+                <span class="font-bold text-gray-900">{{ orders|length }}</span>
+            </div>
+        </div>
+    </div>
+
+    {# Order History Table #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-mocha">Order History</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3">Order ID</th>
+                        <th class="px-6 py-3">Date</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Items</th>
+                        <th class="px-6 py-3">Total</th>
+                        <th class="px-6 py-3 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-900">
+                            #{{ order.id }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ order.createdAt|date('M d, Y') }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% set statusColor = order.orderStatus.value == 'Completed' ? 'green' : (order.orderStatus.value == 'Cancelled' ? 'red' : 'yellow') %}
+                            <span class="bg-{{ statusColor }}-100 text-{{ statusColor }}-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                {{ order.orderStatus.value }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {# Assuming you have an orderItems collection #}
+                            {{ order.orderItems|length }} Items
+                        </td>
+                        <td class="px-6 py-4 font-bold text-gray-900">
+                            ${{ order.totalAmount|number_format(2) }}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{{path('app_dashboard_order_show', {id: order.id }) }}" class="text-mocha-300 hover:underline">View</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                            No orders found for this customer.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-6 flex items-center justify-end gap-3">
+        <a href="{{ path('app_dashboard_customer_index') }}"
+        class="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-800 transition duration-200">
+            Back
+        </a>
+    </div>
+</div>
+{% endblock %}

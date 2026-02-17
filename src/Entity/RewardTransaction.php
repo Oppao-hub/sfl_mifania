@@ -19,7 +19,7 @@ class RewardTransaction
 
     #[ORM\ManyToOne(inversedBy: 'rewardTransactions')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Order $customerOrder = null;
+    private ?Order $order = null;
 
     #[ORM\Column]
     private ?int $points = null;
@@ -47,14 +47,14 @@ class RewardTransaction
         return $this;
     }
 
-    public function getCustomerOrder(): ?order
+    public function getorder(): ?order
     {
-        return $this->customerOrder;
+        return $this->order;
     }
 
-    public function setCustomerOrder(?order $customerOrder): static
+    public function setorder(?order $order): static
     {
-        $this->customerOrder = $customerOrder;
+        $this->order = $order;
 
         return $this;
     }

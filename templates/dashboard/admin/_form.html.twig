@@ -1,0 +1,116 @@
+{# templates/dashboard/admin/_form.html.twig #}
+{% form_theme form 'form/error_theme.html.twig' %}
+
+{# 1. Centralized Boutique Styles #}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-dashboard-mocha/50 ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-dashboard-olive focus:ring-0 text-sm font-bold text-dashboard-mocha transition-all' %}
+
+{{ form_start(form, {'attr': {'id': 'admin-form', 'class': 'relative', 'novalidate': 'novalidate'}}) }}
+
+    {# --- FIXED STICKY HEADER --- #}
+    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border border-cream-200 rounded-xl mb-8 p-6 shadow-xl shadow-dashboard-mocha/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-2 h-2 rounded-full bg-dashboard-olive animate-pulse"></div>
+            <div>
+                {% set admin = form.vars.data %}
+                <h1 class="text-xl font-black text-dashboard-mocha tracking-tighter uppercase leading-none">
+                    {{ admin.id ? admin.firstName ~ ' ' ~ admin.lastName : 'New Administrative Record' }}
+                </h1>
+                <p class="text-[9px] text-dashboard-mocha/30 mt-1 uppercase font-black tracking-[0.3em]">Identity Manifest #{{ admin.id|default('000') }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_admin_index') }}"
+               class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-dashboard-mocha/40 border border-dashboard-olive/20 hover:bg-dashboard-olive/5 rounded-xl transition-all">
+                Discard
+            </a>
+            <button type="submit"
+                    class="px-8 py-3 bg-dashboard-olive text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-dashboard-olive/20 hover:bg-dashboard-olive/90 transition-all active:scale-95 cursor-pointer">
+                {{ button_label|default('Commit Record') }}
+            </button>
+        </div>
+    </div>
+
+    {# --- MAIN FORM CARD --- #}
+    <div class="bg-white rounded-xl shadow-[0_20px_50px_rgba(66,43,28,0.06)] border border-cream-200 overflow-hidden">
+
+        {# SECTION 1: Identity & Credentials #}
+        <div class="p-8 md:p-10 border-b border-gray-50">
+            <div class="mb-10 flex items-center gap-3">
+                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                    {{ ux_icon('lucide:shield-check', {class: 'w-5 h-5'}) }}
+                </div>
+                <h3 class="text-lg font-black text-dashboard-mocha tracking-tighter uppercase">Administrative Credentials</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    {{ form_label(form.firstName, null, {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.firstName, {'attr': {'class': input_base, 'placeholder': 'First Name'}}) }}
+                    {{ form_errors(form.firstName) }}
+                </div>
+                <div>
+                    {{ form_label(form.lastName, null, {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.lastName, {'attr': {'class': input_base, 'placeholder': 'Last Name'}}) }}
+                    {{ form_errors(form.lastName) }}
+                </div>
+                <div class="md:col-span-2">
+                    {{ form_label(form.email, null, {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.email, {'attr': {'class': input_base, 'placeholder': 'admin@mifania.com'}}) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
+                {% if form.password is defined %}
+                    <div class="md:col-span-2">
+                        {{ form_label(form.password, null, {'label_attr': {'class': label_style}}) }}
+                        {{ form_widget(form.password, {'attr': {'class': input_base}}) }}
+                        <p class="text-[9px] uppercase font-bold text-terracotta tracking-widest mt-3 ml-1 italic opacity-60">Security: Passwords are hashed via Mifania Archival Protocol</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# SECTION 2: Media & Avatar (Clean Layout) #}
+        <div class="p-8 md:p-10 bg-dashboard-bg/10 grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
+            {% if admin.avatar is defined and admin.avatar %}
+                <div class="md:col-span-3">
+                    <label class="{{ label_style }}">Current Visual ID</label>
+                    <div class="p-1 border border-cream-200 rounded-2xl bg-white mt-2">
+                        <img src="{{ asset('uploads/avatars/' ~ admin.avatar) }}"
+                             class="w-full aspect-square object-cover rounded-xl shadow-sm">
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="{{ admin.avatar is defined and admin.avatar ? 'md:col-span-9' : 'md:col-span-12' }}">
+                <label class="{{ label_style }}">Update Administrative Imagery</label>
+                <div class="bg-white border-2 border-dashed border-cream-300 rounded-xl p-8 hover:border-dashboard-olive/30 transition-all cursor-pointer">
+                    {{ form_widget(form.avatar, {
+                        'attr': {
+                            'class': 'block w-full text-xs text-dashboard-mocha/40
+                                      file:mr-6 file:py-2 file:px-4
+                                      file:rounded-xl file:border-0
+                                      file:text-[10px] file:font-black file:uppercase file:bg-dashboard-bg file:text-dashboard-mocha'
+                        }
+                    }) }}
+                </div>
+            </div>
+        </div>
+
+        {# SECTION 3: ACCOUNT SECURITY (Reset Actions) #}
+        {% if admin.id is defined and admin.id %}
+            <div class="p-8 border-t border-gray-50 flex justify-start">
+                <a href="{{ path('app_admin_reset_password', {'id': admin.user.id}) }}"
+                   class="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-orange-500/60 hover:text-orange-600 transition-all"
+                   onclick="return confirm('Send archival credential reset to this administrator?');">
+                    <div class="p-2.5 bg-orange-50 rounded-xl group-hover:bg-orange-500 group-hover:text-white transition-all shadow-sm">
+                        {{ ux_icon('lucide:refresh-cw', {class: 'w-3.5 h-3.5'}) }}
+                    </div>
+                    Reset Password
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+{{ form_end(form) }}

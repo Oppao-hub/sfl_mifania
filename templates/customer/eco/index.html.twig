@@ -1,0 +1,62 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Eco Info - {{ product.name }}{% endblock %}
+
+{% block main_content %}
+<div class="container mx-auto p-4 lg:p-12">
+
+    <h1 class="text-4xl font-serif text-mocha-800 mb-8">GreenTag: Transparency Report</h1>
+
+    <div class="lg:grid lg:grid-cols-3 gap-10">
+
+        {# Section 1: Product Details (Column 1) #}
+        <div class="lg:col-span-1 mb-8">
+            <h2 class="text-xl font-semibold border-b pb-2 mb-4 text-mocha">1. Product Details</h2>
+            <ul>
+                <li><strong>Product Name:</strong> {{ product.name }}</li>
+                <li><strong>Material:</strong> {{ product.materialComposition }}</li>
+                <li><strong>Price:</strong> ₱{{ product.price|number_format(2, '.', ',') }}</li>
+                {# ... other product data ... #}
+            </ul>
+        </div>
+
+        {# Section 2, 3, 4: Sustainability & Impact (Column 2) #}
+        <div class="lg:col-span-1 mb-8">
+            <h2 class="text-xl font-semibold border-b pb-2 mb-4 text-mocha">2. Sustainability Info</h2>
+            {# Assuming these fields exist on your Product or a related entity #}
+            <p class="text-2xl mb-4">♻️ {{ product.ecoRating|default('N/A') }} – Highly Sustainable</p>
+            <ul>
+                <li><strong>Source:</strong> {{ product.materialSource }}</li>
+                <li><strong>Certifications:</strong> {{ product.certifications }}</li>
+                {# ... other sustainability data ... #}
+            </ul>
+
+            <h2 class="text-xl font-semibold border-b pb-2 mt-6 mb-4 text-mocha">3. Environmental Impact</h2>
+            <ul>
+                <li><strong>Carbon Saved:</strong> {{ product.carbonSaved|default('N/A') }}</li>
+                <li><strong>Water Saved:</strong> {{ product.waterSaved|default('N/A') }}</li>
+            </ul>
+        </div>
+
+        {# Section 5, 6: Transparency & Verification (Column 3) #}
+        <div class="lg:col-span-1 mb-8 bg-cream-light p-6 rounded-lg">
+            <h2 class="text-xl font-semibold border-b pb-2 mb-4 text-mocha">5. Transparency & Care</h2>
+            <ul>
+                <li><strong>Maker:</strong> {{ product.makerInfo }}</li>
+                <li><strong>Care:</strong> Wash cold, air dry.</li>
+            </ul>
+
+            <h2 class="text-xl font-semibold border-b pb-2 mt-6 mb-4 text-mocha">6. Verification</h2>
+            <div class="text-lg text-green-600 font-bold mt-4">
+                ✅ Verified by Mifania GreenTag System
+            </div>
+            <p class="text-sm mt-2">Generated on: {{ product.qrTagGeneratedAt|date('M d, Y') }}</p>
+
+            {# Customer Rewards could also go here or be loaded via AJAX/Alpine.js #}
+            <h2 class="text-xl font-semibold border-b pb-2 mt-6 mb-4 text-mocha">4. Customer Rewards</h2>
+            <p>You earned <strong>+20 GreenPoints</strong> for this purchase.</p>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

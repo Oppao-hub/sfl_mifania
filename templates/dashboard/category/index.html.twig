@@ -1,0 +1,62 @@
+{% extends "dashboard/dashboard.html.twig" %}
+{% set categories = categories|default([]) %}
+
+{% block main_content %}
+
+	{% embed 'components/table/table.html.twig' with{
+    title: 'Categories',
+    new_path: 'app_dashboard_category_new',
+    headers: ['ID', 'Name', 'Description', 'Created At', 'Updated At', 'Actions'],
+    id: 'dashboard-table'
+}%}
+
+		{% block rows %}
+			{% for category in categories %}
+				<tr class="hover:bg-row-hover transition-colors">
+					<td class="border border-gray-300 px-4 py-2 text-sm">{{ category.id }}</td>
+
+					<td class="border border-gray-300 px-4 py-2 text-sm">
+						{{ category.name }}
+					</td>
+
+					<td class="border border-gray-300 px-4 py-2 text-sm">
+						{{ category.description }}
+					</td>
+
+					<td class="border border-gray-300 px-4 py-2 text-sm">
+						{{ category.createdAt ? category.createdAt|date('Y-m-d H:i:s') : '' }}
+					</td>
+
+					<td class="border border-gray-300 px-4 py-2 text-sm">
+						{{ category.updatedAt ? category.updatedAt|date('Y-m-d H:i:s') : '' }}
+					</td>
+
+					<td class="border border-gray-300 py-3 px-4 text-sm text-center">
+						<div class="flex justify-center items-center gap-3">
+							<twig:ActionIcon
+                                path="{{ path('app_dashboard_category_show', {'id': category.id}) }}"
+                                svgPath="M12 4.5C7 4.5 2.73 8 1 12c1.73 4 6 7.5 11 7.5s9.27-3.5 11-7.5c-1.73-4-6-7.5-11-7.5z M12 16a4 4 0 110-8 4 4 0 010 8z"
+                                class="w-5 h-5 text-mocha"
+                                label="View"/>
+							<twig:ActionIcon
+							    path="{{ path('app_dashboard_category_edit', {'id': category.id}) }}" svgPath="M11 4H4a1 1 0 00-1 1v16a1 1 0 001 1h16a1 1 0 001-1v-7 M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                                class="w-5 h-5 text-mocha"
+                                label="Edit"/>
+							<twig:ActionIcon
+                                path="#"
+                                onclick="openDeleteModal({{ category.id }}, '{{ category.name|e('js') }}', '{{ csrf_token('delete' ~ category.id) }}')"
+                                svgPath="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 7V4a1 1 0 011-1h2a1 1 0 011 1v3" class="w-5 h-5 text-red-600"
+                                label="Delete"/>
+						</div>
+					</td>
+				</tr>
+			{% else %}
+				<tr>
+					<td colspan="6" class="border border-gray-300 px-4 py-4 text-center text-gray-500">
+						No categories found.
+					</td>
+				</tr>
+			{% endfor %}
+		{% endblock %}
+	{% endembed %}
+{% endblock %}

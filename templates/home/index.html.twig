@@ -1,157 +1,247 @@
-{% extends 'base.html.twig' %} {% block title %}Homepage{% endblock %} {% block
-main_content %}
-    <!-- HERO SECTION -->
-    <section class="flex items-center w-full h-screen relative">
-        <!-- Left image -->
-        <div class="w-1/3 h-full l-5">
-            <img
-                src=" {{ asset('images/heroimg1.png') }}"
-                alt="Left image"
-                class="object-cover w-full h-full"
-            />
-        </div>
+{% extends 'base.html.twig' %}
 
-        <!-- Center text block -->
-        <div
-            class="w-1/3 h-full bg-white flex items-center justify-center flex-col"
-        >
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">
-                Sustainable Fashion
-            </h1>
-            <p class="text-gray-600 text-lg">
-                Eco-friendly. Timeless. Made to last.
-            </p>
-            <button
-                class="mt-6 bg-mocha text-cream px-6 py-3 rounded-lg hover:bg-green-800 transition"
-            >
-                Shop Now
-            </button>
-        </div>
+{% block title %}Homepage - {{ active_gender }}{% endblock %}
 
-        <!-- Right image -->
-        <div class="w-1/3 h-full">
-            <img
-                src="{{ asset('images/heroimg2.png') }}"
-                alt="Right image"
-                class="object-cover w-full h-full"
-            />
-        </div>
-    </section>
-
-    <!-- FEATURED COLLECTIONS -->
-    <section class="py-12 px-4">
-        <h2 class="text-2xl font-bold text-center mb-8 text-mocha">
-            Featured Collections
-        </h2>
-        <div
-            class="max-w-[1360px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-            <div class="bg-white shadow-md overflow-hidden flex flex-col">
-                <img
-                    src="{{ asset('images/categories/category1.png') }}"
-                    alt="Collection 1"
-                    class="w-full h-[500px] object-cover"
-                />
-                <div class="p-4">
-                    <a
-                        href="#"
-                        class="inline-block mt-4 bg-mocha text-cream rounded px-4 py-2 font-semibold transition-colors duration-300 hover:bg-green"
-                    >
-                        Shop Now
+{% block main_content %}
+    <section class="relative bg-gray-100 overflow-hidden">
+        <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 min-h-[600px] md:h-[85vh]">
+            <!-- Text Content -->
+            <div class="flex flex-col justify-center px-8 md:px-20 py-12 order-2 md:order-1">
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-8 text-brand-dark">
+                    <span class="text-gray-700">Fashion that</span><br>
+                    <span class="text-brand">respects our planet</span>
+                </h1>
+                <div>
+                    <a href="#" class="bg-brand hover:bg-brand-dark text-white px-8 py-4 text-sm font-bold tracking-wider rounded-lg shadow-lg transition-all inline-block uppercase">
+                        Explore The Collection
                     </a>
                 </div>
             </div>
-
-            <div class="bg-white shadow-md overflow-hidden flex flex-col">
-                <img
-                    src="{{ asset('images/categories/category1.png') }}"
-                    alt="Collection 2"
-                    class="w-full h-[500px] object-cover"
-                />
-                <div class="p-4">
-                    <a
-                        href="#"
-                        class="inline-block mt-4 bg-mocha text-cream rounded px-4 py-2 font-semibold transition-colors duration-300 hover:bg-green"
-                    >
-                        Shop Now
-                    </a>
-                </div>
+            <!-- Image Content -->
+            <div class="relative order-1 md:order-2 h-[400px] md:h-full">
+                 <img src="https://images.unsplash.com/photo-1596918836262-42173f443836?q=80&w=1500&auto=format&fit=crop"
+                     alt="Sustainable Fashion" class="absolute inset-0 w-full h-full object-cover object-center">
             </div>
         </div>
     </section>
 
-    <!-- NEW ARRIVALS -->
-    <section class="py-12 px-4">
-        <div class="max-w-[1360px] mx-auto">
-            <h2 class="text-2xl font-bold text-center mb-8 text-mocha">
-                New Arrivals
-            </h2>
+    <!-- Features Bar -->
+    <section class="bg-white py-16 px-6 md:px-12">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="flex items-start gap-5">
+                <div class="text-brand mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-700 text-lg mb-1">Free Shipping</h3>
+                    <p class="text-sm text-gray-500">Free shipping for orders above PHP 1500.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-5">
+                <div class="text-brand mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-700 text-lg mb-1">Flexible Payment</h3>
+                    <p class="text-sm text-gray-500">Multiple secure payment options.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-5">
+                <div class="text-brand mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-700 text-lg mb-1">24x7</h3>
+                    <p class="text-sm text-gray-500">We support online all days.</p>
+                </div>
+            </div>
+        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {% for i in 1..3 %}
-                <div
-                    class="bg-white shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-1"
-                >
-                    <img
-                        src="{{ asset('images/categories/category1.png') }}"
-                        alt="Product {{ i }}"
-                        class="w-full h-[250px] object-cover"
-                    />
-                    <div class="p-4 text-center">
-                        <h3 class="text-lg font-semibold mb-2">
-                            Product {{ i }}
-                        </h3>
-                        <p class="text-mocha font-bold mb-4">$4{{ i }}.99</p>
-                        <button
-                            class="bg-mocha text-cream border-2 border-mocha rounded px-5 py-2 transition-all duration-300 hover:bg-green"
-                        >
-                            Shop Now
-                        </button>
+        <!-- Categories Grid -->
+        <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#dbdbdb] relative overflow-hidden h-[600px] group">
+                    <img src="https://images.unsplash.com/photo-1550614000-4b9519e0954b?q=80&w=1000&auto=format&fit=crop" class="absolute right-0 bottom-0 w-3/4 h-5/6 object-cover object-top mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute top-12 left-12 z-10">
+                        <span class="bg-white px-3 py-1 text-xs font-bold rounded-full mb-4 inline-block shadow-sm">3000+ Items</span>
+                        <h2 class="text-3xl font-bold text-brand mb-4">For Women's</h2>
+                        <ul class="text-sm text-gray-600 space-y-2 font-medium">
+                            <li>Blazers</li>
+                            <li>T-Shirts and</li>
+                            <li>Blouses</li>
+                            <li>Dresses</li>
+                            <li>Jackets & Coats</li>
+                            <li>Jeans</li>
+                            <li>Knit</li>
+                            <li>Sarees</li>
+                        </ul>
                     </div>
                 </div>
-                {% endfor %}
+
+                <!-- Right Column -->
+                <div class="flex flex-col gap-6 h-[600px]">
+                    <!-- Men's -->
+                    <div class="bg-[#e0e0e0] flex-1 relative overflow-hidden group">
+                        <img src="https://images.unsplash.com/photo-1504593811423-6dd665756598?q=80&w=1000&auto=format&fit=crop" class="absolute right-0 bottom-0 w-1/2 h-full object-cover object-center mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute top-10 left-10 z-10">
+                            <span class="bg-white px-3 py-1 text-xs font-bold rounded-full mb-3 inline-block shadow-sm">1500+ Items</span>
+                            <h2 class="text-2xl font-bold text-brand mb-3">For Men's</h2>
+                            <ul class="text-sm text-gray-600 space-y-1 font-medium">
+                                <li>Blazers</li>
+                                <li>T-Shirts and</li>
+                                <li>Shirts</li>
+                                <li>Jackets & Coats</li>
+                                <li>Jeans</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Accessories -->
+                    <div class="bg-[#e5e0d8] flex-1 relative overflow-hidden group">
+                        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1000&auto=format&fit=crop" class="absolute right-0 bottom-0 w-2/3 h-5/6 object-cover object-center mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute top-10 left-10 z-10">
+                            <span class="bg-white px-3 py-1 text-xs font-bold rounded-full mb-3 inline-block shadow-sm">1000+ Items</span>
+                            <h2 class="text-2xl font-bold text-brand mb-3">Accessories</h2>
+                            <ul class="text-sm text-gray-600 space-y-1 font-medium">
+                                <li>Handbags</li>
+                                <li>Watches</li>
+                                <li>Sunglasses</li>
+                                <li>Hat</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- ABOUT SECTION -->
-    <section
-        class="flex flex-col md:flex-row items-center max-w-[1360px] mx-auto overflow-hidden bg-white shadow-lg"
-    >
-        <div class="flex flex-2 w-full md:w-2/3">
-            <img
-                src="{{ asset('images/about/img1.png') }}"
-                alt="Image 1"
-                class="w-1/3 h-[75vh] object-cover"
-            />
-            <img
-                src="{{ asset('images/about/img2.png') }}"
-                alt="Image 2"
-                class="w-1/3 h-[75vh] object-cover"
-            />
-            <img
-                src="{{ asset('images/about/img3.png') }}"
-                alt="Image 3"
-                class="w-1/3 h-[75vh] object-cover"
-            />
+    <!-- Top Selling Products -->
+    <section class="max-w-[1440px] mx-auto px-6 md:px-12 py-24 bg-gray-100">
+        <div class="mb-12">
+            <p class="text-sm font-semibold text-gray-500 mb-1">Our Products</p>
+            <h2 class="text-3xl font-bold text-brand">Our Top Selling Products</h2>
         </div>
-
-        <div
-            class="text-center flex-1 p-8 text-mocha flex flex-col items-center justify-center"
-        >
-            <h2 class="text-2xl font-bold">MIFANIA</h2>
-            <h3 class="text-xl font-semibold mt-2">Introducing MIFANIA.com</h3>
-            <p class="mt-3">Designed for confidence, crafted for comfort.</p>
-            <a
-                href="#"
-                class="mt-4 inline-block bg-mocha text-cream px-5 py-2 rounded transition duration-300 hover:bg-green"
-            >
-                Shop Now
-            </a>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Product 1 -->
+            <div class="group cursor-pointer">
+                <div class="aspect-[3/4] overflow-hidden mb-4">
+                    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1000&auto=format&fit=crop" alt="Dress" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <p class="text-xs font-bold text-gray-400 mb-1">Dresses</p>
+                <h3 class="text-lg font-bold text-brand">Organic Cotton Day Dress</h3>
+                <p class="font-bold text-gray-800 mt-1">PHP 1500</p>
+            </div>
+            <!-- Product 2 -->
+            <div class="group cursor-pointer">
+                <div class="aspect-[3/4] overflow-hidden mb-4">
+                    <img src="https://images.unsplash.com/photo-1591369045385-115dd20179d6?q=80&w=1000&auto=format&fit=crop" alt="Denim" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <p class="text-xs font-bold text-gray-400 mb-1">Dresses</p>
+                <h3 class="text-lg font-bold text-brand">Tie-Waist Denim Dress</h3>
+                <p class="font-bold text-gray-800 mt-1">PHP 1000</p>
+            </div>
+            <!-- Product 3 -->
+            <div class="group cursor-pointer">
+                <div class="aspect-[3/4] overflow-hidden mb-4">
+                    <img src="https://images.unsplash.com/photo-1590874103328-304371a57b90?q=80&w=1000&auto=format&fit=crop" alt="Tote" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <p class="text-xs font-bold text-gray-400 mb-1">Dresses</p>
+                <h3 class="text-lg font-bold text-brand">Reusable Bamboo Tote Bag</h3>
+                <p class="font-bold text-gray-800 mt-1">PHP 800</p>
+            </div>
         </div>
     </section>
 
-    <!-- OPTIONAL: Newsletter / Media Sections -->
-    <section class="newsletter py-8"></section>
-    <section class="media-integration py-8"></section>
+    <!-- Story & Values -->
+    <section class="py-20 px-6 md:px-12 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl font-bold text-brand text-center mb-16">Our Story & Values</h2>
+
+            <!-- Banner Image -->
+            <div class="relative rounded-lg overflow-hidden h-[300px] mb-16">
+                 <img src="https://images.unsplash.com/photo-1616616016259-c294191c4d9a?q=80&w=2000&auto=format&fit=crop" class="w-full h-full object-cover">
+                 <div class="absolute inset-0 bg-black/20"></div>
+                 <div class="absolute inset-0 flex items-center p-12">
+                     <div class="max-w-lg text-white">
+                         <h3 class="text-2xl font-bold mb-4">Weaving Nature In Every Thread</h3>
+                         <p class="text-sm leading-relaxed">At MIFANIA, we prove that timeless style shouldn't cost the planet. We reject fast fashion, creating sustainable pieces designed to last.</p>
+                     </div>
+                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-bold text-brand mb-4">Consciously Crafted</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed mb-6">Crafted from GOTS-certified organic cotton and recycled materials, our toxic-free garments are safe for both you and the ecosystem.</p>
+                     <img src="https://images.unsplash.com/photo-1606041008023-472dfb5e530f?q=80&w=800&auto=format&fit=crop" class="rounded h-40 object-cover mt-auto">
+                </div>
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-bold text-brand mb-4">Ethically Made</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed mb-6">We partner exclusively with SA8000-certified factories to ensure fair wages, safety, and dignity for the hands that craft our clothes.</p>
+                     <img src="https://images.unsplash.com/photo-1574634534894-89d75016ebc5?q=80&w=800&auto=format&fit=crop" class="rounded h-40 object-cover mt-auto">
+                </div>
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-bold text-brand mb-4">Circular By Design</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed mb-6">Through the MIFANIA Circle program, we design for longevity and offer a recycling path to ensure our clothes never end up in a landfill.</p>
+                     <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=800&auto=format&fit=crop" class="rounded h-40 object-cover mt-auto">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section (Background Color Changed to Light Grey) -->
+    <section class="bg-light-gray py-24 px-6" x-data="{ active: 1 }">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-brand mb-4">Frequently Asked Questions</h2>
+                <p class="text-gray-500">Transparency is our policy. Here is everything you need to know about our materials and process.</p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Helper for FAQ Item -->
+                <template x-for="(item, index) in [
+                    { q: 'How do you source your materials?', a: 'We source directly from GOTS certified farms in India and Turkey.' },
+                    { q: 'Is your packaging plastic-free?', a: 'Yes! Every order ships in 100% compostable mailers made from cornstarch, and we use soy-based inks for all our tags.' },
+                    { q: 'What is your return policy?', a: 'We offer a 30-day window for circular exchanges.' },
+                    { q: 'Do you ship international?', a: 'Currently we ship to 15 countries with carbon-neutral carriers.' },
+                    { q: 'How should I care for my organic garments?', a: 'Wash cold, hang dry.' },
+                    { q: 'Are your workers paid fair wages?', a: 'Yes, we are SA8000 certified.' },
+                    { q: 'Do you have a recycling program for old clothes?', a: 'Yes, check our Circle program.' }
+                ]">
+                    <div class="bg-white rounded shadow-sm overflow-hidden transition-all duration-300"
+                         :class="{ 'bg-brand text-white': active === index, 'bg-white text-gray-700': active !== index }">
+                        <button @click="active = active === index ? null : index"
+                                class="flex justify-between items-center w-full px-6 py-4 text-left font-bold text-sm hover:opacity-90 transition-colors">
+                            <span x-text="item.q"></span>
+                            <span class="text-xl" x-text="active === index ? '+' : '+'"></span>
+                        </button>
+                        <div x-show="active === index" x-collapse class="px-6 pb-4 text-xs opacity-90 leading-relaxed">
+                            <p x-text="item.a"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter (Background Light Grey) -->
+    <section class="bg-light-gray pb-24 px-6 text-center">
+        <div class="max-w-2xl mx-auto">
+            <p class="text-sm font-medium text-gray-500 mb-2">Our Newsletter</p>
+            <h2 class="text-3xl font-bold text-brand mb-4">Join Our Sustainable Community</h2>
+            <p class="text-sm text-gray-500 mb-8">Receive exclusive offers, eco-tips, and new arrival updates directly to your inbox.</p>
+            <form class="flex flex-row gap-0 max-w-md mx-auto shadow-sm">
+                <input type="email" placeholder="Enter your email address" class="flex-1 px-6 py-3 border border-gray-300 focus:outline-none text-sm rounded-l-md">
+                <button type="submit" class="bg-brand hover:bg-brand-dark text-white px-8 py-3 text-sm font-bold transition-colors rounded-r-md">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+    </section>
 {% endblock %}

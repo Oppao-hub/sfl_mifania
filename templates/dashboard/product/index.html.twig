@@ -1,0 +1,74 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Product Inventory{% endblock %}
+
+{% block main_content %}
+    {% embed 'components/table/table.html.twig' with {
+        title: 'Mifania Products',
+        total_count: total_products,
+        new_path: 'app_dashboard_product_new',
+        headers: ['ID', 'Product Details', 'Gender', 'Size', 'Color', 'Price', 'Cost', 'Actions'],
+        id: 'dashboard-table'
+    } %}
+
+    {% block rows %}
+        {% for product in products %}
+            <tr class="hover:bg-dashboard-bg/50 transition-colors">
+                {# ID Column: Rounded Left #}
+                <td class="border-y border-l border-gray-200 rounded-l-xl px-4 py-3 text-sm font-mono text-gray-500">
+                    {{ product.id }}
+                </td>
+                {# Product Details #}
+                <td class="border-y border-gray-200 px-4 py-3 text-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                            <img src="/uploads/products/{{ product.image }}" class="h-full w-full object-cover" onerror="this.src='https://placehold.co/100x100?text=No+Img'">
+                        </div>
+                        <div>
+                            <div class="font-bold text-mocha">{{ product.name }}</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-tight">{{ product.slug }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="border-y border-gray-200 px-4 py-3 text-sm text-mocha">
+                    {{ product.gender.value }}
+                </td>
+                <td class="border-y border-gray-200 px-4 py-3 text-sm text-mocha">
+                    {{ product.size.value }}
+                </td>
+                <td class="border-y border-gray-200 px-4 py-3 text-sm text-mocha">
+                    {{ product.color.value }}
+                </td>
+                {# Price: Bold #}
+                <td class="border-y border-gray-200 px-4 py-3 text-mocha font-bold text-sm">
+                    ₱{{ product.price|number_format(2) }}
+                </td>
+                <td class="border-y border-gray-200 px-4 py-3 text-mocha font-bold text-sm">
+                    ₱{{ product.cost|number_format(2) }}
+                </td>
+                {# Actions: Rounded Right #}
+                <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
+                    <div class="flex justify-center items-center gap-3">
+                        <a  href="{{ path('app_dashboard_product_show', { id: product.id }) }}"
+                            class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}</a>
+
+                        <a  href="{{ path('app_dashboard_product_edit', { id: product.id }) }}"
+                            class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}</a>
+
+                        <button
+                            type="button"
+                            @click="$dispatch('open-delete-modal', { url: '{{ path('app_dashboard_product_delete', {id: product.id}) }}', name: 'Product {{ product.name }}', token: '{{ csrf_token('delete' ~ product.id) }}' })"
+                            class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}</button>
+                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="py-6 text-center text-gray-400 text-sm italic">
+                    No products found within the inventory.
+                </td>
+            </tr>
+        {% endfor %}
+    {% endblock %}
+    {% endembed %}
+{% endblock %}

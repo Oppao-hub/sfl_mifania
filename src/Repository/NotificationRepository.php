@@ -1,10 +1,11 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Notification;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @extends ServiceEntityRepository<Notification>
@@ -16,20 +17,19 @@ class NotificationRepository extends ServiceEntityRepository
         parent::__construct($registry, Notification::class);
     }
 
-    public function countUnread($user): int
+    /**
+     * Return recent notifications for a given user (most recent first).
+     *
+     * @param User|null $user
+     * @param int $limit
+     * @return Notification[]
+     */
+    public function findRecent(?User $user, int $limit = 5): array
     {
-        return (int) $this->createQueryBuilder('n')
-            ->select('COUNT(n.id)')
-            ->andWhere('n.recipient = :user')
-            ->andWhere('n.isRead = :isRead')
-            ->setParameter('user', $user)
-            ->setParameter('isRead', false)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
+        if (!$user) {
+            return [];
+        }
 
-    public function findRecent($user, int $limit = 5): array
-    {
         return $this->createQueryBuilder('n')
             ->andWhere('n.recipient = :user')
             ->setParameter('user', $user)
@@ -38,28 +38,59 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-}
-//    /**
-//     * @return Notification[] Returns an array of Notification objects
-//     */
-// public function findBy($value): array
-// {
-//     return $this->createQueryBuilder('n')
-//         ->andWhere('n.exampleField = :val')
-//         ->setParameter('val', $value)
-//         ->orderBy('n.id', 'ASC')
-//         ->setMaxResults(10)
-//         ->getQuery()
-//         ->getResult()
-//     ;
-// }
 
-//    public function findOneBySomeField($value): ?Notification
-//    {
-//        return $this->createQueryBuilder('n')
-//            ->andWhere('n.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Count unread notifications for a user.
+     *
+     * @param User|null $user
+     * @return int
+     */
+    public function countUnread(?User $user): int
+    {
+        if (!$user) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.recipient = :user')
+            ->andWhere('n.isRead = false')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Return notifications for a user (optionally paginated).
+     *
+     * @param User|null $user
+     * @param int $limit
+     * @param int $offset
+     * @return Notification[]
+     */
+    public function findForUser(?User $user, int $limit = 50, int $offset = 0): array
+    {
+        if (!$user) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.recipient = :user')
+            ->setParameter('user', $user)
+            ->orderBy('n.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Add save method if you want simple persistence helper
+    public function save(Notification $notification, bool $flush = true): void
+    {
+        $em = $this->getEntityManager();
+        $em->persist($notification);
+        if ($flush) {
+            $em->flush();
+        }
+    }
+}

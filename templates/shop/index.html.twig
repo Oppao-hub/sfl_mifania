@@ -1,0 +1,201 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shop{% endblock %}
+
+{% block main_content %}
+{# Page Header #}
+<div class="bg-gray-50 py-12 mb-8">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">Shop</h1>
+        <p class="text-sm text-gray-500">Home / Shop</p>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 pb-16" x-data="{ mobileFiltersOpen: false }">
+    <div class="flex flex-col lg:flex-row gap-8">
+
+        {# Mobile Filter Toggle #}
+        <div class="lg:hidden mb-4">
+            <button @click="mobileFiltersOpen = !mobileFiltersOpen" class="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                Filters
+            </button>
+        </div>
+
+        {# Sidebar Filters (Left) #}
+        {# FIXED: Merged classes into one attribute. Added 'lg:block' to ensure visibility on desktop. #}
+        <aside class="lg:w-1/4 w-full lg:block" :class="{'hidden': !mobileFiltersOpen, 'block': mobileFiltersOpen}">
+            <div class="pr-0 lg:pr-8 space-y-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-6">Filter Options</h3>
+
+                {# Categories #}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-4">Category</h4>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> Men</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" checked class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> Women</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> T-Shirts</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> Handbags</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> Jackets and Coats</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> Watches</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> Hat</label></li>
+                    </ul>
+                </div>
+
+                {# Price Filter #}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-4">Price</h4>
+                    <p class="text-sm text-gray-600 mb-2">$25.00 - $125.00</p>
+                    <input type="range" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#6B7C57]">
+                </div>
+
+                {# Color Filter #}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-4">Color</h4>
+                    <div class="space-y-2">
+                        {% set colors = {
+                            'Black': '#000000',
+                            'Grey': '#808080',
+                            'Green': '#6B7C57',
+                            'Red': '#DC3545',
+                            'Orange': '#FFA500',
+                            'Blue': '#0000FF',
+                            'Pink': '#FFC0CB',
+                            'White': '#FFFFFF'
+                        } %}
+                        {% for name, hex in colors %}
+                            <label class="flex items-center cursor-pointer group">
+                                <span class="w-4 h-4 rounded-full border border-gray-200 mr-3 flex items-center justify-center relative" style="background-color: {{ hex }}">
+                                    {% if name == 'Black' %}
+                                        <span class="absolute w-6 h-6 border rounded-full border-gray-400"></span>
+                                    {% endif %}
+                                </span>
+                                <span class="text-sm text-gray-600 group-hover:text-black">{{ name }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Size Filter #}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-4">Size</h4>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> S</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" checked class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> M</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> L</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> XL</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> XXL</label></li>
+                        <li><label class="flex items-center hover:text-[#6B7C57] cursor-pointer"><input type="checkbox" class="mr-3 rounded border-gray-300 text-[#6B7C57] focus:ring-[#6B7C57]"> XXXL</label></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        {# Main Content (Right) #}
+        <div class="lg:w-3/4 w-full">
+            {# Toolbar #}
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <p class="text-sm text-gray-500 mb-4 md:mb-0">Showing 1-12 of 240 results</p>
+                <div class="flex items-center">
+                    <label class="text-sm text-gray-500 mr-2">Sort by :</label>
+                    <select class="border-none bg-transparent text-sm font-semibold focus:ring-0 cursor-pointer">
+                        <option>Default Sorting</option>
+                        <option>Price Low to High</option>
+                        <option>Price High to Low</option>
+                        <option>Newest</option>
+                    </select>
+                </div>
+            </div>
+
+            {# Active Filters #}
+            <div class="flex flex-wrap gap-3 mb-8">
+                <div class="flex items-center text-xs font-medium text-gray-500 mr-2">Active Filter :</div>
+                <span class="bg-[#6B7C57] text-white px-3 py-1 rounded-sm text-xs font-semibold flex items-center">
+                    Women <button class="ml-2 hover:text-gray-200">&times;</button>
+                </span>
+                <span class="bg-[#6B7C57] text-white px-3 py-1 rounded-sm text-xs font-semibold flex items-center">
+                    Black <button class="ml-2 hover:text-gray-200">&times;</button>
+                </span>
+                <span class="bg-[#6B7C57] text-white px-3 py-1 rounded-sm text-xs font-semibold flex items-center">
+                    M <button class="ml-2 hover:text-gray-200">&times;</button>
+                </span>
+                <span class="bg-[#6B7C57] text-white px-3 py-1 rounded-sm text-xs font-semibold flex items-center">
+                    Price : $25.00 - $125.00 <button class="ml-2 hover:text-gray-200">&times;</button>
+                </span>
+                <button class="text-xs text-gray-500 underline ml-2 hover:text-red-500">Clear All</button>
+            </div>
+
+            {# Product Grid #}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for i in 1..9 %}
+                    {# Mock Product Data for loop #}
+                    {% set product = {
+                        name: i is odd ? 'Trendy Brown Coat' : 'Classy Light Coat',
+                        category: i is odd ? 'Coats' : 'Dresses',
+                        price: i is odd ? 75.00 : 165.00,
+                        old_price: i is odd ? 150.00 : 220.00,
+                        rating: 4.8,
+                        discount: i is odd ? '50% off' : '25% off',
+                        image: i is odd
+                            ? 'https://placehold.co/400x500/8B4513/FFFFFF?text=Coat'
+                            : 'https://placehold.co/400x500/F5F5DC/000000?text=Dress'
+                    } %}
+
+                    <div class="group">
+                        <div class="relative overflow-hidden mb-4 rounded-sm">
+                            <img src="{{ product.image }}" alt="{{ product.name }}" class="w-full h-[400px] object-cover transition duration-500 group-hover:scale-105">
+
+                            {# Badges #}
+                            <div class="absolute top-3 left-3 bg-white/90 text-[#6B7C57] text-xs font-bold px-2 py-1">
+                                {{ product.discount }}
+                            </div>
+
+                            {# Hover Actions #}
+                            <div class="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition duration-300">
+                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-[#6B7C57] hover:text-white transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                </button>
+                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-[#6B7C57] hover:text-white transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                                </button>
+                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-[#6B7C57] hover:text-white transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs text-gray-500">{{ product.category }}</span>
+                                <div class="flex text-yellow-400 text-xs">
+                                    <span>★</span> <span class="text-gray-800 font-bold ml-1">{{ product.rating }}</span>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-gray-900 text-lg mb-1 group-hover:text-[#6B7C57] transition">{{ product.name }}</h3>
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-gray-900">${{ product.price|number_format(2) }}</span>
+                                <span class="text-sm text-gray-400 line-through">${{ product.old_price|number_format(2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# Pagination #}
+            <div class="flex justify-center mt-12 gap-2">
+                <button class="w-8 h-8 flex items-center justify-center rounded-sm text-gray-500 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-sm bg-[#6B7C57] font-bold text-white">1</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-sm hover:bg-gray-100 font-medium text-gray-600">2</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-sm hover:bg-gray-100 font-medium text-gray-600">3</button>
+                <span class="w-8 h-8 flex items-center justify-center text-gray-400">...</span>
+                <button class="w-8 h-8 flex items-center justify-center rounded-sm hover:bg-gray-100 font-medium text-gray-600">10</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-sm text-gray-500 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@ namespace App\Entity\Enum;
 
 enum StockStatus: string
 {
-    case InStock = 'In Stock';
-    case OutOfStock = 'Out of Stock';
-    case LowStock = 'Low Stock';
+    case IN_STOCK = 'In Stock';
+    case OUT_OF_STOCK = 'Out of Stock';
+    case LOW_STOCK = 'Low Stock';
 }

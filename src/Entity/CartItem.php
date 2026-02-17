@@ -29,6 +29,14 @@ class CartItem
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $subtotal = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -42,7 +50,6 @@ class CartItem
     public function setCart(?Cart $cart): static
     {
         $this->cart = $cart;
-
         return $this;
     }
 
@@ -54,7 +61,6 @@ class CartItem
     public function setProduct(?Product $product): static
     {
         $this->product = $product;
-
         return $this;
     }
 
@@ -66,7 +72,6 @@ class CartItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
-
         return $this;
     }
 
@@ -78,7 +83,6 @@ class CartItem
     public function setPrice(string $price): static
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -90,7 +94,17 @@ class CartItem
     public function setSubtotal(string $subtotal): static
     {
         $this->subtotal = $subtotal;
+        return $this;
+    }
 
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
         return $this;
     }
 }

@@ -1,5 +1,15 @@
+{% set path = path|default("#") %}
+{% set isActive = isActive|default(false) %}
+{% set svgPath = svgPath|default("0") %}
+{% set cx = cx|default("0") %}
+{% set cy = cy|default("0") %}
+{% set r = r|default("0") %}
+
 <a
     href="{{ path }}"
+    {% if onclick is defined %}
+        onclick="{{ onclick }}"
+    {% endif %}
     class="flex items-center gap-x-4 px-5 py-3 rounded-lg font-small transition-all
         {{
         isActive
@@ -8,16 +18,18 @@
     }}"
 >
     <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-5 h-5 mr-3 flex-shrink-0"
-        area-hidden="true"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        stroke-width="2"
+    xmlns="http://www.w3.org/2000/svg"
+    class="w-5 h-5 mr-3 flex-shrink-0"
+    area-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    stroke-width="2"
     >
         <path d="{{ svgPath }}" />
+        <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}"/>
     </svg>
+
     <span class="whitespace-nowrap overflow-hidden" data-sidebar-label>
         {{ label }}
     </span>

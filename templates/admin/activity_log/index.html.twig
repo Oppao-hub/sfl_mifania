@@ -1,0 +1,34 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Activity Log
+{% endblock %}
+
+{% block main_content %}
+	{% embed 'components/table/table.html.twig' with{
+    title: 'Activity Logs',
+    headers: ['User', 'Role', 'Action', 'Description', 'Date'],
+    id: 'dashboard-table'
+}%}
+		{% block rows %}
+			{% for log in logs %}
+				<tr class="hover:bg-row-hover transition-colors">
+					<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {% if log.user %}
+                            <span class="font-medium text-gray-900">{{ log.user.userIdentifier }}</span>
+                        {% else %}
+                            <span class="text-gray-400 italic">System / Anonymous</span>
+                        {% endif %}
+                    </td>
+					<td class="border border-gray-300 px-4 py-2 text-sm">{{ log.role }}</td>
+					<td class="border border-gray-300 px-4 py-2 text-sm">{{ log.action }}</td>
+					<td class="border border-gray-300 px-4 py-2 text-sm">{{ log.targetData }}</td>
+					<td class="border border-gray-300 px-4 py-2 text-sm">{{ log.createdAt|date('Y-m-d H:i:s') }}</td>
+				</tr>
+			{% else %}
+				<tr>
+					<td colspan="6">No logs found</td>
+				</tr>
+			{% endfor %}
+		{% endblock %}
+	{% endembed %}
+{% endblock %}

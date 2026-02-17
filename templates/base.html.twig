@@ -1,188 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        {{
-            encore_entry_link_tags("app")
-        }}
-        <meta charset="UTF-8" />
-        <title>{% block title %}Welcome to MIFANIA{% endblock %}</title>
-        <link
-            rel="icon"
-            type="image/x-icon"
-            href="{{ asset('favicon.ico') }}"
-        />
-        {{
-            encore_entry_script_tags("app")
-        }}
-    </head>
-    <body>
-        <!-- HEADER -->
-        <header
-            class="flex justify-between items-center px-10 py-4 sticky top-0 bg-[#F9F1E8] shadow-[0_0_12px_rgba(63,44,30,0.6)] z-[1000]"
-        >
-            <!-- Logo -->
-            <div class="w-[270px]">
-                <a href="{{ path('app_home') }}">
-                    <img
-                        src="{{ asset('images/logo.svg') }}"
-                        alt="Fashion Logo"
-                    />
-                </a>
-            </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mifania | Sustainable Fashion Line</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for FAQ Interactivity -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; }
+        .text-brand { color: #6B7C57; }
+        .bg-brand { background-color: #6B7C57; }
+        .bg-brand-dark { background-color: #556345; }
+        .bg-light-gray { background-color: #EAEAEA; } /* Matches the background in screenshots */
+        .border-brand { border-color: #6B7C57; }
 
-            <!-- Navigation Links -->
-            <nav class="flex space-x-8 text-center">
-                <a
-                    href="{{ path('app_home') }}"
-                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
-                    >Home</a
-                >
-                <a
-                    href="{{ path('app_dashboard') }}"
-                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
-                    >Dashboard</a
-                >
-                <a
-                    href="#"
-                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
-                    >Products</a
-                >
-                <a
-                    href="#"
-                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
-                    >About</a
-                >
-                <a
-                    href="#"
-                    class="relative font-semibold text-mocha pb-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-mocha after:transition-all after:duration-300 hover:after:w-full"
-                    >Contact</a
-                >
-            </nav>
+        /* Smooth transitions for accordion */
+        .accordion-content { transition: max-height 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="text-gray-800 bg-white">
 
-            <!-- Navigation Icons -->
-            <nav class="flex items-center gap-6">
-                <a href="#">
-                    <img
-                        src="{{ asset('icons/magnifying-glass.svg') }}"
-                        alt="Search"
-                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
-                    />
-                </a>
-                <a href="{{ path('app_cart_show') }}">
-                    <img
-                        src="{{ asset('icons/shopping-cart-simple.svg') }}"
-                        alt="Cart"
-                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
-                    />
-                </a>
-                <a href="#">
-                    <img
-                        src="{{ asset('icons/heart.svg') }}"
-                        alt="Wishlist"
-                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
-                    />
-                </a>
+    <!-- Navigation -->
+    <nav class="flex items-center justify-between px-6 py-5 md:px-12 bg-white sticky top-0 z-50 shadow-sm">
+        <!-- Logo -->
+        <div class="flex flex-shrink-0 w-64 items-center gap-2">
+            <a href="{{ path('app_home') }}">
+                <img
+                    src="{{ asset('uploads/logo/logo.svg') }}"
+                    alt="Mifania Logo"
+                    class="w-full h-auto max-h-10 md:max-h-12 lg:max-h-14 xl:max-h-16"
+                />
+            </a>
+        </div>
 
-                {% if app.user %}
-                <a href="{{ path('app_account') }}">
-                    <img
-                        src="{{ asset('icons/user-circle.svg') }}"
-                        alt="Account"
-                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
-                    />
-                </a>
-                <a
-                    href="#"
-                    @click.prevent="$dispatch('open-logout-modal')"
-                >
-                    <img
-                        src="{{ asset('icons/sign-out.svg') }}"
-                        alt="Logout"
-                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
-                    />
-                </a>
-                {% else %}
-                <a href="{{ path('app_login') }}">
-                    <img
-                        src="{{ asset('icons/user-circle.svg') }}"
-                        alt="Account"
-                        class="w-6 h-6 transition-transform duration-300 hover:scale-125"
-                    />
-                </a>
-                {% endif %}
-            </nav>
-        </header>
+        <!-- Menu Items -->
+        <div class="hidden lg:flex items-center gap-8 text-sm font-semibold text-[#52622E]">
+            <a href="{{ path('app_home') }}" class="hover:text-brand transition-colors">Home</a>
+            <a href="{{ path('app_shop') }}" class="hover:text-brand transition-colors">Shop</a>
+            <a href="#" class="hover:text-brand transition-colors">Women</a>
+            <a href="#" class="hover:text-brand transition-colors">Men</a>
+            <a href="#" class="hover:text-brand transition-colors">Accessories</a>
+            <a href="#" class="hover:text-brand transition-colors">About</a>
+            <a href="#" class="hover:text-brand transition-colors">Contact Us</a>
+        </div>
 
-        <!-- MAIN CONTENT -->
-        {% block main_content %}{% endblock %}
+        <div class="flex items-center gap-5 text-[#52622E]">
+            <a hraf="#" class="hover:text-brand">
+                {{ ux_icon('lucide:search', { class: 'h-5 w-5' }) }}
+            </a>
+            <a href="{{ path('app_cart_show') }}" class="hover:text-brand">
+                {{ ux_icon('lucide:shopping-cart', { class: 'h-5 w-5' }) }}
+            </a>
+             <a href="#" class="hover:text-brand">
+                {{ ux_icon('lucide:heart', { class: 'h-5 w-5' }) }}
+            </a>
+            <a href="{{ path('app_account') }}" class="hover:text-brand">
+                {{ ux_icon('lucide:user-circle', { class: 'h-5 w-5' }) }}
+            </a>
+        </div>
+    </nav>
 
-        <!-- FOOTER -->
-        <footer class="flex flex-col">
-            <!-- Top Section -->
-            <div
-                class="grid grid-cols-1 md:grid-cols-3 text-center bg-white text-mocha p-6 gap-6"
-            >
-                <div>
-                    <h5 class="font-semibold text-lg">WEAR THE CHANGE</h5>
-                    <p class="text-sm mt-2">
-                        Sign up for our email newsletter and GET 10% OFF. It's
-                        like having a stylish BFF. Opt out any time.
-                    </p>
+    {% block main_content %}{% endblock %}
+
+    <section class="bg-light-gray px-6 md:px-12 pb-12">
+         <div class="max-w-[1440px] mx-auto border-t border-gray-300 pt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-sm">
+            <div class="lg:col-span-1">
+                <div class="flex items-center gap-2 mb-6">
+                    <svg viewBox="0 0 24 24" class="text-brand fill-current w-8 h-8">
+                        <path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.3l6 3.7v7.4l-6 3.7-6-3.7V8l6-3.7z"/>
+                    </svg>
+                    <span class="text-xl font-bold tracking-tight text-gray-700 uppercase">MIFANIA</span>
                 </div>
-
-                <div>
-                    <h5 class="font-semibold text-lg">HELP US IMPROVE</h5>
-                    <p class="text-sm mt-2">
-                        Take a brief survey about today's visit.
-                    </p>
-                    <a
-                        href="#"
-                        class="text-sm font-bold border-b-2 border-mocha hover:border-transparent transition duration-300"
-                        >BEGIN SURVEY</a
-                    >
-                </div>
-
-                <div>
-                    <h5 class="font-semibold text-lg">GET MIFANIA ON THE GO</h5>
-                    <p class="text-sm mt-2">Browse our products.</p>
+                <p class="text-gray-500 text-xs leading-relaxed mb-6">
+                    MIFANIA Sustainable Fashion Line. Fashion that respects the Earth isn't a trend; it's our future. We create timeless pieces using 100% organic materials and ethical labor practices.
+                </p>
+                <div class="flex gap-4 text-brand">
+                    <!-- Social Icons placeholder -->
+                    <div class="w-6 h-6 bg-brand rounded-full">
+                        <a href="#" class="flex items-center justify-center w-full h-full">{{ ux_icon('lucide:facebook', { class: 'h-4 w-4 text-white' }) }}</a>
+                    </div>
+                    <div class="w-6 h-6 bg-brand rounded-full">
+                        <a href="#" class="flex items-center justify-center w-full h-full">{{ ux_icon('lucide:instagram', { class: 'h-4 w-4 text-white' }) }}</a>
+                    </div>
+                    <div class="w-6 h-6 bg-brand rounded-full">
+                        <a href="#" class="flex items-center justify-center w-full h-full">{{ ux_icon('lucide:twitter', { class: 'h-4 w-4 text-white' }) }}</a>
+                    </div>
+                    <div class="w-6 h-6 bg-brand rounded-full">
+                        <a href="#" class="flex items-center justify-center w-full h-full">{{ ux_icon('lucide:linkedin', { class: 'h-4 w-4 text-white' }) }}</a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Middle Section -->
-            <div
-                class="w-full h-[40vh] bg-mocha border-b border-white/20"
-            ></div>
-
-            <!-- Bottom Section -->
-            <div
-                class="flex flex-col md:flex-row justify-between items-center bg-mocha text-[#F9F1E8] px-10 py-5 gap-4"
-            >
-                <div class="text-xs">
-                    &copy; {{ "now"|date("Y") }} MIFANIA Sustainable Fashion
-                    Line. All rights reserved.
-                </div>
-
-                <div class="flex gap-6 text-xs">
-                    <a href="#" class="hover:underline">Terms & Conditions</a>
-                    <a href="#" class="hover:underline">Privacy Policy</a>
-                    <a href="#" class="hover:underline">Contact Us</a>
-                </div>
+            <div>
+                <h4 class="font-bold text-brand mb-6">Company</h4>
+                <ul class="text-gray-500 space-y-4 text-xs">
+                    <li><a href="#" class="hover:text-brand">About Us</a></li>
+                    <li><a href="#" class="hover:text-brand">Blog</a></li>
+                    <li><a href="#" class="hover:text-brand">Contact Us</a></li>
+                    <li><a href="#" class="hover:text-brand">Career</a></li>
+                </ul>
             </div>
-        </footer>
 
-        <button
-            id="back-to-top"
-            class="fixed bottom-6 right-6 p-3 bg-light-brown text-white rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 z-50"
-            aria-label="Back to top"
-        >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-            </svg>
-        </button>
-        {% include 'components/modal/logout_confirmation.html.twig' %}
-        {% block javascripts %}
-            <script src="{{ asset('js/back_to_top.js') }}"></script>
-            <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        {% endblock %}
-    </body>
+            <div>
+                <h4 class="font-bold text-brand mb-6">Customer Service</h4>
+                <ul class="text-gray-500 space-y-4 text-xs">
+                    <li><a href="#" class="hover:text-brand">My Account</a></li>
+                    <li><a href="#" class="hover:text-brand">Track Your Order</a></li>
+                    <li><a href="#" class="hover:text-brand">Return</a></li>
+                    <li><a href="#" class="hover:text-brand">FAQ</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-brand mb-6">Our Information</h4>
+                <ul class="text-gray-500 space-y-4 text-xs">
+                    <li><a href="#" class="hover:text-brand">Privacy</a></li>
+                    <li><a href="#" class="hover:text-brand">User Terms & Conditions</a></li>
+                    <li><a href="#" class="hover:text-brand">Return Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-brand mb-6">Newsletter</h4>
+                <p class="text-gray-500 text-xs mb-4">
+                    Subscribe to our newsletter to get updates on new products and promotions.
+                </p>
+                <input type="email" placeholder="Your email address" class="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brand text-xs">
+                <button class="mt-3 w-full bg-brand text-white py-2 rounded-md hover:bg-brand-dark transition-colors text-xs">Subscribe</button>
+            </div>
+             <div>
+                <h4 class="font-bold text-brand mb-6">Contact Info</h4>
+                <ul class="text-gray-500 space-y-4 text-xs">
+                    <li>+63 09234 2342</li>
+                    <li>mifaniasfl@example.com</li>
+                    <li>1234 Street Dumaguete City, Negros Oriental, Philippines</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-[1440px] mx-auto mt-16 pt-8 border-t border-gray-300 text-left text-[10px] text-gray-500">
+            Copyright © 2024 Mifania Sustainable Fashion Line. All Rights Reserved.
+        </div>
+    </section>
+    {% include "components/back_to_top.html.twig" %}
+</body>
 </html>

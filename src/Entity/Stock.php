@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Entity\Enum\StockStatus;
 use App\Repository\StockRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 #[ORM\Entity(repositoryClass: StockRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -23,7 +22,7 @@ class Stock
     private ?string $location = null;
 
     #[ORM\Column(length: 50, enumType: StockStatus::class)]
-    private ?StockStatus $status = StockStatus::OutOfStock;
+    private ?StockStatus $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -48,6 +47,19 @@ class Stock
     public function updateTimestamps(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function updateStatus(): void
+    {
+        if ($this->quantity == 0) {
+            $this->status = StockStatus::OUT_OF_STOCK;
+        } elseif ($this->quantity < 50) {
+            $this->status = StockStatus::LOW_STOCK;
+        } else {
+            $this->status = StockStatus::IN_STOCK;
+        }
     }
 
     public function getId(): ?int

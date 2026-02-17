@@ -1,0 +1,11 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Edit Admin Profile{% endblock %}
+
+{% block main_content %}
+    {{ include('dashboard/admin/_form.html.twig', {
+        form: form,
+        button_label: 'Update Admin',
+        button_class: 'cursor-pointer px-4 py-2 bg-success text-sm font-semibold text-white rounded-xl hover:bg-success-hover'
+    }) }}
+{% endblock %}

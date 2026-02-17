@@ -1,58 +1,122 @@
-{% extends 'base.html.twig' %} {% block title %}Product{% endblock %} {% block
-body %}
-<link rel="stylesheet" href="{{ asset('styles/admin/show.css') }}" />
-<div class="show-wrapper">
-    <div class="show-container">
-        <div class="show-header">
-            <h1>Product List</h1>
-        </div>
-        <div class="show-body">
-            <div class="show-details">
-                <table class="show-table">
-                    <tbody>
-                        <tr>
-                            <th>Id</th>
-                            <td>{{ product.id }}</td>
-                        </tr>
-                        <tr>
-                            <th>Product Name</th>
-                            <td>{{ product.productName }}</td>
-                        </tr>
-                        <tr>
-                            <th>Category</th>
-                            <td>{{ product.category }}</td>
-                        </tr>
-                        <tr>
-                            <th>Material</th>
-                            <td>{{ product.material }}</td>
-                        </tr>
-                        <tr>
-                            <th>Size</th>
-                            <td>{{ product.size }}</td>
-                        </tr>
-                        <tr>
-                            <th>Color</th>
-                            <td>{{ product.color }}</td>
-                        </tr>
-                        <tr>
-                            <th>Price</th>
-                            <td>PHP {{ product.price }}</td>
-                        </tr>
-                        <tr>
-                            <th>Description</th>
-                            <td>{{ product.description }}</td>
-                        </tr>
-                        <tr>
-                            <th>Image</th>
-                            <td>{{ product.image }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }} - Product Details{% endblock %}
+
+{% block main_content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-sm text-mocha-200 mb-6">
+        <a href="{{ path('app_home') }}" class="hover:underline">Home</a> /
+        <a href="{{ path('app_category_show', {'slug': product.category.slug}) }}" class="hover:underline">{{ product.category.name }}</a> /
+        <a href="{{ path('app_sub_category_show', {'slug': product.subCategory.slug}) }}" class="hover:underline">{{ product.subCategory }}</a> /
+        <span class="text-mocha">Product Details</span>
+    </div>
+
+    {# Product Details Container #}
+    <div class="flex flex-col lg:flex-row gap-8 bg-white p-6 rounded-lg shadow-md">
+        <div class="lg:w-1/2 w-full flex flex-col items-center">
+            <div class="relative w-full max-w-md xl:max-w-lg mb-4">
+                <img
+                    src="{{ product.image ? asset('uploads/products/' ~ product.image) : asset('uploads/default/default-product.png') }}"
+                    alt="Product {{ product.name }}"
+                    class="w-full h-auto rounded-lg shadow-sm"
+                >
             </div>
         </div>
-        <div class="actions">
-            <a href="{{ path('app_product_index') }}">BACK</a>
+
+        {# Right Section: Product Information #}
+        <div class="lg:w-1/2 w-full">
+            <p class="text-xs text-mocha-100 mb-1">{{ product.subcategory }}</p>
+            <h1 class="text-3xl font-bold text-mocha mb-3">{{ product.name }}</h1>
+
+            <div class="flex items-center mb-4">
+                <div class="flex text-yellow-500 text-lg">
+                    <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span class="text-mocha-100">&#9733;</span>
+                </div>
+                <span class="text-mocha-300 ml-2">4.8 (245 Review)</span>
+            </div>
+
+            <div class="text-3xl font-bold text-red-600 mb-4">
+                PHP {{ product.price }} <span class="text-lg font-normal text-mocha-100 line-through">PHP 150.00</span>
+            </div>
+
+            <p class="text-mocha-300 mb-6 text-sm">{{ product.description}}</p>
+
+            <div class="mb-4">
+                <span class="text-mocha-400 font-medium">{{ product.stockStatus }}</span>
+            </div>
+
+            {# 🔴 FIX 1: Add 'action' to route the form submission to the correct controller action #}
+            <form action="{{ path('app_cart_add', {'slug': product.slug}) }}" method="POST">
+                <div class="mb-6">
+                    <span class="font-semibold text-mocha">Color:</span>
+                    <span class="ml-2 text-mocha-300">{{ product.color.value }}</span>
+                    <div class="flex gap-2 mt-2">
+                        <label
+                            class="w-6 h-6 rounded-full cursor-pointer transition flex-shrink-0"
+                            :class="{
+                                'border-mocha ring-2 ring-mocha': selectedColor === '{{ product.color.value }}',
+                                'border border-mocha-100 hover:border-gray-400': selectedColor !== '{{ product.color.value }}'
+                            }"
+                            style="background-color: {{ product.color.getHexCode() }};"
+                            x-on:click="selectedColor = '{{ product.color.value }}'"
+                            title="{{ product.color.value }}"
+                        ></label>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <span class="font-semibold text-mocha">Size:</span>
+                    <span class="ml-2 text-mocha-300">{{ product.size.value }}</span>
+                </div>
+
+                {# Quantity & Add to Cart / Buy Now #}
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="flex border border-mocha-100 rounded-md">
+                        <button type="button" class="px-3 py-2 hover:bg-gray-100" onclick="this.closest('.flex').querySelector('input').stepDown()">-</button>
+                            <input
+                                type="number"
+                                name="quantity"
+                                value="1"
+                                min="1"
+                                max="99"
+                                class="w-12 text-center border-none focus:ring-0"
+                            >
+                        <button type="button" class="px-3 py-2 hover:bg-gray-100" onclick="this.closest('.flex').querySelector('input').stepUp()">+</button>
+                    </div>
+
+                    <button
+                        type="submit"
+                        x-on:click="$el.form.querySelector('#action-field').value='add'"
+                        class="bg-mocha text-white px-6 py-3 rounded-md hover:bg-mocha-400 transition"
+                    >Add To Cart</button>
+
+                     <button
+                        type="submit"
+                        x-on:click="$el.form.querySelector('#action-field').value='buy_now'"
+                        class="bg-green text-white px-6 py-3 rounded-md hover:bg-green-400 transition"
+                    >Buy Now</button>
+
+                    <button type="button" class="p-3 border border-gray-300 rounded-md text-mocha hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+
+                {# SKU, Tags, Share #}
+                <div class="text-sm text-mocha-300 space-y-2">
+                    <p><span class="font-semibold">SKU:</span> GHFT95245AAA</p>
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold">Share:</span>
+                        <a href="#" class="text-mocha-300 hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-mocha-300 hover:text-blue-400"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-mocha-300 hover:text-red-600"><i class="fab fa-pinterest"></i></a>
+                        <a href="#" class="text-mocha-300 hover:text-blue-700"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
+    {# ... (Tabs and Related Products Section - No changes needed here) ... #}
 </div>
 {% endblock %}

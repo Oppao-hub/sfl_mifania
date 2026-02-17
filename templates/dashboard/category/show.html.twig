@@ -1,0 +1,69 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Category Details: {{ category.name }}{% endblock %}
+
+{% block main_content %}
+<div class="mx-1 min-h-screen bg-white p-8 mb-1 shadow-lg">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-mocha">Category: {{ category.name }}</h1>
+    </div>
+
+    <div class="space-y-6">
+        {# Detail Card #}
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <h2 class="text-xl font-semibold text-mocha mb-4 border-b pb-2">Category Information</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                {# Row 1: ID and Name #}
+                <div>
+                    <p class="text-sm font-medium text-gray-500"><strong>Category ID</strong></p>
+                    <p class="text-lg font-bold text-mocha">{{ category.id }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500"><strong>Category Name</strong></p>
+                    <p class="text-lg text-mocha">{{ category.name }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm font-medium text-gray-500"><strong>Created At</strong></p>
+                    <p class="text-lg text-mocha">{{ category.createdAt ? category.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500"><strong>Updated At</strong></p>
+                    <p class="text-lg text-mocha">{{ category.updatedAt ? category.updatedAt|date('Y-m-d H:i:s') : 'N/A' }}</p>
+                </div>
+
+                {# Row 2: Description (takes full width) #}
+                <div class="md:col-span-2">
+                    <p class="text-sm font-medium text-gray-500">Description</p>
+                    <div class="bg-white p-4 rounded-lg border border-gray-100 mt-1">
+                        <p class="text-base text-mocha whitespace-pre-wrap">{{ category.description | default('No description provided.') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex space-x-2 justify-end">
+            {# Assuming 'app_dashboard_category_edit' is your route for editing #}
+            <a href="{{ path('app_dashboard_category_edit', {'id': category.id}) }}"
+                class="px-4 py-2 text-sm font-semibold bg-success text-white rounded-xl hover:bg-success-hover transition duration-150 shadow-md">
+                Edit Category
+            </a>
+
+            {# Assuming 'app_dashboard_category_delete' is your route for deletion #}
+            <a
+                href="#"
+                onclick="openDeleteModal({{ category.id }}, '{{ category.name|e('js') }}', '{{ csrf_token('delete' ~ category.id) }}')"
+                class="px-4 py-2 bg-danger text-white text-sm font-medium rounded-xl hover:bg-danger-hover transition"
+            >
+                Delete
+            </a>
+
+
+            <a href="{{ path('app_dashboard_category_index') }}" class="px-4 py-2 text-sm text-mocha border border-gray-300 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition duration-150">
+                Back
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

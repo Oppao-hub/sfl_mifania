@@ -21,5 +21,8 @@
     "[xml]": {
         "editor.defaultFormatter": "redhat.vscode-xml"
     },
-    "emmet.triggerExpansionOnTab": true
+    "emmet.triggerExpansionOnTab": true,
+    "[twig]": {
+        "editor.defaultFormatter": "mblode.twig-language-2"
+    }
 }

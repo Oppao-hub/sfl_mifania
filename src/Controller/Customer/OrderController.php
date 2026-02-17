@@ -2,82 +2,135 @@
 
 namespace App\Controller\Customer;
 
+use App\Repository\ProductRepository;
 use App\Entity\Order;
-use App\Form\OrderType;
+use App\Entity\OrderItem;
 use App\Repository\OrderRepository;
+use App\Service\CartService;
+use App\Repository\UserRepository;
+use App\Entity\Notification;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_USER')]
-#[Route('/order')]
+#[Route('/orders')]
 final class OrderController extends AbstractController
 {
     #[Route(name: 'app_order_index', methods: ['GET'])]
     public function index(OrderRepository $orderRepository): Response
     {
-        return $this->render('customer/order/index.html.twig', [
+        return $this->render('customer/account/orders.html.twig', [
             'orders' => $orderRepository->findAll(),
         ]);
     }
 
     #[Route('/new', name: 'app_order_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, ProductRepository $productRepo): Response
     {
-        $order = new Order();
-        $form = $this->createForm(OrderType::class, $order);
-        $form->handleRequest($request);
+        // 1. Get the current gender from Session (Default to 'Women' if not set)
+        $currentGender = $request->getSession()->get('shop_gender', 'Women');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($order);
-            $entityManager->flush();
+        // 2. Fetch the Products (Filtered by Gender)
+        $products = $productRepo->findByGender($currentGender);
 
-            return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('customer/order/new.html.twig', [
-            'order' => $order,
-            'form' => $form,
+        // 3. Send to your Template
+        return $this->render('home/index.html.twig', [
+            'active_gender' => $currentGender,
+            'products' => $products,
         ]);
     }
 
     #[Route('/{id}', name: 'app_order_show', methods: ['GET'])]
     public function show(Order $order): Response
     {
-        return $this->render('customer/order/show.html.twig', [
+        return $this->render('customer/show_order.html.twig', [
             'order' => $order,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_order_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Order $order, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(OrderType::class, $order);
-        $form->handleRequest($request);
+    #[Route('/place', name: 'app_place_order', methods: ['POST', 'GET'])]
+    public function placeOrder(
+        CartService $cartService,
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository
+    ): Response {
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+        $cart = $cartService->getCart();
+        $cartItems = $cart->getCartItems();
 
-            return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
+        if ($cartItems->isEmpty()) {
+            $this->addFlash('warning', 'Your cart is empty.');
+            return $this->redirectToRoute('app_cart_show');
         }
 
-        return $this->render('customer/order/edit.html.twig', [
-            'order' => $order,
-            'form' => $form,
-        ]);
-    }
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'You must be logged in to place an order.');
+            return $this->redirectToRoute('app_login');
+        }
 
-    #[Route('/{id}', name: 'app_order_delete', methods: ['POST'])]
-    public function delete(Request $request, Order $order, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $order->getId(), $request->get('_token'))) {
-            $entityManager->remove($order);
+        // 1. Create the Order
+        $order = new Order();
+        /** @var \App\Entity\User $user */
+        $order->setCustomer($user->getCustomer());
+        $totalAmount = 0;
+        $order->setTotalAmount('0');
+
+        $totalRewardPoints = 0;
+
+        // 2. Create Order Items
+        foreach ($cartItems as $cartItem) {
+            $product = $cartItem->getProduct();
+            $quantity = $cartItem->getQuantity();
+            $price = $product->getPrice();
+            $subtotal = (float) $cartItem->getSubtotal();
+
+            $item = new OrderItem();
+            $item->setOrder($order);
+            $item->setProduct($product);
+            $item->setQuantity($quantity);
+            $item->setPrice((string) $price);
+            $item->setSubtotal((string) $subtotal);
+
+            // Reduce product stock
+            $product->deductStockQuantity($quantity);
+
+            $order->addOrderItem($item);
+            $entityManager->persist($item);
+
+            $totalAmount += (float) $subtotal;
+        }
+
+        $order->setTotalAmount((string) $totalAmount);
+        $order->setRewardPointsEarned($totalRewardPoints);
+
+        $entityManager->persist($order);
+        $entityManager->flush();
+
+        // Clear cart after successful order
+        $cartService->clearCart();
+
+        $admin = $userRepository->findAdmin();
+        if ($admin) {
+            $adminProfile = $admin->getAdmin();
+        }
+
+        if (isset($adminProfile)) {
+            $notification = new Notification();
+            $notification->setTitle('New Order');
+            $notification->setMessage('A new order has been placed.');
+            $notification->setAdmin($adminProfile);
+            $notification->setIsRead(false);
+            $notification->setRecipient($admin);
+
+            $entityManager->persist($notification);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
+        $this->addFlash('success', 'Order placed successfully!');
+
+        return $this->redirectToRoute('app_order_index');
     }
 }

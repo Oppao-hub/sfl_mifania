@@ -1,0 +1,80 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Staff{% endblock %}
+
+{% block main_content %}
+    {% embed 'components/table/table.html.twig' with {
+        title: 'Staffs',
+        new_path: 'app_staff_new',
+        headers: ['ID', 'First Name', 'Last Name', 'Email', 'Account Status', 'Actions'],
+        id: 'dashboard-table'
+    } %}
+
+        {% block rows %}
+            {% for staff in staffs %}
+                <tr class="hover:bg-row-hover transition-colors">
+                    <td class="border border-gray-300 px-4 py-2 text-sm">{{ staff.id }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900">{{ staff.firstName }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900">{{ staff.lastName }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-sm">{{ staff.user.email }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-sm text-center">
+                        <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': staff.user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ staff.user.id) }}">
+
+                            <select name="status"
+                                    onchange="triggerConfirmation(this.form, this, '{{ staff.user.status.value }}', 'Update Account Status')"
+                                    class="text-xs font-semibold py-1 pl-2 pr-6 border-gray-300 rounded-lg focus:ring-mocha focus:border-mocha cursor-pointer w-full
+                                    {% if staff.user.status.value == 'Active' %}
+                                        text-green-800 bg-green-100 border-green-200
+                                    {% else %}
+                                        text-red-700 bg-red-100 border-red-200
+                                    {% endif %}">
+
+                                {# Option 1: Active #}
+                                <option value="Active" {% if staff.user.status.value == 'Active' %}selected{% endif %}>
+                                    Active
+                                </option>
+
+                                {# Option 2: Inactive (or Banned) #}
+                                <option value="Deactivated" {% if staff.user.status.value != 'Active' %}selected{% endif %}>
+                                    Deactivated
+                                </option>
+                            </select>
+                        </form>
+                    </td>
+                    <td class="border border-gray-300 py-3 px-4 text-sm text-center">
+                        <div class="flex justify-center items-center gap-3">
+                            <a href="{{ path('app_staff_show', { id: staff.id }) }}"
+                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                                {{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}
+                            </a>
+
+                            {# Edit #}
+                            <a href="{{ path('app_staff_edit', { id: staff.id }) }}"
+                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                                {{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}
+                            </a>
+
+                            {# Delete (Using the Alpine Modal we built) #}
+                            <button type="button"
+                                @click="$dispatch('open-delete-modal', {
+                                    url: '{{ path('app_staff_delete', {id: staff.id}) }}',
+                                    name: '{{ staff.firstName|e('js') }} {{ staff.lastName|e('js') }}',
+                                    token: '{{ csrf_token('delete' ~ staff.id) }}'
+                                })"
+                                class="text-red-400 hover:text-[#B45239] transition-colors cursor-pointer">
+                                {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="py-8 text-center text-gray-500 italic">
+                        No staff records found.
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

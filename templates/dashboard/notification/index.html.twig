@@ -1,0 +1,30 @@
+{% extends '/dashboard/dashboard.html.twig' %} {% block title %}Hello
+NotificationController!{% endblock %} {% block main_content %}
+<link rel="stylesheet" href="{{ asset('styles/dashboard/form.css') }}" />
+<div class="content-wrapper">
+    <div class="content-container">
+        <div class="content-header">
+            <h1>Notifications</h1>
+        </div>
+                <div class="dropdown-menu">
+                    {% if notifications is empty %}
+                    <div class="dropdown-item text-muted">
+                        No new notifications
+                    </div>
+                    {% else %} {% for notif in notifications %}
+                    <div
+                        class="dropdown-item {{
+                            notif.isRead ? 'read' : 'unread'
+                        }}"
+                    >
+                        <strong>{{ notif.title }}</strong>
+                        <p>{{ notif.message }}</p>
+                        <small>{{ notif.createdAt|date('Y-m-d H:i') }}</small>
+                    </div>
+                    {% endfor %} {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

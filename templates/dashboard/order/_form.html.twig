@@ -1,0 +1,162 @@
+{# templates/dashboard/order/_form.html.twig #}
+{% form_theme form 'form/error_theme.html.twig' %}
+
+{# 1. Centralized Boutique Styles #}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-dashboard-mocha/50 ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-dashboard-olive focus:ring-0 text-sm font-bold text-dashboard-mocha transition-all' %}
+{% set readonly_base = 'w-full px-4 py-3 bg-dashboard-bg/50 border border-cream-200 rounded-xl text-sm font-black text-dashboard-mocha/60 cursor-not-allowed' %}
+{% set select_style = 'boutique-select ' ~ input_base %}
+
+{# --- MACRO FOR ORDER ITEM ROW --- #}
+{% macro print_order_item_row(itemForm, label_style, input_base, readonly_base) %}
+    <div class="order-item-row group animate-fadeIn mb-4 p-6 border border-cream-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row items-start lg:items-end gap-6">
+
+        {# Terminology change: Article -> Piece #}
+        <div class="flex-grow w-full">
+            <label class="{{ label_style }}">Piece Selection</label>
+            {{ form_widget(itemForm.product, {'attr': {'class': input_base ~ ' item-product-select'}}) }}
+            {{ form_errors(itemForm.product) }}
+        </div>
+
+        <div class="w-full lg:w-24">
+            <label class="{{ label_style }} text-center lg:ml-0">Qty</label>
+            {{ form_widget(itemForm.quantity, {'attr': {'class': input_base ~ ' text-center item-quantity'}}) }}
+            {{ form_errors(itemForm.quantity) }}
+        </div>
+
+        <div class="w-full lg:w-32">
+            <label class="{{ label_style }}">Unit Value</label>
+            {{ form_widget(itemForm.price, {'attr': {'class': readonly_base ~ ' item-price', 'readonly': true}}) }}
+        </div>
+
+        <div class="w-full lg:w-40">
+            <label class="{{ label_style }}">Line Total</label>
+            {{ form_widget(itemForm.subtotal, {'attr': {'class': readonly_base ~ ' item-subtotal text-right font-mono', 'readonly': true}}) }}
+        </div>
+
+        <button type="button" class="remove-item-btn p-3 bg-white border border-red-100 text-red-400 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all active:scale-90" aria-label="Remove item">
+            {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+        </button>
+    </div>
+{% endmacro %}
+
+{{ form_start(form, {'attr': {'id': 'order-form', 'class': 'relative', 'novalidate': 'novalidate'}}) }}
+
+    {# --- FIXED STICKY HEADER --- #}
+    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border border-cream-200 rounded-xl mb-8 p-6 shadow-xl shadow-dashboard-mocha/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-2 h-2 rounded-full bg-dashboard-olive animate-pulse"></div>
+            <div>
+                <h1 class="text-xl font-black text-dashboard-mocha tracking-tighter uppercase leading-none">
+                    Order <span class="text-dashboard-olive">#{{ form.vars.value.id|default('New') }}</span>
+                </h1>
+                <p class="text-[9px] text-dashboard-mocha/30 mt-1 uppercase font-black tracking-[0.3em]">Collection Manifest</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard_order_index') }}"
+               class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-dashboard-mocha/40 border border-dashboard-olive/20 hover:bg-dashboard-olive/5 rounded-xl transition-all">
+                Discard
+            </a>
+            <button type="submit"
+                    class="px-8 py-3 bg-dashboard-olive text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-dashboard-olive/20 hover:bg-dashboard-olive/90 transition-all active:scale-95 cursor-pointer">
+                {{ button_label|default('Save') }}
+            </button>
+        </div>
+    </div>
+
+    {# --- MAIN FORM CARD --- #}
+    <div class="bg-white rounded-xl shadow-[0_20px_50px_rgba(66,43,28,0.06)] border border-cream-200 overflow-hidden">
+
+        {# SECTION 1: Credentials #}
+        <div class="p-8 md:p-10 border-b border-gray-50 bg-dashboard-bg/5 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-2">
+                {{ form_label(form.customer, null, { label_attr: {'class': label_style} })}}
+                {{ form_widget(form.customer, {'attr': {'class': select_style}}) }}
+                {{ form_errors(form.customer) }}
+            </div>
+            {% if form.orderDate is defined %}
+                <div class="space-y-2">
+                    {{ form_label(form.orderDate, null, { label_attr: {'class': label_style} }) }}
+                    {{ form_widget(form.orderDate, {'attr': {'class': input_base}}) }}
+                    {{ form_errors(form.orderDate) }}
+                </div>
+            {% endif %}
+        </div>
+
+        {# SECTION 2: Items Manifest (Dynamic Collection) #}
+        <div class="p-4 md:p-2 mb-10">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 px-4 gap-4">
+                <div>
+                    <h3 class="text-sm font-black text-dashboard-mocha uppercase tracking-[0.4em] italic leading-none">Line Items Manifest</h3>
+                    <p class="text-[10px] text-dashboard-mocha/30 mt-2 uppercase font-bold tracking-widest">Product distribution for this transaction</p>
+                </div>
+
+                <button type="button" id="add-item-btn"
+                        class="group px-6 py-3 bg-white text-dashboard-olive text-[10px] font-black uppercase tracking-[0.2em] rounded-xl border-2 border-dashboard-bg hover:border-dashboard-olive/20 hover:bg-dashboard-bg/30 transition-all flex items-center gap-3 active:scale-95 shadow-sm">
+                    {{ ux_icon('lucide:plus-circle', {class: 'w-4 h-4 transition-transform group-hover:rotate-90'}) }}
+                    Add New Piece
+                </button>
+            </div>
+
+            <div id="order-items-fields"
+                data-prototype="{{ _self.print_order_item_row(form.orderItems.vars.prototype, label_style, input_base, readonly_base)|e('html_attr') }}"
+                data-widget-counter="{{ form.orderItems|length }}"
+                class="space-y-6">
+
+                {% if form.orderItems|length > 0 %}
+                    {% for item in form.orderItems %}
+                        {{ _self.print_order_item_row(item, label_style, input_base, readonly_base) }}
+                    {% endfor %}
+                {% else %}
+                    {# Empty State placeholder to keep the UI clean #}
+                    <div class="text-center py-20 border-2 border-dashed border-cream-200 rounded-2xl bg-dashboard-bg/5">
+                        <div class="p-4 bg-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            {{ ux_icon('lucide:package-open', {class: 'w-6 h-6 text-dashboard-mocha/20'}) }}
+                        </div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-dashboard-mocha/30">No pieces added to this manifest yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# SECTION 3: Financial Settlement #}
+        <div class="p-8 md:p-10 border-b border-gray-50 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                {{ form_label(form.totalAmount, null, { label_attr: {'class': label_style} }) }}
+                <div class="relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-dashboard-mocha/20 font-black group-focus-within:text-dashboard-olive transition-colors">₱</span>
+                    {{ form_widget(form.totalAmount, {'attr': {'class': readonly_base ~ ' pl-10 text-lg font-black text-dashboard-olive', 'readonly': true}}) }}
+                </div>
+            </div>
+            <div class="space-y-2">
+                {{ form_label(form.paymentMethod, null, { label_attr: {'class': label_style} }) }}
+                {{ form_widget(form.paymentMethod, {'attr': {'class': select_style}}) }}
+            </div>
+            <div class="space-y-2">
+                {{ form_label(form.paymentStatus, null, { label_attr: {'class': label_style} }) }}
+                {{ form_widget(form.paymentStatus, {'attr': {'class': select_style}}) }}
+            </div>
+        </div>
+
+        {# SECTION 4: Processing Status & Loyalty #}
+        <div class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-2">
+                {{ form_label(form.orderStatus, null, { label_attr: {'class': label_style} }) }}
+                {{ form_widget(form.orderStatus, {'attr': {'class': select_style}}) }}
+            </div>
+            <div>
+                {{ form_label(form.rewardPoints, 'Loyalty Points Earned', { label_attr: {'class': label_style} }) }}
+                <div class="relative">
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-terracotta/40">{{ ux_icon('lucide:sparkles', {class: 'w-4 h-4'}) }}</div>
+                    {{ form_widget(form.rewardPoints, {'attr': {'class': readonly_base ~ ' pl-12 italic text-terracotta', 'readonly': true}}) }}
+                </div>
+                <p class="text-[9px] uppercase font-bold text-terracotta/60 tracking-widest mt-2 ml-1 italic leading-none">Credited upon manifest completion</p>
+            </div>
+        </div>
+    </div>
+
+{{ form_end(form) }}
+
+<script src="{{ asset('js/order_calculations.js') }}" defer></script>

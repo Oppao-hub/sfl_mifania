@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MIFANIA | Dashboard{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+
+    {# 1. Load your Compiled Assets (This includes jQuery & DataTables now) #}
+    {{ encore_entry_link_tags('app') }}
+    {{ encore_entry_script_tags('app') }}
+
+    {# REMOVED: DataTables CDN CSS (Your app.css handles the styling now) #}
+</head>
+
+{# Alpine.js state: sidebarOpen #}
+<body x-data="{ sidebarOpen: false }" class="bg-dashboard-bg min-h-screen flex text-dashboard-mocha font-sans antialiased overflow-x-hidden">
+
+    {# Mobile Overlay #}
+    <div x-show="sidebarOpen"
+         x-transition:enter="transition opacity-ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition opacity-ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black/40 z-40 lg:hidden"
+         @click="sidebarOpen = false"></div>
+
+    {# Sidebar #}
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+           class="fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-100 flex flex-col z-50 p-6 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:h-screen lg:shadow-sm">
+
+        <div class="mb-10 flex items-center justify-between">
+            {# Ensure logo path is correct #}
+            <img src="{{ asset('uploads/logo/logo.svg') }}" alt="MIFANIA" class="h-10 w-auto">
+            <button @click="sidebarOpen = false" class="lg:hidden p-2 text-gray-400 hover:bg-gray-50 rounded-lg">
+                {{ ux_icon('lucide:x', {class: 'w-6 h-6'}) }}
+            </button>
+        </div>
+
+        <nav class="flex-grow space-y-1.5">
+            <a href="{{ path('app_dashboard') }}"
+               class="flex items-center space-x-3 p-3.5 rounded-2xl transition-all
+               {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'bg-dashboard-mint text-dashboard-olive shadow-sm' : 'text-gray-400 hover:bg-gray-50' }}">
+                {{ ux_icon('lucide:layout-dashboard', {class: 'w-5 h-5'}) }}
+                <span class="font-bold text-sm">Dashboard</span>
+            </a>
+
+            {% if is_granted('ROLE_ADMIN') %}
+                {% set menu_items = ({
+                        'Products': {'icon': 'lucide:package', 'route_prefix': 'app_dashboard_product_'},
+                        'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_dashboard_order_'},
+                        'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_dashboard_customer_'},
+                        'Admins': {'icon': 'lucide:user-star', 'route_prefix': 'app_admin_'},
+                        'Staffs': {'icon': 'lucide:user-cog', 'route_prefix': 'app_staff_'},
+                        'QR Tags': {'icon': 'lucide:qr-code', 'route_prefix': 'app_dashboard_qrTag_'},
+                        'Stocks': {'icon': 'lucide:boxes', 'route_prefix': 'app_dashboard_stock_'},
+                    })
+                %}
+            {% else %}
+                {% set menu_items = ({
+                        'Products': {'icon': 'lucide:package', 'route_prefix': 'app_dashboard_product_'},
+                        'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_dashboard_order_'},
+                        'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_dashboard_customer_'},
+                    })
+                %}
+            {% endif %}
+
+            {% for label, item in menu_items %}
+                <a href="{{ path(item.route_prefix ~ 'index') }}"
+                   class="flex items-center space-x-3 p-3.5 rounded-2xl transition-all
+                   {{ app.request.attributes.get('_route') starts with item.route_prefix ? 'bg-dashboard-mint text-dashboard-olive shadow-sm' : 'text-gray-400 hover:bg-gray-50' }}">
+                    {{ ux_icon(item.icon, {class: 'w-5 h-5'}) }}
+                    <span class="font-bold text-sm">{{ label }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+
+        <div class="mt-auto pt-6 border-t border-gray-50 space-y-1.5">
+            <a href="#" class="flex items-center space-x-3 p-3.5 rounded-2xl text-gray-400 hover:bg-gray-50 transition-all">
+                {{ ux_icon('lucide:settings', {class: 'w-5 h-5'}) }}
+                <span class="font-bold text-sm">Settings</span>
+            </a>
+            <button @click="$dispatch('open-logout-modal'); open = false"
+                    class="flex items-center w-full text-left px-4 py-2 rounded-2xl gap-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-bold">
+                {{ ux_icon('lucide:log-out', {class: 'w-5 h-5'}) }}
+                <span>Sign out</span>
+            </button>
+        </div>
+    </aside>
+
+    {# Main Body Wrapper #}
+    <div class="flex-1 flex flex-col min-w-0">
+        {# Header #}
+        <header class="bg-white/80 backdrop-blur-md sticky top-0 z-30 p-4 px-6 lg:px-10 flex justify-between items-center border-b border-gray-100">
+            <div class="flex items-center gap-4">
+                {# Burger Toggle #}
+                <button @click="sidebarOpen = true" class="lg:hidden p-2 text-gray-600 bg-dashboard-mint rounded-xl hover:bg-dashboard-mint-hover transition-colors">
+                    {{ ux_icon('lucide:menu', {class: 'w-6 h-6'}) }}
+                </button>
+
+                {# Search (Responsive) #}
+                <div class="relative hidden sm:block md:w-80 group">
+                    <span class="absolute inset-y-0 left-3.5 flex items-center text-gray-400">
+                        {{ ux_icon('lucide:search', {class: 'w-4 h-4'}) }}
+                    </span>
+                    <input type="text" placeholder="Search..."
+                        class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-dashboard-mint outline-none text-sm transition-all shadow-inner">
+                </div>
+            </div>
+
+            {# User Profile #}
+            <a href="{{ path('app_account') }}"
+            class="relative flex gap-2 cursor-pointer group hover:bg-gray-50 p-2 rounded-xl transition-all"
+            id="user-header-dropdown">
+
+                {# Name and Role Section #}
+                <div class="text-right hidden md:block">
+                    <p class="text-sm font-semibold text-mocha group-hover:text-dashboard-olive transition-colors">
+                        {% if app.user.admin %}
+                            {{ app.user.admin.firstName ? (app.user.admin.firstName ~ ' ' ~ app.user.admin.lastName) : app.user.admin.email }}
+                        {% elseif app.user.staff %}
+                            {{ app.user.staff.firstName ? (app.user.staff.firstName ~ ' ' ~ app.user.staff.lastName) : app.user.staff.email }}
+                        {% else %}
+                            {{ app.user.userIdentifier }}
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500 uppercase">
+                        {% if is_granted('ROLE_ADMIN') %}Administrator{% elseif is_granted('ROLE_STAFF') %}Staff{% endif %}
+                    </p>
+                </div>
+
+                {# Avatar Section #}
+                <div class="relative">
+                    {% set avatarPath = 'images/defaul/default_avatar.jpg' %}
+                    {% if app.user.admin and app.user.admin.avatar %}
+                        {% set avatarPath = 'uploads/admin/avatars/' ~ app.user.admin.avatar %}
+                    {% elseif app.user.staff and app.user.staff.avatar %}
+                        {% set avatarPath = 'uploads/staff/avatars/' ~ app.user.staff.avatar %}
+                    {% endif %}
+
+                    <img src="{{ asset(avatarPath) }}"
+                        class="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-dashboard-olive transition-all"
+                        alt="Profile" />
+
+                    {# Status Indicator #}
+                    <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white bg-green-500"></span>
+                </div>
+            </a>
+        </header>
+
+        {# Dashboard Body #}
+        <main class="p-2 max-w-[1600px] mx-auto w-full">
+            {% block main_content %}{% endblock %}
+        </main>
+    </div>
+
+    {% include "components/modal/logout_confirmation.html.twig" %}
+    {% include "components/modal/confirmation_modal.html.twig" %}
+    {% include "components/modal/delete_confirmation.html.twig" %}
+    {% include "components/modal/modal_flash.html.twig" %}
+
+    {% block javascripts %}
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {% endblock %}
+</body>
+</html>

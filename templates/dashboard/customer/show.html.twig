@@ -1,0 +1,128 @@
+{# templates/dashboard/customer/show.html.twig #}
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Manifest: {{ customer.firstName }} {{ customer.lastName }}{% endblock %}
+
+{% block main_content %}
+<div class="p-6 md:p-10 animate-fadeIn max-w-7xl mx-auto">
+
+    {# 1. TOP NAVIGATION & ACTION HEADER (Consistent with Order Show) #}
+    <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
+        <div class="flex items-center gap-5">
+            <a href="{{ path('app_dashboard_customer_index') }}"
+               class="p-3 bg-white rounded-xl border border-cream-200 text-dashboard-mocha hover:text-dashboard-olive transition-all shadow-sm active:scale-95">
+                {{ ux_icon('lucide:arrow-left', {class: 'w-5 h-5'}) }}
+            </a>
+            <div>
+                <h1 class="text-4xl font-black text-dashboard-mocha tracking-tighter leading-none uppercase">
+                    {{ customer.firstName }} <span class="text-dashboard-olive">{{ customer.lastName }}</span>
+                </h1>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] text-dashboard-mocha/40 uppercase font-black tracking-widest italic font-mono">Registry Manifest #{{ customer.id }}</span>
+                    <span class="px-2 py-0.5 bg-dashboard-bg/50 text-dashboard-mocha/60 rounded-md text-[10px] font-bold uppercase tracking-tighter border border-cream-200">Verified Profile</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+             <a href="{{ path('app_dashboard_customer_edit', { id: customer.id }) }}"
+               class="px-6 py-3 bg-dashboard-olive text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-dashboard-mocha transition-all shadow-xl shadow-dashboard-olive/10 flex items-center gap-2">
+                {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
+                Modify Profile
+            </a>
+            <button type="button"
+                @click="$dispatch('open-delete-modal', {
+                    url: '{{ path('app_dashboard_customer_delete', {id: customer.id}) }}',
+                    name: '{{ customer.firstName }} {{ customer.lastName }}',
+                    token: '{{ csrf_token('delete' ~ customer.id) }}'
+                })"
+                class="px-6 py-3 bg-white border border-red-100 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 transition-all flex items-center gap-2 active:scale-95">
+                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                Void Record
+            </button>
+        </div>
+    </div>
+
+    {# 2. SUMMARY DASHBOARD GRID (Consistent with Order Show) #}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {% macro quickStat(label, value, icon, color='text-dashboard-mocha') %}
+            <div class="bg-white p-6 rounded-xl border border-cream-200 shadow-sm flex items-start gap-4">
+                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                    {{ ux_icon(icon, {class: 'w-4 h-4'}) }}
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-dashboard-mocha/30 mb-1 leading-none">{{ label }}</p>
+                    <p class="text-sm font-bold {{ color }} leading-tight">{{ value|default('N/A') }}</p>
+                </div>
+            </div>
+        {% endmacro %}
+
+        {{ _self.quickStat('Loyalty Balance', customer.wallet.rewardPoints|number_format(0) ~ ' pts', 'lucide:sparkles', 'text-terracotta') }}
+        {{ _self.quickStat('Contact Line', customer.contactNumber, 'lucide:phone') }}
+        {{ _self.quickStat('Nation', customer.country, 'lucide:globe') }}
+        {{ _self.quickStat('Onboarded', customer.createdAt|date('M d, Y'), 'lucide:calendar') }}
+    </div>
+
+    {# 3. IDENTITY DETAILS (The Fixed Clean Layout) #}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        {# Main Information Sheet #}
+        <div class="lg:col-span-8 bg-white rounded-xl border border-cream-200 shadow-sm overflow-hidden">
+            <div class="p-8 border-b border-gray-50 flex items-center gap-3">
+                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                    {{ ux_icon('lucide:user', {class: 'w-5 h-5'}) }}
+                </div>
+                <h2 class="text-lg font-black text-dashboard-mocha tracking-tighter uppercase">Identity Specifications</h2>
+            </div>
+
+            <div class="p-8 md:p-10">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    {% macro manifestRow(label, value) %}
+                        <div>
+                            <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-dashboard-mocha/30 mb-1.5">{{ label }}</dt>
+                            <dd class="text-base font-bold text-dashboard-mocha">{{ value|default('—') }}</dd>
+                        </div>
+                    {% endmacro %}
+
+                    {{ _self.manifestRow('Given Name', customer.firstName) }}
+                    {{ _self.manifestRow('Family Name', customer.lastName) }}
+                    {{ _self.manifestRow('Electronic Mail', customer.user.email) }}
+                    {{ _self.manifestRow('City / District', customer.city) }}
+
+                    <div class="md:col-span-2">
+                        {{ _self.manifestRow('Logistics Destination (Full Address)', customer.address) }}
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        {# Side Portfolio/Audit #}
+        <div class="lg:col-span-4 space-y-8">
+            {# Visual Reference #}
+            <div class="bg-white p-8 rounded-xl border border-cream-200 shadow-sm">
+                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-dashboard-mocha/30 mb-6 text-center">Visual Profile Reference</p>
+                <div class="p-1 border border-cream-100 rounded-2xl mx-auto w-44">
+                    <img class="w-full aspect-square rounded-xl object-cover grayscale-[0.3] hover:grayscale-0 transition-all duration-500"
+                         src="{{ customer.avatar ? asset('uploads/avatars/' ~ customer.avatar) : asset('uploads/default/default-avatar.jpg') }}"
+                         alt="Visual ID">
+                </div>
+            </div>
+
+            {# Regional Audit #}
+            <div class="bg-white p-8 rounded-xl border border-cream-200 shadow-sm">
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-dashboard-mocha/30 mb-6 border-b border-gray-50 pb-4">Audit Trail</h3>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-dashboard-mocha/40 mb-1">Postal Code</p>
+                        <p class="text-sm font-bold text-dashboard-mocha font-mono">{{ customer.postalCode|default('0000') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-dashboard-mocha/40 mb-1">State / Province</p>
+                        <p class="text-sm font-bold text-dashboard-mocha">{{ customer.state|default('—') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

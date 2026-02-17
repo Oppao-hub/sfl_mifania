@@ -1,0 +1,28 @@
+{% form_theme form 'form/layout.html.twig' %}
+
+    <div class="max-w-2xl mx-auto">
+        {# 2. Header #}
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Manage Record</h1>
+
+        {# 3. The Form Card #}
+        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200">
+
+            {{ form_start(form) }}
+
+                {# This single line now renders beautiful Tailwind inputs! #}
+                {{ form_widget(form) }}
+
+                {# 4. The Action Buttons #}
+                <div class="mt-6 flex justify-end space-x-3 border-t pt-4">
+                     <a href="{{ path('app_dashboard_wallet_index') }}" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 text-white text-sm font-bold rounded-lg bg-success hover:bg-success-hover shadow-md transition cursor-pointer">
+                        {{ button_label|default('Save Changes') }}
+                    </button>
+                </div>
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>

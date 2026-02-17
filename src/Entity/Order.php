@@ -25,24 +25,21 @@ class Order
     #[ORM\ManyToOne(inversedBy: 'orders')]
     private ?Customer $customer = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTime $orderDate = null;
-
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $totalAmount = null;
 
     #[ORM\Column(length: 50, enumType: PaymentMethod::class)]
-    private ?PaymentMethod $paymentMethod = PaymentMethod::Cash;
+    private ?PaymentMethod $paymentMethod = PaymentMethod::CASH;
 
     #[ORM\Column(length: 50, enumType: PaymentStatus::class)]
-    private ?PaymentStatus $paymentStatus = PaymentStatus::Pending;
+    private ?PaymentStatus $paymentStatus = PaymentStatus::PENDING;
 
     #[ORM\Column(length: 50, enumType: OrderStatus::class)]
-    private ?OrderStatus $orderStatus = OrderStatus::Pending;
+    private ?OrderStatus $orderStatus = OrderStatus::PENDING;
 
     #[Assert\PositiveOrZero(message: 'Reward points earned must be a positive number.')]
     #[ORM\Column]
-    private ?int $rewardPointsEarned = 0;
+    private ?int $rewardPoints = 0;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -53,20 +50,19 @@ class Order
     /**
      * @var Collection<int, OrderItem>
      */
-    #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'customerOrder', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
     private Collection $orderItems;
 
     /**
      * @var Collection<int, RewardTransaction>
      */
-    #[ORM\OneToMany(targetEntity: RewardTransaction::class, mappedBy: 'customerOrder', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: RewardTransaction::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
     private Collection $rewardTransactions;
 
     public function __construct()
     {
         $this->orderItems = new ArrayCollection();
         $this->rewardTransactions = new ArrayCollection();
-        $this->orderDate = new \DateTime();
     }
 
     #[ORM\PrePersist]
@@ -97,16 +93,6 @@ class Order
     public function setCustomer(?Customer $customer): static
     {
         $this->customer = $customer;
-        return $this;
-    }
-
-    public function getOrderDate(): ?\DateTime
-    {
-        return $this->orderDate;
-    }
-    public function setOrderDate(\DateTime $orderDate): static
-    {
-        $this->orderDate = $orderDate;
         return $this;
     }
 
@@ -150,13 +136,13 @@ class Order
         return $this;
     }
 
-    public function getRewardPointsEarned(): ?int
+    public function getRewardPoints(): ?int
     {
-        return $this->rewardPointsEarned;
+        return $this->rewardPoints;
     }
-    public function setRewardPointsEarned(int $rewardPointsEarned): static
+    public function setRewardPoints(int $rewardPoints): static
     {
-        $this->rewardPointsEarned = $rewardPointsEarned;
+        $this->rewardPoints = $rewardPoints;
         return $this;
     }
 
@@ -189,15 +175,15 @@ class Order
     {
         if (!$this->orderItems->contains($orderItem)) {
             $this->orderItems->add($orderItem);
-            $orderItem->setCustomerOrder($this);
+            $orderItem->setOrder($this);
         }
         return $this;
     }
 
     public function removeOrderItem(OrderItem $orderItem): static
     {
-        if ($this->orderItems->removeElement($orderItem) && $orderItem->getCustomerOrder() === $this) {
-            $orderItem->setCustomerOrder(null);
+        if ($this->orderItems->removeElement($orderItem) && $orderItem->getOrder() === $this) {
+            $orderItem->setOrder(null);
         }
         return $this;
     }
@@ -211,15 +197,15 @@ class Order
     {
         if (!$this->rewardTransactions->contains($rewardTransaction)) {
             $this->rewardTransactions->add($rewardTransaction);
-            $rewardTransaction->setCustomerOrder($this);
+            $rewardTransaction->setOrder($this);
         }
         return $this;
     }
 
     public function removeRewardTransaction(RewardTransaction $rewardTransaction): static
     {
-        if ($this->rewardTransactions->removeElement($rewardTransaction) && $rewardTransaction->getCustomerOrder() === $this) {
-            $rewardTransaction->setCustomerOrder(null);
+        if ($this->rewardTransactions->removeElement($rewardTransaction) && $rewardTransaction->getOrder() === $this) {
+            $rewardTransaction->setOrder(null);
         }
         return $this;
     }

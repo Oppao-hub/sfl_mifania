@@ -1,0 +1,97 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Customers{% endblock %}
+
+{% block main_content %}
+    {% embed 'components/table/table.html.twig' with {
+        title: 'Manage Customers',
+        new_path: 'app_dashboard_customer_new',
+        headers: ['ID', 'First Name', 'Last Name', 'Email', 'Address', 'City', 'Status', 'Actions'],
+        id: 'dashboard-table'
+    } %}
+
+        {% block rows %}
+            {% for customer in customers %}
+                <tr class="hover:bg-dashboard-bg/50 transition-colors group">
+                    <td class="border-y border-l border-gray-200 rounded-l-xl px-4 py-3 text-sm font-mono text-gray-400">
+                        {{ customer.id }}
+                    </td>
+                    <td class="border-y border-gray-200 px-4 py-3 text-sm font-semibold text-mocha">
+                        {{ customer.firstName }}
+                    </td>
+                    <td class="border-y border-gray-200 px-4 py-3 text-sm font-semibold text-mocha">
+                        {{ customer.lastName }}
+                    </td>
+
+                    <td class="border-y border-gray-200 px-4 py-3 text-sm text-gray-500">
+                        {{ customer.user.email }}
+                    </td>
+                    <td class="border-y border-gray-200 px-4 py-3 text-sm text-gray-500 italic">
+                        {{ customer.address }}
+                    </td>
+                    <td class="border-y border-gray-200 px-4 py-3 text-sm text-gray-500 italic">
+                        {{ customer.city }}
+                    </td>
+                    <td class="border-y border-gray-200 px-4 py-3 text-center">
+                        <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': customer.user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ customer.user.id) }}">
+
+                            <select name="status"
+                                    @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ customer.user.status.value }}', title: 'Account Status' })"
+                                    class="text-[10px] font-bold py-1 px-2 rounded-lg cursor-pointer w-full border-none focus:ring-0
+                                    {% if customer.user.status.value == 'Active' %}
+                                        bg-green-100 text-green-700
+                                    {% else %}
+                                        bg-red-100 text-red-700
+                                    {% endif %}">
+                                <option value="Active" {% if customer.user.status.value == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Deactivated" {% if customer.user.status.value != 'Active' %}selected{% endif %}>Deactivated</option>
+                            </select>
+                        </form>
+                    </td>
+
+                    {# Actions: Rounded Right #}
+                    <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
+                        <div class="flex justify-center items-center gap-3">
+                            {# History #}
+                            <a href="{{ path('app_dashboard_customer_history', {'id': customer.id}) }}"
+                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                                {{ ux_icon('lucide:history', {class: 'w-5 h-5'}) }}
+                            </a>
+
+                            {# View #}
+                            <a href="{{ path('app_dashboard_customer_show', { id: customer.id }) }}"
+                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                                {{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}
+                            </a>
+
+                            {# Edit #}
+                            <a href="{{ path('app_dashboard_customer_edit', { id: customer.id }) }}"
+                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                                {{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}
+                            </a>
+
+                            {# Delete (Using the Alpine Modal we built) #}
+                            <button type="button"
+                                @click="$dispatch('open-delete-modal', {
+                                    url: '{{ path('app_dashboard_customer_delete', {id: customer.id}) }}',
+                                    name: '{{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}',
+                                    token: '{{ csrf_token('delete' ~ customer.id) }}'
+                                })"
+                                class="text-red-400 hover:text-[#B45239] transition-colors cursor-pointer">
+                                {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="py-12 text-center text-gray-400 italic">
+                        {{ ux_icon('lucide:users-2', {class: 'w-10 h-10 mx-auto mb-2 opacity-20'}) }}
+                        No customer records found.
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

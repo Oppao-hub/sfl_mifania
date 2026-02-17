@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Product;
 use App\Entity\Stock;
+use App\Entity\Enum\StockStatus;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -27,7 +28,7 @@ class StockFixtures extends Fixture implements DependentFixtureInterface
             $stock->setProduct($product);
             $stock->setQuantity(rand(10, 100));
             $stock->setLocation('Warehouse A');
-            $stock->setStatus('In Stock');
+            $stock->setStatus(StockStatus::IN_STOCK);
             $stock->setAddedBy($adminUser);
             $stock->setCreatedAt(new \DateTimeImmutable());
             $manager->persist($stock);

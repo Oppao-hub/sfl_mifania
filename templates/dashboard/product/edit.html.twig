@@ -1,0 +1,11 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block main_content %}
+    {{ include('dashboard/product/_form.html.twig', {
+        form: form,
+        button_label: 'Update Product',
+        button_class: 'cursor-pointer px-4 py-2 bg-success-color text-white rounded-xl hover:bg-success-hover'
+    }) }}
+{% endblock %}

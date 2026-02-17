@@ -4,9 +4,8 @@ namespace App\Entity\Enum;
 
 enum PaymentStatus: string
 {
-    case Pending = 'Pending';
-
-    case Paid = 'Paid';
-
-    case Refunded = 'Refunded';
+    case PENDING = 'Pending';
+    case PAID = 'Paid';
+    case REFUNDED = 'Refunded';
+    case FAILED = 'Failed';
 }

@@ -1,53 +1,88 @@
-{% extends 'base.html.twig' %} {% block title %}Order{% endblock %} {% block
-body %}
-<h1>Order</h1>
+{% extends 'customer/account/index.html.twig' %}
 
-<table class="table">
-    <tbody>
-        <tr>
-            <th>Id</th>
-            <td>{{ order.id }}</td>
-        </tr>
-        <tr>
-            <th>OrderDate</th>
-            <td>{{ order.orderDate ? order.orderDate|date('Y-m-d') : '' }}</td>
-        </tr>
-        <tr>
-            <th>TotalAmount</th>
-            <td>{{ order.totalAmount }}</td>
-        </tr>
-        <tr>
-            <th>PaymentMethod</th>
-            <td>{{ order.paymentMethod }}</td>
-        </tr>
-        <tr>
-            <th>PaymentStatus</th>
-            <td>{{ order.paymentStatus }}</td>
-        </tr>
-        <tr>
-            <th>OrderStatus</th>
-            <td>{{ order.orderStatus }}</td>
-        </tr>
-        <tr>
-            <th>RewardPointsEarned</th>
-            <td>{{ order.rewardPointsEarned }}</td>
-        </tr>
-        <tr>
-            <th>CreatedAt</th>
-            <td>
-                {{ order.createdAt ? order.createdAt|date('Y-m-d H:i:s') : '' }}
-            </td>
-        </tr>
-        <tr>
-            <th>UpdatedAt</th>
-            <td>
-                {{ order.updatedAt ? order.updatedAt|date('Y-m-d H:i:s') : '' }}
-            </td>
-        </tr>
-    </tbody>
-</table>
+{% block title %}Order History{% endblock %}
 
-<a href="{{ path('app_order_index') }}">back to list</a>
+{% block account_content %}
+    <h1 class="text-2xl font-bold mb-6">Order History</h1>
 
-<a href="{{ path('app_order_edit', { id: order.id }) }}">edit</a>
+    <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {# --- THE LOOP STARTS HERE --- #}
+                {% for order in customer.orders %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            #{{ order.id }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ order.orderDate ? order.orderDate|date('Y-m-d') : 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            ₱{{ order.totalAmount|number_format(2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div class="flex flex-col">
+                                <span>{{ order.paymentMethod.value }}</span>
+                                <span class="text-xs text-gray-400">{{ order.paymentStatus.value }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {# Status Badges #}
+                            {% if order.orderStatus.value == 'Completed' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Completed
+                                </span>
+                            {% elseif order.orderStatus.value == 'Pending' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    Pending
+                                </span>
+                            {% elseif order.orderStatus.value == 'Cancelled' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Cancelled
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ order.orderStatus.value }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            +{{ order.rewardPointsEarned }} pts
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
+
+                            {# Only show edit if you want customers to edit orders (usually unlikely) #}
+                            {# <a href="{{ path('app_order_edit', { id: order.id }) }}" class="text-gray-600 hover:text-gray-900">Edit</a> #}
+                        </td>
+                    </tr>
+                {% else %}
+                    {# This runs if the loop is empty (User has 0 orders) #}
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 text-center text-sm text-gray-500">
+                            No orders found.
+                        </td>
+                    </tr>
+                {% endfor %}
+                {# --- THE LOOP ENDS HERE --- #}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <a href="#" class="text-sm font-medium text-gray-600 hover:text-gray-900">
+        Back
+        </a>
+    </div>
 {% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'customer/account/index.html.twig' %}
+
+{% block title %}Order index{% endblock %}
+
+{% block account_content %}
+    <h1>Order index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>OrderDate</th>
+                <th>TotalAmount</th>
+                <th>PaymentMethod</th>
+                <th>PaymentStatus</th>
+                <th>OrderStatus</th>
+                <th>RewardPointsEarned</th>
+                <th>CreatedAt</th>
+                <th>UpdatedAt</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.orderDate ? order.orderDate|date('Y-m-d') : '' }}</td>
+                <td>{{ order.totalAmount }}</td>
+                <td>{{ order.paymentMethod.value }}</td>
+                <td>{{ order.paymentStatus.value }}</td>
+                <td>{{ order.orderStatus.value }}</td>
+                <td>{{ order.rewardPointsEarned }}</td>
+                <td>{{ order.createdAt ? order.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ order.updatedAt ? order.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_order_show', {'id': order.id}) }}">Show</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_order_new') }}">Add New Order</a>
+{% endblock %}

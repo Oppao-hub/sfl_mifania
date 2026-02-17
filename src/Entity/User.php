@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Enum\AccountStatus;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -41,9 +42,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Admin::class, cascade: ['persist', 'remove'])]
     private ?Admin $admin = null;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Customer::class, cascade: ['persist', 'remove'])]
-    private ?Customer $customer = null;
-
     /**
      * @var Collection<int, Notification>
      */
@@ -56,10 +54,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'addedBy')]
     private Collection $stocks;
 
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Customer $customer = null;
+
+    /**
+     * @var Collection<int, ActivityLog>
+     */
+    #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'user')]
+    private Collection $activityLogs;
+
+    #[ORM\Column(length: 20)]
+    private AccountStatus $status = AccountStatus::Active;
+
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Staff $staff = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private $isVerified = false;
+
     public function __construct()
     {
         $this->notifications = new ArrayCollection();
         $this->stocks = new ArrayCollection();
+        $this->activityLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -165,28 +182,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCustomer(): ?Customer
-    {
-        return $this->customer;
-    }
-
-    public function setCustomer(?Customer $customer): static
-    {
-        // unset the owning side of the relation if necessary
-        if ($customer === null && $this->customer !== null) {
-            $this->customer->setUser(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($customer !== null && $customer->getUser() !== $this) {
-            $customer->setUser($this);
-        }
-
-        $this->customer = $customer;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, Notification>
      */
@@ -247,4 +242,101 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getCustomer(): ?Customer
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(?Customer $customer): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($customer === null && $this->customer !== null) {
+            $this->customer->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($customer !== null && $customer->getUser() !== $this) {
+            $customer->setUser($this);
+        }
+
+        $this->customer = $customer;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ActivityLog>
+     */
+    public function getActivityLogs(): Collection
+    {
+        return $this->activityLogs;
+    }
+
+    public function addActivityLog(ActivityLog $activityLog): static
+    {
+        if (!$this->activityLogs->contains($activityLog)) {
+            $this->activityLogs->add($activityLog);
+            $activityLog->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivityLog(ActivityLog $activityLog): static
+    {
+        if ($this->activityLogs->removeElement($activityLog)) {
+            // set the owning side to null (unless already changed)
+            if ($activityLog->getUser() === $this) {
+                $activityLog->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getStatus(): AccountStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(AccountStatus $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getStaff(): ?Staff
+    {
+        return $this->staff;
+    }
+
+    public function setStaff(?Staff $staff): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($staff === null && $this->staff !== null) {
+            $this->staff->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($staff !== null && $staff->getUser() !== $this) {
+            $staff->setUser($this);
+        }
+
+        $this->staff = $staff;
+
+        return $this;
+    }
+
+    public function isVerified(): ?bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): self
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
+    }
 }

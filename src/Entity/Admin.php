@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AdminRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AdminRepository::class)]
 #[ORM\Table(name: '`admin`')]
@@ -15,9 +16,27 @@ class Admin
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'First name cannot be blank.')]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z\s]+$/',
+        message: 'Your first name cannot contain numbers or special characters.'
+    )]
+    #[Assert\Length(
+        max: 100,
+        maxMessage: 'First name cannot exceed {{ limit }} characters.'
+    )]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Last name cannot be blank.')]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z\s]+$/',
+        message: 'Your last name cannot contain numbers or special characters.'
+    )]
+    #[Assert\Length(
+        max: 100,
+        maxMessage: 'Last name cannot exceed {{ limit }} characters.'
+    )]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
@@ -32,6 +51,12 @@ class Admin
     #[ORM\OneToOne(inversedBy: 'admin', targetEntity: User::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
