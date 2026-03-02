@@ -11,7 +11,29 @@
     </div>
 </div>
 
-<div class="container mx-auto px-4 pb-16" x-data="{ mobileFiltersOpen: false }">
+<div class="container mx-auto px-4 pb-16"
+    x-data="{
+        mobileFiltersOpen: false,
+        products: [],
+        loading: true,
+        init() {
+            fetch('/api/products?page=1', {
+                headers: { 'Accept': 'application/ld+json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Fixed the logic to match your specific JSON structure
+                this.products = data['hydra:member'] || data['member'] || [];
+                this.loading = false;
+            })
+            .catch(err => {
+                console.error('Error fetching products:', err);
+                this.loading = false;
+            });
+        }
+    }"
+>
+
     <div class="flex flex-col lg:flex-row gap-8">
 
         {# Mobile Filter Toggle #}
@@ -127,58 +149,41 @@
 
             {# Product Grid #}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {% for i in 1..9 %}
-                    {# Mock Product Data for loop #}
-                    {% set product = {
-                        name: i is odd ? 'Trendy Brown Coat' : 'Classy Light Coat',
-                        category: i is odd ? 'Coats' : 'Dresses',
-                        price: i is odd ? 75.00 : 165.00,
-                        old_price: i is odd ? 150.00 : 220.00,
-                        rating: 4.8,
-                        discount: i is odd ? '50% off' : '25% off',
-                        image: i is odd
-                            ? 'https://placehold.co/400x500/8B4513/FFFFFF?text=Coat'
-                            : 'https://placehold.co/400x500/F5F5DC/000000?text=Dress'
-                    } %}
+                <template x-if="loading">
+                    <div class="col-span-3 text-center py-20">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#6B7C57] border-t-transparent"></div>
+                        <p class="mt-2 text-gray-500">Loading your collection...</p>
+                    </div>
+                </template>
 
+                <template x-for="product in products" :key="product.id">
                     <div class="group">
-                        <div class="relative overflow-hidden mb-4 rounded-sm">
-                            <img src="{{ product.image }}" alt="{{ product.name }}" class="w-full h-[400px] object-cover transition duration-500 group-hover:scale-105">
+                        <div class="relative overflow-hidden mb-4 rounded-sm bg-gray-100">
+                            <a :href="'/product/' + product.slug">
+                                <img :src="product.image ? '/uploads/products/' + product.image : 'https://placehold.co/400x500?text=No+Image'"
+                                        :alt="product.name"
+                                        class="w-full h-[400px] object-cover transition duration-500 group-hover:scale-105 cursor-pointer"
+                                        @error="$el.src='https://placehold.co/400x500?text=Image+Not+Found'">
 
-                            {# Badges #}
-                            <div class="absolute top-3 left-3 bg-white/90 text-[#6B7C57] text-xs font-bold px-2 py-1">
-                                {{ product.discount }}
-                            </div>
-
-                            {# Hover Actions #}
-                            <div class="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition duration-300">
-                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-[#6B7C57] hover:text-white transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                                </button>
-                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-[#6B7C57] hover:text-white transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                                </button>
-                                <button class="bg-white p-2 rounded-full shadow-md hover:bg-[#6B7C57] hover:text-white transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                                </button>
-                            </div>
+                                    <div class="absolute top-3 left-3 bg-white/90 text-[#6B7C57] text-xs font-bold px-2 py-1" x-text="product.material"></div>
+                            </a>
                         </div>
 
                         <div>
                             <div class="flex justify-between items-start mb-1">
-                                <span class="text-xs text-gray-500">{{ product.category }}</span>
-                                <div class="flex text-yellow-400 text-xs">
-                                    <span>★</span> <span class="text-gray-800 font-bold ml-1">{{ product.rating }}</span>
-                                </div>
+                                <span class="text-xs text-gray-500"
+                                    x-text="product.category && product.category.length > 0 ? product.category[0].name : 'Sustainable Style'"></span>
                             </div>
-                            <h3 class="font-bold text-gray-900 text-lg mb-1 group-hover:text-[#6B7C57] transition">{{ product.name }}</h3>
+
+                            <a :href="'/product/' + product.slug" class="block">
+                                 <h3 class="font-bold text-gray-900 text-lg mb-1 group-hover:text-[#6B7C57] transition" x-text="product.name"></h3>
+                            </a>
+
                             <div class="flex items-center gap-3">
-                                <span class="font-bold text-gray-900">${{ product.price|number_format(2) }}</span>
-                                <span class="text-sm text-gray-400 line-through">${{ product.old_price|number_format(2) }}</span>
+                                <span class="font-bold text-gray-900" x-text="'PHP' + parseFloat(product.price).toLocaleString()"></span>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                </template>
             </div>
 
             {# Pagination #}

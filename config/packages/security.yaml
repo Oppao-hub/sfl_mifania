@@ -17,7 +17,9 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            custom_authenticator: App\Security\LoginAuthenticator
+            custom_authenticator:
+                - App\Security\LoginAuthenticator
+                - App\Security\GoogleAuthenticator
             user_checker: App\Security\UserChecker
             logout:
                 path: app_logout
@@ -47,9 +49,10 @@ security:
         - { path: ^/staff, roles: ROLE_ADMIN }
         - { path: ^/customer, roles: ROLE_ADMIN }
         - { path: ^/dashboard, roles: [ROLE_ADMIN, ROLE_STAFF] }
-        - { path: ^/account, roles: [ROLE_USER, ROLE_CUSTOMER, ROLE_STAFF, ROLE_ADMIN]}
+        - { path: ^/google/connect, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/cart, roles: ROLE_CUSTOMER }
         - { path: ^/checkout, roles: ROLE_USER }
+        - { path: ^/account, roles: [ROLE_USER, ROLE_CUSTOMER, ROLE_STAFF, ROLE_ADMIN]}
 
 when@test:
     security:

@@ -12,58 +12,94 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use Symfony\Component\Serializer\Annotation\Groups;
+
+
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[ApiResource(
+    // 1. Limit what data is sent to the frontend
+    normalizationContext: ['groups' => ['product:read']],
+    // 2. Setup pagination to match your UI (1-12 items)
+    paginationItemsPerPage: 12
+)]
+// 3. Add filters for your sidebar
+#[ApiFilter(SearchFilter::class, properties: [
+    'slug' => 'exact',
+    'category' => 'exact',
+    'subCategory' => 'exact',
+    'color' => 'exact',
+    'size' => 'exact',
+    'gender' => 'exact'
+])]
+#[ApiFilter(RangeFilter::class, properties: ['price'])]
+#[ApiFilter(OrderFilter::class, properties: ['price', 'createdAt'], arguments: ['orderParameterName' => 'sort'])]
 class Product
 {
+    #[Groups(['product:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['product:read'])]
     #[Assert\NotBlank(message: "Product name cannot be empty.")]
     #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 
+    #[Groups(['product:read'])]
     #[Assert\NotBlank(message: "Material cannot be empty.")]
     #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
     private ?string $material = null;
 
+    #[Groups(['product:read'])]
     #[ORM\Column(length: 20, enumType: Size::class)]
     private ?Size $size = null;
 
+    #[Groups(['product:read'])]
     #[ORM\Column(length: 50, nullable: false, enumType: Color::class)]
     private ?Color $color = null;
 
-
+    #[Groups(['product:read'])]
     #[ORM\Column(length: 20, enumType: Gender::class, nullable: false)]
     private ?Gender $gender = null;
 
-
+    #[Groups(['product:read'])]
     #[Assert\PositiveOrZero(message: "Price must be positive or zero.")]
     #[Assert\Type(type: 'numeric', message: "Price must be a number.")]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
+    #[Groups(['product:read'])]
     #[Assert\PositiveOrZero(message: "Cost must be positive or zero.")]
     #[Assert\Type(type: 'numeric', message: "Cost must be a number.")]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $cost = null;
 
+    #[Groups(['product:read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    #[Groups(['product:read'])]
     #[ORM\Column(length: 255, unique: true)]
     private ?string $slug = null;
 
+    #[Groups(['product:read'])]
     #[ORM\OneToOne(mappedBy: 'product', cascade: ['persist', 'remove'])]
     private ?QRTag $qrTag = null;
 
+    #[Groups(['product:read'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = 'default.png';
 
+    #[Groups(['product:read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $ecoInfo = null;
 
@@ -95,6 +131,7 @@ class Product
     #[ORM\JoinColumn(nullable: false)]
     private ?SubCategory $subCategory = null;
 
+    #[Groups(['product:read'])]
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Category $category = null;
     public function __construct()

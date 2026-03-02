@@ -23,6 +23,7 @@ class Order
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Customer $customer = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]

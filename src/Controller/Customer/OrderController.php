@@ -104,7 +104,7 @@ final class OrderController extends AbstractController
         }
 
         $order->setTotalAmount((string) $totalAmount);
-        $order->setRewardPointsEarned($totalRewardPoints);
+        $order->setRewardPoints($totalRewardPoints);
 
         $entityManager->persist($order);
         $entityManager->flush();

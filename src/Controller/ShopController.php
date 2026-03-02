@@ -15,4 +15,13 @@ final class ShopController extends AbstractController
             'controller_name' => 'ShopController',
         ]);
     }
+
+    #[Route('/product/{slug}', name: 'app_product_show')]
+    public function show(string $slug): Response
+    {
+        // This just returns the 'shell' page; Alpine will fetch the data
+        return $this->render('shop/product_show.html.twig', [
+            'slug' => $slug
+        ]);
+    }
 }

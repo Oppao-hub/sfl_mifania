@@ -39,6 +39,21 @@
 
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
+                        <div class="space-y-6">
+                            {# Google OAuth Button - Matches Screenshot #}
+                            <a href="{{ path('connect_google') }}"
+                            class="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-[#f8f9fa] border border-[#dadce0] text-[#3c4043] font-medium text-base hover:bg-[#eeeeee] transition-all shadow-sm">
+                                <img src="{{ asset('icons/icons8-google.svg') }}" class="h-5 w-5" alt="Google">
+                                <span>Continue with Google</span>
+                            </a>
+
+                            {# Visual Separator #}
+                            <div class="relative flex py-2 items-center">
+                                <div class="flex-grow border-t border-white/20"></div>
+                                <span class="flex-shrink mx-4 text-white/60 text-xs uppercase tracking-widest">or</span>
+                                <div class="flex-grow border-t border-white/20"></div>
+                            </div>
+
                         <button type="submit"
                             class="w-full py-4 rounded-xl bg-[#6b703d] text-white font-bold text-lg tracking-widest hover:bg-[#5a5f33] transition-colors shadow-lg uppercase cursor-pointer">
                             Login
@@ -50,21 +65,6 @@
                             <a href="{{ path('app_register') }}" class="hover:underline">Create Account</a>
                         </div>
 
-                        {# Social Icons Placeholder #}
-                        <div class="flex justify-center space-x-6 pt-4 text-white">
-                            <a href="#" class="hover:scale-110 transition-transform opacity-90 hover:opacity-100">
-                                {{ ux_icon('lucide:facebook', { class: 'w-6 h-6' }) }}
-                            </a>
-                            <a href="#" class="hover:scale-110 transition-transform opacity-90 hover:opacity-100">
-                                {{ ux_icon('lucide:instagram', { class: 'w-6 h-6' }) }}
-                            </a>
-                            <a href="#" class="hover:scale-110 transition-transform opacity-90 hover:opacity-100">
-                                {{ ux_icon('lucide:apple', { class: 'w-6 h-6' }) }}
-                            </a>
-                            <a href="#" class="hover:scale-110 transition-transform opacity-90 hover:opacity-100">
-                                {{ ux_icon('bi:google', { class: 'w-6 h-6' }) }}
-                            </a>
-                        </div>
                         <p class="text-center text-white text-sm mt-8 font-medium">
                             Join a movement for a better tomorrow.
                         </p>

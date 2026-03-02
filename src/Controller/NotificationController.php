@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Dashboard;
+namespace App\Controller;
 
 use App\Repository\NotificationRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

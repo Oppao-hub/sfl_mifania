@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Dashboard;
+namespace App\Controller;
 
 use App\Repository\CustomerRepository;
 use App\Repository\NotificationRepository;

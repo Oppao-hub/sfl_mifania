@@ -1,14 +1,11 @@
 <?php
 
-namespace App\Controller\Dashboard;
+namespace App\Controller;
 
 use App\Entity\Customer;
-use App\Entity\Order;
-use App\Entity\Staff;
 use App\Entity\User;
 use App\Entity\Wallet;
 use App\Form\CustomerType;
-use App\Form\StaffType;
 use App\Repository\CustomerRepository;
 use App\Repository\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;

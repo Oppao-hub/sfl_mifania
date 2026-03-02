@@ -16,7 +16,7 @@ class UserChecker implements UserCheckerInterface
         }
 
         // This prevents unverified users from probing passwords.
-        if (!$user->isVerified()) {
+        if (!$user->getIsVerified()) {
             throw new CustomUserMessageAccountStatusException('Your account is not verified. Please check your email inbox.');
         }
     }

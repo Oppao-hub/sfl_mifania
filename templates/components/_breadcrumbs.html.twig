@@ -1,0 +1,35 @@
+{% set currentRoute = app.request.attributes.get('_route') %}
+
+{% set routeLabels = {
+    'app_account': 'My Account',
+    'app_account_wallet': 'My Wallet',
+    'app_order_index': 'Orders',
+    'app_account_password': 'Password Manager'
+} %}
+
+<nav class="text-sm text-mocha/70">
+    <ol class="flex items-center space-x-2">
+        <li>
+            <a href="{{ path('app_home') }}" class="hover:text-mocha transition">
+                Home
+            </a>
+        </li>
+
+        {% if currentRoute starts with 'app_account' or currentRoute == 'app_order_index' %}
+            <li>/</li>
+            <li>
+                <a href="{{ path('app_account') }}"
+                   class="hover:text-mocha transition">
+                    My Account
+                </a>
+            </li>
+        {% endif %}
+
+        {% if routeLabels[currentRoute] is defined and currentRoute != 'app_account' %}
+            <li>/</li>
+            <li class="font-semibold text-mocha">
+                {{ routeLabels[currentRoute] }}
+            </li>
+        {% endif %}
+    </ol>
+</nav>

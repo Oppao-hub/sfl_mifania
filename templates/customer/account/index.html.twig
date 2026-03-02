@@ -4,8 +4,13 @@
 
 {% block main_content %}
 <div class="bg-cream mx-auto px-28 py-8">
-    <div class="flex align-center justify-center mb-8">
+    <div class="flex align-center justify-center mb-6">
         <h1 class="text-4xl font-bold text-mocha mb-2">My Account</h1>
+    </div>
+    <div class="flex align-center justify-center mb-8">
+        <div class="flex justify-center mb-6">
+            {% include 'components/_breadcrumbs.html.twig' %}
+        </div>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -30,7 +35,12 @@
                         />
                     </li>
                     <li class="mb-2">
-                        <a href="{{ path('app_order_index') }}" class="block px-4 py-3 text-mocha font-semibold rounded-md hover:bg-cream transition">My Orders</a>
+                        <twig:ALink
+                        path="{{ path('app_order_index') }}"
+                        isActive="{{ app.request.attributes.get('_route') == 'app_orders' }}"
+                        class="font-semibold"
+                        label="Orders"
+                        />
                     </li>
                     {# <li class="mb-2">
                         <a href="#" class="block px-4 py-3 text-mocha font-semibold rounded-md hover:bg-cream transition">Manage Address</a>
@@ -46,10 +56,19 @@
                         label="Password Manager"
                         />
                     </li>
+                    <li class="mb-2">
+                        <twig:ALink
+                        path="{{ path('app_logout') }}"
+                        isActive="{{ app.request.attributes.get('_route') == 'app_logout' }}"
+                        class="flex items-center w-full text-left px-4 py-2 rounded-2xl gap-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-bold"
+                        label="Logout"
+                        />
+                    </li>
                 </ul>
             </nav>
         </aside>
         {% block account_content %}{% endblock %}
     </div>
+    {% include "components/modal/logout_confirmation.html.twig" %}
 </div>
 {% endblock %}

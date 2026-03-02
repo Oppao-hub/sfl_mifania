@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Enum\AccountStatus;
+use App\Entity\Enum\Provider;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -70,7 +71,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Staff $staff = null;
 
     #[ORM\Column(type: 'boolean')]
-    private $isVerified = false;
+    private $isVerified = null;
+
+    #[ORM\Column(length: 50)]
+    private ?Provider $provider = null;
 
     public function __construct()
     {
@@ -328,7 +332,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isVerified(): ?bool
+    public function getIsVerified(): ?bool
     {
         return $this->isVerified;
     }
@@ -336,6 +340,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function getProvider(): ?Provider
+    {
+        return $this->provider;
+    }
+
+    public function setProvider(Provider $provider): static
+    {
+        $this->provider = $provider;
 
         return $this;
     }
