@@ -1,0 +1,129 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout | Mifania{% endblock %}
+
+{% block main_content %}
+<section class="bg-gray-50 py-16 px-6 md:px-12 min-h-[70vh]">
+    <div class="max-w-[1440px] mx-auto">
+
+        <a href="{{ path('app_cart_index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand transition-colors mb-6">
+            {{ ux_icon('lucide:arrow-left', { class: 'h-4 w-4' }) }} Back to Cart
+        </a>
+
+        <h1 class="text-3xl font-bold text-brand mb-8">Checkout</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+
+            {# LEFT COLUMN: Checkout Form #}
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-6 md:p-8 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4">Shipping & Payment Details</h2>
+
+                    {{ form_start(checkoutForm, { attr: { class: 'space-y-6' } }) }}
+
+                        <div>
+                            {{ form_label(checkoutForm.shippingAddress, null, { label_attr: { class: 'block text-sm font-medium text-gray-700 mb-1' } }) }}
+                            {{ form_widget(checkoutForm.shippingAddress, { attr: { class: 'w-full p-2.5 border border-gray-300 rounded-md focus:ring-brand focus:border-brand outline-none', rows: 3 } }) }}
+                            {{ form_errors(checkoutForm.shippingAddress) }}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                {{ form_label(checkoutForm.city, null, { label_attr: { class: 'block text-sm font-medium text-gray-700 mb-1' } }) }}
+                                {{ form_widget(checkoutForm.city, { attr: { class: 'w-full p-2.5 border border-gray-300 rounded-md focus:ring-brand focus:border-brand outline-none' } }) }}
+                            </div>
+                            <div>
+                                {{ form_label(checkoutForm.postalCode, null, { label_attr: { class: 'block text-sm font-medium text-gray-700 mb-1' } }) }}
+                                {{ form_widget(checkoutForm.postalCode, { attr: { class: 'w-full p-2.5 border border-gray-300 rounded-md focus:ring-brand focus:border-brand outline-none' } }) }}
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-6 border-t border-gray-100">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Payment Method</h3>
+                            <div class="space-y-3">
+                                {# Render radio buttons matching the brand color #}
+                                {% for child in checkoutForm.paymentMethod %}
+                                    <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                                        {{ form_widget(child, { attr: { class: 'w-4 h-4 text-brand border-gray-300 focus:ring-brand cursor-pointer' } }) }}
+                                        {{ form_label(child, null, { label_attr: { class: 'ml-3 block text-sm font-medium text-gray-700 cursor-pointer w-full mb-0' } }) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-6 border-t border-gray-100">
+                            {{ form_label(checkoutForm.orderNotes, null, { label_attr: { class: 'block text-sm font-medium text-gray-700 mb-1' } }) }}
+                            {{ form_widget(checkoutForm.orderNotes, { attr: { class: 'w-full p-2.5 border border-gray-300 rounded-md focus:ring-brand focus:border-brand outline-none', rows: 2 } }) }}
+                        </div>
+
+                        {# Render the rest of the form silently (CSRF tokens) #}
+                        <div class="hidden">
+                            {{ form_rest(checkoutForm) }}
+                        </div>
+
+                </div>
+            </div>
+
+            {# RIGHT COLUMN: Order Summary #}
+            <div class="lg:col-span-1">
+                <div class="bg-white p-8 rounded-lg shadow-sm sticky top-28">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
+
+                    <div class="space-y-4 mb-6 max-h-[350px] overflow-y-auto pr-2">
+                        {# Loop through the user's cart items #}
+                        {% set cartTotal = 0 %}
+
+                        {% for item in cart.cartItems %}
+                            {% set lineTotal = item.product.price * item.quantity %}
+                            {% set cartTotal = cartTotal + lineTotal %}
+
+                            <div class="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
+                                <img src="{{ item.product.image ? asset('uploads/products/' ~ item.product.image) : asset('images/default-product.png') }}"
+                                     class="w-16 h-20 object-cover rounded-md bg-gray-50" alt="{{ item.product.name }}">
+                                <div class="flex-1">
+                                    <h3 class="text-sm font-bold text-gray-800 line-clamp-1">{{ item.product.name }}</h3>
+                                    <p class="text-xs text-gray-500 mt-1">Qty: {{ item.quantity }}</p>
+                                    <p class="text-sm font-bold text-brand mt-2">PHP {{ lineTotal|number_format(2) }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="space-y-4 text-sm text-gray-600 mb-6 border-b border-t border-gray-100 py-6">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span class="font-medium">PHP {{ cartTotal|number_format(2) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Shipping Estimate</span>
+                            <span class="font-medium text-green-600">FREE</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Tax</span>
+                            <span class="font-medium">PHP 0</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-8">
+                        <span class="text-lg font-bold text-gray-800">Total</span>
+                        <span class="text-xl font-bold text-brand">PHP {{ cartTotal|number_format(2) }}</span>
+                    </div>
+
+                    {# Submit Button attached to the form on the left #}
+                    <button type="button" onclick="document.querySelector('form[name=\'checkout\']').submit();" class="w-full bg-brand text-white py-4 rounded-md font-bold hover:bg-brand-dark transition-all shadow-lg hover:shadow-xl">
+                        Place Order
+                    </button>
+
+                    <div class="flex items-center justify-center gap-2 text-xs text-gray-400 mt-4">
+                         {{ ux_icon('lucide:shield-check', { class: 'h-4 w-4' }) }}
+                         Secure Checkout
+                    </div>
+                </div>
+            </div>
+
+            {{ form_end(checkoutForm, {'render_rest': false}) }}
+
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PayPal Payment{% endblock %}
+
+{% block body %}
+<h1>Pay with PayPal</h1>
+
+<p>Amount: <strong>$10.00</strong></p>
+
+<div id="paypal-button-container"></div>
+
+<div id="payment-status" style="margin-top: 20px; font-weight: bold;"></div>
+
+{# PayPal JS SDK #}
+<script src="https://www.paypal.com/sdk/js?client-id={{ app_env == 'dev' ? 'YOUR_SANDBOX_CLIENT_ID' : 'YOUR_LIVE_CLIENT_ID' }}&currency=USD"></script>
+
+<script>
+    const statusEl = document.getElementById('payment-status');
+
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            statusEl.innerText = 'Creating order...';
+            return fetch('{{ path('paypal_create_order') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                statusEl.innerText = 'Order created. Awaiting approval...';
+                return data.id;
+            });
+        },
+        onApprove: function(data, actions) {
+            statusEl.innerText = 'Capturing payment...';
+            return fetch('{{ path('paypal_capture_order') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderID: data.orderID })
+            })
+            .then(res => res.json())
+            .then(details => {
+                statusEl.innerText = 'Payment completed successfully!';
+                console.log('PayPal capture details:', details);
+            })
+            .catch(err => {
+                console.error(err);
+                statusEl.innerText = 'Payment failed. Check console for details.';
+            });
+        },
+        onCancel: function(data) {
+            statusEl.innerText = 'Payment canceled by user.';
+        },
+        onError: function(err) {
+            console.error(err);
+            statusEl.innerText = 'An error occurred during payment.';
+        }
+    }).render('#paypal-button-container');
+</script>
+
+{% endblock %}

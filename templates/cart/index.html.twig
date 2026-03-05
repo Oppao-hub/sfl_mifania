@@ -124,7 +124,7 @@
                         <div class="flex justify-between">
                             <span>Sub Total</span>
                             {# Use the total passed from the controller #}
-                            <span class="font-medium text-gray-800">PHP {{ total|number_format(2) }}</span>
+                            <span class="font-medium text-gray-800">PHP {{ cart.totalPrice|number_format(2) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Shipping</span>
@@ -146,7 +146,7 @@
                     <div class="flex justify-between items-center mb-8">
                         <span class="text-lg font-bold text-gray-800">Total</span>
                         {# Display the final total from the controller #}
-                        <span class="text-xl font-bold text-gray-800">PHP {{ total|number_format(2) }}</span>
+                        <span class="text-xl font-bold text-gray-800">PHP {{ cart.totalPrice|number_format(2) }}</span>
                     </div>
 
                     <a href="{{ path('app_place_order') }}" class="w-full px-28 bg-mocha text-white font-bold py-4 rounded-sm hover:bg-mocha-400 transition shadow-md cursor-pointer">

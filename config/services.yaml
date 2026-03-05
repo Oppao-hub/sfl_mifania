@@ -32,6 +32,12 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Service\CartService: ~
 
+    App\Service\PayPalService:
+        arguments:
+            $clientId: '%env(PAYPAL_CLIENT_ID)%'
+            $secret: '%env(PAYPAL_SECRET)%'
+            $mode: '%env(PAYPAL_MODE)%'
+
 twig:
     default_path: "%kernel.project_dir%/templates"
     file_name_pattern: "*.twig"

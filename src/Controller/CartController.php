@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Controller\Customer;
+namespace App\Controller;
 
 use App\Entity\CartItem;
 use App\Entity\Product;
 use App\Service\CartService;
-use App\Form\AddToCartType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/cart')]
 final class CartController extends AbstractController
 {
-    #[Route('/add/{slug}', name: 'app_cart_add', methods: ['POST'])]
+    #[Route('/add/{id}', name: 'app_cart_add', methods: ['GET', 'POST'])]
     public function addToCart(
         Product $product,
         CartService $cartService,
@@ -44,7 +43,7 @@ final class CartController extends AbstractController
         $cart = $cartService->getCart();
         $total = $cartService->getTotal();
 
-        return $this->render('customer/cart/show.html.twig', [
+        return $this->render('cart/show.html.twig', [
             'cart' => $cart,
             'total' => $total,
         ]);

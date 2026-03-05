@@ -5,7 +5,7 @@
 {% block main_content %}
 <section class="bg-gray-50 py-16 px-6 md:px-12 min-h-[70vh]">
         <div class="max-w-[1440px] mx-auto">
-            <h1 class="text-3xl font-bold text-brand mb-8">Shopping Cart <span class="text-sm font-normal text-gray-500 ml-2">(2 Items)</span></h1>
+            <h1 class="text-3xl font-bold text-brand mb-8">Shopping Cart <span class="text-sm font-normal text-gray-500 ml-2">({{ cart.cartItems|length }} Items)</span></h1>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <!-- Cart Items List -->
@@ -103,9 +103,9 @@
                             <span class="text-xl font-bold text-brand">PHP 2,300</span>
                         </div>
 
-                        <button class="w-full bg-brand text-white py-4 rounded-md font-bold hover:bg-brand-dark transition-all shadow-lg hover:shadow-xl mb-4">
+                        <a href="{{ path('app_checkout') }}" class="block text-center w-full bg-brand text-white py-4 rounded-md font-bold hover:bg-brand-dark transition-all shadow-lg hover:shadow-xl mb-4">
                             Proceed to Checkout
-                        </button>
+                        </a>
 
                         <div class="flex items-center justify-center gap-2 text-xs text-gray-400 mt-4">
                              {{ ux_icon('lucide:shield-check', { class: 'h-4 w-4' }) }}
