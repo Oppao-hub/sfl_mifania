@@ -8,7 +8,6 @@ use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Endroid\QrCode\Encoding\Encoding;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Color\Color;
@@ -20,20 +19,26 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
-#[Route('/dashboard/products')]
 final class ProductController extends AbstractController
 {
-    #[Route(name: 'app_dashboard_product_index')]
+    #[Route('/api/products', name: 'app_api_products', methods: ['GET'])]
+    public function indexApi(ProductRepository $repo): JsonResponse
+    {
+        return $this->json($repo->findAll());
+    }
+
+    #[Route('/products', name: 'app_product_index')]
     public function index(ProductRepository $repo): Response
     {
-        return $this->render('dashboard/product/index.html.twig', [
+        return $this->render('product/index.html.twig', [
             'products' => $repo->findAll(),
             'total_products' => $repo->count([]),
         ]);
     }
 
-    #[Route('/new', name: 'app_dashboard_product_new', methods: ['GET', 'POST'])]
+    #[Route('/products/new', name: 'app_product_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $product = new Product();
@@ -97,24 +102,24 @@ final class ProductController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Product created successfully!');
-            return $this->redirectToRoute('app_dashboard_product_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('dashboard/product/new.html.twig', [
+        return $this->render('product/new.html.twig', [
             'product' => $product,
             'form' => $form,
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_product_show', methods: ['GET'])]
+    #[Route('/products/{id}', name: 'app_product_show', methods: ['GET'])]
     public function show(Product $product): Response
     {
-        return $this->render('dashboard/product/show.html.twig', [
+        return $this->render('product/show.html.twig', [
             'product' => $product,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_dashboard_product_edit', methods: ['GET', 'POST'])]
+    #[Route('/products/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(ProductType::class, $product);
@@ -148,16 +153,16 @@ final class ProductController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Product updated successfully!');
-            return $this->redirectToRoute('app_dashboard_product_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('dashboard/product/edit.html.twig', [
+        return $this->render('product/edit.html.twig', [
             'product' => $product,
             'form' => $form,
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_product_delete', methods: ['POST'])]
+    #[Route('/products/{id}', name: 'app_product_delete', methods: ['POST'])]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->getPayload()->getString('_token'))) {
@@ -166,6 +171,6 @@ final class ProductController extends AbstractController
         }
 
         $this->addFlash('success', 'Product deleted successfully!');
-        return $this->redirectToRoute('app_dashboard_product_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
 }
