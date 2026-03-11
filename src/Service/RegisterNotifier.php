@@ -15,12 +15,6 @@ class RegisterNotifier
 
     public function sendNewUserNotification(User $user): void
     {
-        if (empty($this->adminEmail)) {
-            // You can use error_log to see this in your terminal/logs
-            error_log("CRITICAL: Admin email is empty. Check .env.local");
-            return;
-        }
-
         $email = (new TemplatedEmail())
             ->from('Mifania System <mifaniapaolo0012@gmail.com>')
             ->to($this->adminEmail)
