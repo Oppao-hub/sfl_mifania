@@ -49,20 +49,20 @@
 
             {% if is_granted('ROLE_ADMIN') %}
                 {% set menu_items = ({
-                        'Products': {'icon': 'lucide:package', 'route_prefix': 'app_dashboard_product_'},
-                        'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_dashboard_order_'},
-                        'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_dashboard_customer_'},
+                        'Products': {'icon': 'lucide:package', 'route_prefix': 'app_product_'},
+                        'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_order_'},
+                        'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_customer_'},
                         'Admins': {'icon': 'lucide:user-star', 'route_prefix': 'app_admin_'},
                         'Staffs': {'icon': 'lucide:user-cog', 'route_prefix': 'app_staff_'},
-                        'QR Tags': {'icon': 'lucide:qr-code', 'route_prefix': 'app_dashboard_qrTag_'},
-                        'Stocks': {'icon': 'lucide:boxes', 'route_prefix': 'app_dashboard_stock_'},
+                        'QR Tags': {'icon': 'lucide:qr-code', 'route_prefix': 'app_qrTag_'},
+                        'Stocks': {'icon': 'lucide:boxes', 'route_prefix': 'app_stock_'},
                     })
                 %}
             {% else %}
                 {% set menu_items = ({
-                        'Products': {'icon': 'lucide:package', 'route_prefix': 'app_dashboard_product_'},
-                        'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_dashboard_order_'},
-                        'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_dashboard_customer_'},
+                        'Products': {'icon': 'lucide:package', 'route_prefix': 'app_product_'},
+                        'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_order_'},
+                        'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_customer_'},
                     })
                 %}
             {% endif %}

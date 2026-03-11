@@ -59,7 +59,6 @@ class GoogleAuthenticator extends OAuth2Authenticator
 
             $randomPassword = bin2hex(random_bytes(10));
             $user->setPassword($randomPassword);
-            $user->setProvider(Provider::GOOGLE);
             $user->setIsVerified(true);
 
             $customer = new Customer();

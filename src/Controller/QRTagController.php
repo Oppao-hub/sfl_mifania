@@ -31,14 +31,14 @@ final class QRTagController extends AbstractController
         $this->urlGenerator = $urlGenerator;
     }
 
-    #[Route('/', name: 'app_dashboard_qrTag_index', methods: ['GET'])]
+    #[Route('/', name: 'app_qrTag_index', methods: ['GET'])]
     public function index(QRTagRepository $qRTagRepository): Response
     {
         $qrTags = $qRTagRepository->findAll();
 
         if (empty($qrTags)) {
             $this->addFlash('warning', 'No QR Tags found. Please create one first.');
-            return $this->redirectToRoute('app_dashboard_qrTag_new', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_qrTag_new', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/qrTag/index.html.twig', [
@@ -46,7 +46,7 @@ final class QRTagController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_dashboard_qrTag_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_qrTag_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $qRTag = new QRTag();
@@ -60,7 +60,7 @@ final class QRTagController extends AbstractController
 
             if (!$product) {
                 $this->addFlash('error', 'Please select a product to generate the QR Code.');
-                return $this->redirectToRoute('app_dashboard_qrTag_new');
+                return $this->redirectToRoute('app_qrTag_new');
             }
 
             // Generate QR Code Value (example: URL or product code)
@@ -102,7 +102,7 @@ final class QRTagController extends AbstractController
                 $entityManager->flush();
 
                 $this->addFlash('success', 'QR Tag generated and saved successfully!');
-                return $this->redirectToRoute('app_dashboard_qrTag_index', [], Response::HTTP_SEE_OTHER);
+                return $this->redirectToRoute('app_qrTag_index', [], Response::HTTP_SEE_OTHER);
             } catch (UniqueConstraintViolationException $e) {
                 // Store the error in flash
                 $this->addFlash('error', 'A QR Tag already exists for this entry.');
@@ -117,7 +117,7 @@ final class QRTagController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_qrTag_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_qrTag_show', methods: ['GET'])]
     public function show(QRTag $qRTag): Response
     {
         return $this->render('dashboard/qrTag/show.html.twig', [
@@ -125,7 +125,7 @@ final class QRTagController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_dashboard_qrTag_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_qrTag_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, QRTag $qRTag, EntityManagerInterface $entityManager): Response
     {
         // Store the original QR image path to potentially delete it later
@@ -140,7 +140,7 @@ final class QRTagController extends AbstractController
             // IMPORTANT: Ensure a product is selected before proceeding
             if (!$product) {
                 $this->addFlash('error', 'Please select a product to generate the QR code.');
-                return $this->redirectToRoute('app_dashboard_qrTag_edit', ['id' => $qRTag->getId()]); // Redirect back to form
+                return $this->redirectToRoute('app_qrTag_edit', ['id' => $qRTag->getId()]); // Redirect back to form
             }
 
             // --- QR Code Regeneration Logic (similar to 'new' action) ---
@@ -191,7 +191,7 @@ final class QRTagController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'QR Tag updated and QR code regenerated successfully!');
 
-            return $this->redirectToRoute('app_dashboard_qrTag_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_qrTag_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/qrTag/edit.html.twig', [
@@ -200,7 +200,7 @@ final class QRTagController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_qrTag_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_qrTag_delete', methods: ['POST'])]
     public function delete(Request $request, QRTag $qRTag, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $qRTag->getId(), $request->getPayload()->getString('_token'))) {
@@ -209,6 +209,6 @@ final class QRTagController extends AbstractController
         }
 
         $this->addFlash('success', 'QR Tag deleted successfully!');
-        return $this->redirectToRoute('app_dashboard_qrTag_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_qrTag_index', [], Response::HTTP_SEE_OTHER);
     }
 }

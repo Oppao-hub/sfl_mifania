@@ -11,5 +11,6 @@
         {% block main_content %}{% endblock %}
         {{ encore_entry_script_tags("app") }}
         {% block javascripts %}{% endblock %}
+        {% include "components/modal/user_modal_flash.html.twig" %}
     </body>
 </html>

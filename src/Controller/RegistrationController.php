@@ -5,10 +5,11 @@ namespace App\Controller;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Entity\Wallet;
-use App\Entity\Enum\Provider;
 use App\Form\RegistrationFormType;
+use App\Service\EmailVerificationService;
 use App\Service\RegisterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +23,8 @@ class RegistrationController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
         EntityManagerInterface $entityManager,
-        RegisterNotifier $registerNotifier
+        RegisterNotifier $registerNotifier,
+        EmailVerificationService $emailVerificationService,
     ): Response
     {
         if ($this->getUser()) {
@@ -40,8 +42,19 @@ class RegistrationController extends AbstractController
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
-            $user->setProvider(Provider::MANUAL);
+
+            // Generate verification token
+            $verificationToken = $emailVerificationService->generateVerificationToken();
+            $user->setVerificationToken($verificationToken);
             $user->setIsVerified(false);
+
+
+            // Generate verification URL
+            $verificationUrl = $this->generateUrl(
+                'app_email_verification',
+                ['token' => $verificationToken],
+                UrlGeneratorInterface::ABSOLUTE_URL
+            );
 
             $customer = new Customer();
             $customer->setUser($user);
@@ -58,8 +71,9 @@ class RegistrationController extends AbstractController
             $entityManager->persist($wallet);
             $entityManager->flush();
 
+            // Send verification email
             $registerNotifier->sendNewUserNotification($user);
-            $registerNotifier->sendUserWelcomeEmail($user);
+            $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
 
             $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
 

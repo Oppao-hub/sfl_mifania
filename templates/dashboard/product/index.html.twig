@@ -6,7 +6,7 @@
     {% embed 'components/table/table.html.twig' with {
         title: 'Mifania Products',
         total_count: total_products,
-        new_path: 'app_dashboard_product_new',
+        new_path: 'app_product_new',
         headers: ['ID', 'Product Details', 'Gender', 'Size', 'Color', 'Price', 'Cost', 'Actions'],
         id: 'dashboard-table'
     } %}
@@ -49,15 +49,15 @@
                 {# Actions: Rounded Right #}
                 <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
                     <div class="flex justify-center items-center gap-3">
-                        <a  href="{{ path('app_dashboard_product_show', { id: product.id }) }}"
+                        <a  href="{{ path('app_product_show', { id: product.id }) }}"
                             class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}</a>
 
-                        <a  href="{{ path('app_dashboard_product_edit', { id: product.id }) }}"
+                        <a  href="{{ path('app_product_edit', { id: product.id }) }}"
                             class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}</a>
 
                         <button
                             type="button"
-                            @click="$dispatch('open-delete-modal', { url: '{{ path('app_dashboard_product_delete', {id: product.id}) }}', name: 'Product {{ product.name }}', token: '{{ csrf_token('delete' ~ product.id) }}' })"
+                            @click="$dispatch('open-delete-modal', { url: '{{ path('app_product_delete', {id: product.id}) }}', name: 'Product {{ product.name }}', token: '{{ csrf_token('delete' ~ product.id) }}' })"
                             class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}</button>
                     </div>
                 </td>

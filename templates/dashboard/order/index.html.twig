@@ -4,7 +4,7 @@
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
         title: 'Orders',
-        new_path: 'app_dashboard_order_new',
+        new_path: 'app_order_new',
         headers: ['ID', 'Customer', 'Total', 'Points', 'Payment Method', 'Payment Status', 'Order Status', 'Actions'],
         id: 'dashboard-table'
     } %}
@@ -18,7 +18,7 @@
 
                     {# Payment Method Selector #}
                     <td class="border-y border-gray-200 px-4 py-3">
-                        <form method="post" action="{{ path('app_dashboard_order_change_payment_method', {'id': order.id}) }}">
+                        <form method="post" action="{{ path('app_order_change_payment_method', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_payment_method' ~ order.id) }}">
                             <select name="payment_method"
                                     @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ order.paymentMethod.value }}', title: 'Payment Method' })"
@@ -32,7 +32,7 @@
 
                     {# Payment Status Selector #}
                     <td class="border-y border-gray-200 px-4 py-3">
-                        <form method="post" action="{{ path('app_dashboard_order_change_payment_status', {'id': order.id}) }}">
+                        <form method="post" action="{{ path('app_order_change_payment_status', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_payment_status' ~ order.id) }}">
                             <select name="payment_status"
                                     @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ order.paymentStatus.value }}', title: 'Payment Status' })"
@@ -49,7 +49,7 @@
 
                     {# Order Status Selector #}
                     <td class="border-y border-gray-200 px-4 py-3">
-                        <form method="post" action="{{ path('app_dashboard_order_change_status', {'id': order.id}) }}">
+                        <form method="post" action="{{ path('app_order_change_status', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_status' ~ order.id) }}">
                             <select name="status"
                                     @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ order.orderStatus.value }}', title: 'Order Status' })"
@@ -67,15 +67,15 @@
                     {# Actions #}
                     <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
                         <div class="flex justify-center items-center gap-3">
-                            <a  href="{{ path('app_dashboard_order_show', { id: order.id }) }}"
+                            <a  href="{{ path('app_order_show', { id: order.id }) }}"
                                 class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}</a>
 
-                            <a  href="{{ path('app_dashboard_order_edit', { id: order.id }) }}"
+                            <a  href="{{ path('app_order_edit', { id: order.id }) }}"
                                 class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}</a>
 
                             <button
                                 type="button"
-                                @click="$dispatch('open-delete-modal', { url: '{{ path('app_dashboard_order_delete', {id: order.id}) }}', name: 'Order #{{ order.id }}', token: '{{ csrf_token('delete' ~ order.id) }}' })"
+                                @click="$dispatch('open-delete-modal', { url: '{{ path('app_order_delete', {id: order.id}) }}', name: 'Order #{{ order.id }}', token: '{{ csrf_token('delete' ~ order.id) }}' })"
                                 class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}</button>
                         </div>
                     </td>

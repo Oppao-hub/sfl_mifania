@@ -27,7 +27,7 @@ final class CustomerController extends AbstractController
     {
     }
 
-    #[Route(name: 'app_dashboard_customer_index', methods: ['GET'])]
+    #[Route(name: 'app_customer_index', methods: ['GET'])]
     public function index(CustomerRepository $customerRepository): Response
     {
         return $this->render('dashboard/customer/index.html.twig', [
@@ -35,7 +35,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_dashboard_customer_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_customer_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, UserPasswordHasherInterface $passwordHasher): Response
     {
         $customer = new Customer();
@@ -88,7 +88,7 @@ final class CustomerController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Customer created successfully!');
-            return $this->redirectToRoute('app_dashboard_customer_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_customer_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/customer/new.html.twig', [
@@ -97,7 +97,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/profile/search', name: 'app_dashboard_customer_search', methods: ['GET'])]
+    #[Route('/profile/search', name: 'app_customer_search', methods: ['GET'])]
     public function profileSearch(Request $request): Response
     {
         // 1. Handle search form submission (e.g., if a customer ID or email is posted)
@@ -116,7 +116,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_customer_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_customer_show', methods: ['GET'])]
     public function show(Customer $customer): Response
     {
         return $this->render('dashboard/customer/show.html.twig', [
@@ -124,7 +124,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_dashboard_customer_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_customer_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Customer $customer, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(CustomerType::class, $customer, ['is_edit' => true]);
@@ -156,7 +156,7 @@ final class CustomerController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Customer updated successfully!');
-            return $this->redirectToRoute('app_dashboard_customer_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_customer_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/customer/edit.html.twig', [
@@ -165,7 +165,7 @@ final class CustomerController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_customer_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_customer_delete', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Customer $customer, EntityManagerInterface $entityManager): Response
     {
@@ -175,10 +175,10 @@ final class CustomerController extends AbstractController
         }
 
         $this->addFlash('success', 'Customer deleted successfully!');
-        return $this->redirectToRoute('app_dashboard_customer_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_customer_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{id}/history', name: 'app_dashboard_customer_history', methods: ['GET'])]
+    #[Route('/{id}/history', name: 'app_customer_history', methods: ['GET'])]
     public function history(Customer $customer, OrderRepository $orderRepository): Response
     {
         $orders = $orderRepository->findBy(
@@ -214,9 +214,9 @@ final class CustomerController extends AbstractController
         $entityManager->flush();
 
         // 4. Show success message
-        $this->addFlash('success', 'Password reset to: ' . $tempPassword);
+        $this->addFlash('success', message: 'Password reset to: ' . $tempPassword);
 
         // 5. Redirect back to the Edit page (so they can see the message)
-        return $this->redirectToRoute('app_dashboard_customer_edit', ['id' => $user->getCustomer()->getId()]);
+        return $this->redirectToRoute('app_customer_edit', ['id' => $user->getCustomer()->getId()]);
     }
 }

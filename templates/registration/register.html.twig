@@ -23,40 +23,51 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         {{ form_widget(registrationForm.firstName, { attr: {
-                            placeholder: "First Name",
-                            class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
-                        } }) }}
+                                placeholder: "First Name",
+                                class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
+                            } })
+                        }}
+                        {{ form_errors(registrationForm.firstName) }}
                     </div>
                     <div>
                         {{ form_widget(registrationForm.lastName, { attr: {
-                            placeholder: "Last Name",
-                            class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
-                        } }) }}
+                                placeholder: "Last Name",
+                                class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
+                            } })
+                        }}
+                        {{ form_errors(registrationForm.lastName) }}
                     </div>
                 </div>
 
                 {# Email #}
                 <div>
                     {{ form_widget(registrationForm.email, { attr: {
-                        placeholder: "Email Address",
-                        class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
-                    } }) }}
+                            placeholder: "Email Address",
+                            class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
+                        } })
+                    }}
+                    {{ form_errors(registrationForm.email) }}
                 </div>
 
                 {# Password #}
                 <div>
                     {{ form_widget(registrationForm.plainPassword, { attr: {
-                        placeholder: "Password",
-                        class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
-                    } }) }}
+                            placeholder: "Password",
+                            class: "w-full p-3 rounded-xl border-2 border-transparent bg-white text-gray-700 placeholder-gray-400 focus:border-[#6b703d] outline-none transition-all shadow-sm"
+                        } })
+                    }}
+                    {{ form_errors(registrationForm.plainPassword) }}
                 </div>
 
                 {# Terms #}
-                <div class="flex items-center space-x-2 px-2">
-                    {{ form_widget(registrationForm.agreeTerms, { attr: { class: "w-4 h-4 rounded border-gray-300 text-[#6b703d] focus:ring-[#6b703d] cursor-pointer" } }) }}
-                    <label class="text-xs text-white font-medium">
-                        I agree to the <a href="#" class="underline">terms and conditions.</a>
-                    </label>
+                <div class="px-2 mb-4">
+                    <div class="flex items-center space-x-2">
+                        {{ form_widget(registrationForm.agreeTerms, { attr: { class: "w-4 h-4 rounded border-gray-300 text-[#6b703d] focus:ring-[#6b703d] cursor-pointer" } }) }}
+                        <label class="text-xs text-white font-medium">
+                            I agree to the <a href="#" class="underline">terms and conditions.</a>
+                        </label>
+                    </div>
+                    {{ form_errors(registrationForm.agreeTerms) }}
                 </div>
 
                 {# Submit Button #}

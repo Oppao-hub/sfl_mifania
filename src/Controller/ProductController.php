@@ -29,16 +29,16 @@ final class ProductController extends AbstractController
         return $this->json($repo->findAll());
     }
 
-    #[Route('/products', name: 'app_product_index')]
+    #[Route('/dashboard/products', name: 'app_product_index')]
     public function index(ProductRepository $repo): Response
     {
-        return $this->render('product/index.html.twig', [
+        return $this->render('dashboard/product/index.html.twig', [
             'products' => $repo->findAll(),
             'total_products' => $repo->count([]),
         ]);
     }
 
-    #[Route('/products/new', name: 'app_product_new', methods: ['GET', 'POST'])]
+    #[Route('/dashboard/products/new', name: 'app_product_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $product = new Product();
@@ -105,21 +105,21 @@ final class ProductController extends AbstractController
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('product/new.html.twig', [
+        return $this->render('dashboard/product/new.html.twig', [
             'product' => $product,
             'form' => $form,
         ]);
     }
 
-    #[Route('/products/{id}', name: 'app_product_show', methods: ['GET'])]
+    #[Route('/dashboard/products/{id}', name: 'app_product_show', methods: ['GET'])]
     public function show(Product $product): Response
     {
-        return $this->render('product/show.html.twig', [
+        return $this->render('dashboard/product/show.html.twig', [
             'product' => $product,
         ]);
     }
 
-    #[Route('/products/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
+    #[Route('/dashboard/products/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(ProductType::class, $product);
@@ -156,13 +156,13 @@ final class ProductController extends AbstractController
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('product/edit.html.twig', [
+        return $this->render('dashboard/product/edit.html.twig', [
             'product' => $product,
             'form' => $form,
         ]);
     }
 
-    #[Route('/products/{id}', name: 'app_product_delete', methods: ['POST'])]
+    #[Route('/dashboard/products/{id}', name: 'app_product_delete', methods: ['POST'])]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->getPayload()->getString('_token'))) {

@@ -10,7 +10,7 @@
     <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
         <div class="flex items-center gap-5">
             {# Back Button #}
-            <a href="{{ path('app_dashboard_product_index') }}"
+            <a href="{{ path('app_product_index') }}"
                class="p-3 bg-white rounded-xl border border-cream-200 text-dashboard-mocha hover:text-dashboard-olive hover:border-dashboard-olive/30 transition-all shadow-sm active:scale-95">
                 {{ ux_icon('lucide:arrow-left', {class: 'w-5 h-5'}) }}
             </a>
@@ -27,14 +27,14 @@
 
         {# Action Cluster #}
         <div class="flex items-center gap-3">
-             <a href="{{ path('app_dashboard_product_edit', { id: product.id }) }}"
+             <a href="{{ path('app_product_edit', { id: product.id }) }}"
                class="px-6 py-3 bg-dashboard-olive text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-dashboard-mocha transition-all shadow-xl shadow-dashboard-olive/10 flex items-center gap-2 active:scale-95">
                 {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
                 Edit Product
             </a>
             <button type="button"
                 @click="$dispatch('open-delete-modal', {
-                    url: '{{ path('app_dashboard_product_delete', {id: product.id}) }}',
+                    url: '{{ path('app_product_delete', {id: product.id}) }}',
                     name: '{{ product.name|e('js') }}',
                     token: '{{ csrf_token('delete' ~ product.id) }}'
                 })"

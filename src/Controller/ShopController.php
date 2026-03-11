@@ -16,7 +16,7 @@ final class ShopController extends AbstractController
         ]);
     }
 
-    #[Route('/product/{slug}', name: 'app_product_show')]
+    #[Route('/product/{slug}', name: 'app_product_details')]
     public function show(string $slug): Response
     {
         // This just returns the 'shell' page; Alpine will fetch the data
