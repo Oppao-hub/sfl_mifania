@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Enum\PaymentStatus;
 use App\Entity\Enum\PaymentMethod;
 use App\Entity\Enum\OrderStatus;
@@ -11,10 +12,15 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    normalizationContext: ['groups' => ['order:read']],
+    denormalizationContext: ['groups' => ['order:write']]
+)]
 class Order
 {
     #[ORM\Id]
@@ -22,26 +28,33 @@ class Order
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Customer $customer = null;
 
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $totalAmount = null;
 
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\Column(length: 50, enumType: PaymentMethod::class)]
     private ?PaymentMethod $paymentMethod = PaymentMethod::CASH;
 
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\Column(length: 50, enumType: PaymentStatus::class)]
     private ?PaymentStatus $paymentStatus = PaymentStatus::PENDING;
 
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\Column(length: 50, enumType: OrderStatus::class)]
     private ?OrderStatus $orderStatus = OrderStatus::PENDING;
 
+    #[Groups(['order:read', 'order:write'])]
     #[Assert\PositiveOrZero(message: 'Reward points earned must be a positive number.')]
     #[ORM\Column]
     private ?int $rewardPoints = 0;
 
+    #[Groups(['order:read'])]
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -51,12 +64,14 @@ class Order
     /**
      * @var Collection<int, OrderItem>
      */
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
     private Collection $orderItems;
 
     /**
      * @var Collection<int, RewardTransaction>
      */
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\OneToMany(targetEntity: RewardTransaction::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
     private Collection $rewardTransactions;
 

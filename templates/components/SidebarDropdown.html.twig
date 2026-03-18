@@ -13,7 +13,7 @@
     <a href="#"
        onclick="toggleSidebarDropdown('{{ dropdownId }}'); return false;"
        class="w-full flex justify-left items-center px-5 py-3 rounded-md focus:outline-none transition-colors
-              {{ isOpen ? 'bg-mocha text-cream' : 'text-mocha hover:bg-cream hover:text-mocha'}}">
+              {{ isOpen ? 'bg-dark-gray text-cream' : 'text-dark-gray hover:bg-cream hover:text-dark-gray'}}">
 
         <twig:icon
             d1="{{ d1 }}" cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" d2="{{ d2 }}"
@@ -43,7 +43,7 @@
             <li>
                 <a href="{{ path(item.route, item.params) }}"
                    class="flex items-center gap-x-4 px-5 py-3 rounded-lg text-sm font-medium whitespace-nowrap overflow-hidden transition-all
-                        {{ item.isActive ? 'bg-mocha-300 text-cream' : 'text-mocha hover:bg-cream hover:text-mocha' }}">
+                        {{ item.isActive ? 'bg-dark-gray-300 text-cream' : 'text-dark-gray hover:bg-cream hover:text-dark-gray' }}">
                     {{ item.label }}
                 </a>
             </li>

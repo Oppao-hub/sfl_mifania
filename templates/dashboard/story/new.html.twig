@@ -1,0 +1,10 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Draft New Story{% endblock %}
+
+{% block main_content %}
+    {{ include('dashboard/story/_form.html.twig', {
+        story: story,
+        button_label: 'Publish Narrative'
+    }) }}
+{% endblock %}

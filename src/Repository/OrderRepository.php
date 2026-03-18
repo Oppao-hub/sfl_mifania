@@ -33,4 +33,15 @@ class OrderRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function searchByTerm(string $query): array
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.id LIKE :query OR o.orderStatus LIKE :query OR o.paymentStatus LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('o.id', 'DESC')
+            ->setMaxResults(50)
+            ->getQuery()
+            ->getResult();
+    }
 }

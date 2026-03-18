@@ -39,7 +39,7 @@
                     <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></span>
                 </div>
 
-                <h2 class="text-xl font-black text-mocha uppercase tracking-tight">
+                <h2 class="text-xl font-black text-brand uppercase tracking-tight">
                     {{ profileName }}
                 </h2>
                 <p class="text-sm text-gray-400 mb-3 font-medium">
@@ -59,8 +59,8 @@
                 <ul class="space-y-2">
                     <li>
                         <twig:ALink
-                            path="{{ path('app_account') }}"
-                            isActive="{{ app.request.attributes.get('_route') == 'app_account' }}"
+                            path="{{ is_granted('ROLE_ADMIN') ? path('app_admin_account') : path('app_staff_account') }}"
+                            isActive="{{ app.request.attributes.get('_route') == (is_granted('ROLE_ADMIN') ? 'app_admin_account' : 'app_staff_account') }}"
                             class="font-bold flex items-center px-4 py-3.5 rounded-2xl transition-all"
                             label="Profile Information"
                         />
@@ -68,8 +68,8 @@
 
                     <li>
                         <twig:ALink
-                            path="{{ path('app_account_password') }}"
-                            isActive="{{ app.request.attributes.get('_route') == 'app_account_password' }}"
+                            path="{{ is_granted('ROLE_ADMIN') ? path('app_admin_account_password') : path('app_staff_account_password') }}"
+                            isActive="{{ app.request.attributes.get('_route') == (is_granted('ROLE_ADMIN') ? 'app_admin_account_password' : 'app_staff_account_password') }}"
                             class="font-bold flex items-center px-4 py-3.5 rounded-2xl transition-all"
                             label="Security & Password"
                         />
@@ -81,8 +81,8 @@
                         </li>
                         <li>
                              <twig:ALink
-                                path="{{ path('app_admin_activity_log_index') }}"
-                                isActive="{{ app.request.attributes.get('_route') == 'app_admin_activity_log_index' }}"
+                                path="{{ path('app_activity_log_index') }}"
+                                isActive="{{ app.request.attributes.get('_route') == 'app_activity_log_index' }}"
                                 class="font-bold flex items-center px-4 py-3.5 rounded-2xl transition-all"
                                 label="Activity Logs"
                             />

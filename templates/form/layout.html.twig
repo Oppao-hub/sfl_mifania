@@ -18,7 +18,7 @@
 
 {# 3. Style the Inputs (Text, Password, Email, Date, etc.) #}
 {% block widget_attributes %}
-    {% set class_attr = 'w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-mocha focus:border-mocha transition duration-150' %}
+    {% set class_attr = 'w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition duration-150' %}
     {% set attr = attr|merge({'class': (attr.class|default('') ~ ' ' ~ class_attr)|trim}) %}
     {{ parent() }}
 {% endblock %}

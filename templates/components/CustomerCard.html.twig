@@ -1,4 +1,3 @@
-{# templates/components/customer_card.html.twig #}
 <div class="p-6 bg-white rounded-xl shadow-md flex gap-4 items-center">
     {% if customer.avatar != 'No Avatar Yet' %}
         <img src="{{ asset('uploads/customer/avatars/' ~ customer.avatar) }}" alt="{{ customer.firstName }}" class="w-16 h-16 rounded-full object-cover">

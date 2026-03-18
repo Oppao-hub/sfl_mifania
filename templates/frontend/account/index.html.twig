@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Account | Mifania Sustainable Fashion Line{% endblock %}
+
+{% block main_content %}
+
+{% set nav_items = [
+    { route: 'app_account', label: 'Profile Info', icon: 'lucide:user' },
+    { route: 'app_account_wallet', label: 'My Wallet', icon: 'lucide:wallet' },
+    { route: 'app_account_orders', label: 'My Orders', icon: 'lucide:shopping-bag' },
+    { route: 'app_account_password', label: 'Security', icon: 'lucide:lock' }
+] %}
+
+{# 2. Figure out which page we are currently on #}
+{% set current_route = app.request.attributes.get('_route') %}
+{% set active_label = 'Dashboard' %}
+
+{% for item in nav_items %}
+    {% if item.route == current_route %}
+        {% set active_label = item.label %}
+    {% endif %}
+{% endfor %}
+
+<div class="text-gray-800 bg-white min-h-screen">
+
+    {# --- Consistent Page Header --- #}
+    <section class="py-16 bg-light-gray text-center border-b border-gray-200">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand">My Account</h1>
+
+        <div class="mt-4 flex justify-center items-center uppercase tracking-wider font-semibold">
+            {# 3. Pass the dynamic data #}
+            {% block page_breadcrumbs %}
+                {% include 'components/frontend/breadcrumbs.html.twig' with {
+                    items: current_route == 'app_account' ? [
+                        { name: 'Home', url: path('app_home') },
+                        { name: 'My Account' }
+                    ] : [
+                        { name: 'Home', url: path('app_home') },
+                        { name: 'My Account', url: path('app_account') },
+                        { name: active_label }
+                    ]
+                } %}
+            {% endblock %}
+        </div>
+    </section>
+
+    {# --- Main Layout Grid --- #}
+    <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-16">
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+
+            {# --- Left Sidebar Navigation --- #}
+            <aside class="lg:w-1/4 w-full">
+                <div class="bg-white border border-gray-100 rounded-sm shadow-sm p-6 sticky top-24">
+
+                    {# User Quick Info #}
+                    <div class="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
+                        {% if app.user and app.user.customer and app.user.customer.avatar %}
+                            <img src="{{ asset('uploads/customer/avatars/' ~ app.user.customer.avatar) }}" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+                        {% else %}
+                            <div class="w-12 h-12 bg-light-gray rounded-full flex items-center justify-center text-brand font-bold text-xl">
+                                {{ app.user.firstName|default('U')|first }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Welcome Back</p>
+                            <p class="font-bold text-brand-dark text-lg">{{ app.user.customer.firstName|default('Customer') }}</p>
+                        </div>
+                    </div>
+
+                    {# Navigation Links Loop (Now using the array from the top!) #}
+                    <nav>
+                        <ul class="space-y-2 text-sm">
+                            {% for item in nav_items %}
+                                {% set isActive = current_route == item.route %}
+                                <li>
+                                    <a href="{{ path(item.route) }}"
+                                       class="flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-300 font-semibold
+                                              {{ isActive ? 'bg-brand text-white shadow-sm' : 'text-gray-600 hover:bg-light-gray hover:text-brand' }}">
+                                        {{ ux_icon(item.icon, { class: 'w-[18px] h-[18px]' }) }}
+                                        {{ item.label }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+
+                            {# Logout Button #}
+                            <li class="pt-4 mt-4 border-t border-gray-100">
+                                <button type="button"
+                                    @click="$dispatch('open-confirm', {
+                                        title: 'Sign Out?',
+                                        message: 'Are you sure you want to log out of your Mifania account?',
+                                        actionUrl: '{{ path('app_logout') }}',
+                                        confirmText: 'Log Out',
+                                        isDanger: false
+                                    })"
+                                    class="flex items-center gap-3 px-4 py-3 rounded-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors font-bold w-full text-left cursor-pointer">
+                                    {{ ux_icon('lucide:log-out', { class: 'w-[18px] h-[18px]' }) }}
+                                    Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </aside>
+
+            {# --- Right Content Area --- #}
+            <div class="lg:w-3/4 w-full">
+                {% block account_content %}{% endblock %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

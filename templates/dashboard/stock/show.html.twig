@@ -9,13 +9,13 @@
 
     <!-- Header and Title -->
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-mocha dark:text-white">
+        <h1 class="text-2xl font-bold text-brand dark:text-white">
             Stock Record ID: 00{{ stock.id }}
         </h1>
     </div>
 
     <div class="bg-gray-50 p-6 mb-4 rounded-xl border border-gray-200">
-        <h2 class="text-xl font-semibold text-mocha mb-4 border-b pb-2">Stock Information</h2>
+        <h2 class="text-xl font-semibold text-brand mb-4 border-b pb-2">Stock Information</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 pb-8">
             <!-- Left Column: Product Image -->
@@ -29,30 +29,30 @@
             <div class="space-y-4 text-sm">
                 <p>
                     <strong class="text-gray-500">Stock ID:</strong>
-                    <span class="text-mocha font-medium">{{ stock.id }}</span>
+                    <span class="text-brand font-medium">{{ stock.id }}</span>
                 </p>
 
                 <p>
                     <strong class="text-gray-500">Associated Product:</strong>
                     <a href="{{ path('app_dashboard_product_show', { 'id': product.id }) }}"
-                       class="text-mocha font-semibold hover:text-primary-dark-violet hover:underline transition">
+                       class="text-brand font-semibold hover:text-primary-dark-violet hover:underline transition">
                         {{ product.name }}
                     </a>
                 </p>
 
                 <p>
                     <strong class="text-gray-500">Quantity:</strong>
-                    <span class="text-mocha font-medium">{{ stock.quantity|number_format(0, '.', ',') }} units</span>
+                    <span class="text-brand font-medium">{{ stock.quantity|number_format(0, '.', ',') }} units</span>
                 </p>
 
                 <p>
                     <strong class="text-gray-500">Unit Cost Price:</strong>
-                    <span class="text-mocha font-medium">₱{{ stock.product.cost|number_format(2) }}</span>
+                    <span class="text-brand font-medium">₱{{ stock.product.cost|number_format(2) }}</span>
                 </p>
 
                 <p>
                     <strong class="text-gray-500">Location:</strong>
-                    <span class="text-mocha font-medium">{{ stock.location ?: '—' }}</span>
+                    <span class="text-brand font-medium">{{ stock.location ?: '—' }}</span>
                 </p>
 
                 <p>
@@ -72,12 +72,12 @@
 
                 <p>
                     <strong class="text-gray-500">Date Created:</strong>
-                    <span class="text-mocha font-medium">{{ stock.createdAt|date('Y-m-d H:i:s') }}</span>
+                    <span class="text-brand font-medium">{{ stock.createdAt|date('Y-m-d H:i:s') }}</span>
                 </p>
 
                 <p>
                     <strong class="text-gray-500">Last Updated:</strong>
-                    <span class="text-mocha font-medium">{{ stock.updatedAt|date('Y-m-d H:i:s') }}</span>
+                    <span class="text-brand font-medium">{{ stock.updatedAt|date('Y-m-d H:i:s') }}</span>
                 </p>
             </div>
         </div>
@@ -101,7 +101,7 @@
 
         {# Back button #}
         <a href="{{ path('app_dashboard_stock_index') }}"
-            class="px-4 py-2 bg-white border border-gray-300 text-mocha text-sm font-medium rounded-xl hover:bg-gray-200 transition">
+            class="px-4 py-2 bg-white border border-gray-300 text-brand text-sm font-medium rounded-xl hover:bg-gray-200 transition">
             Back
         </a>
     </div>

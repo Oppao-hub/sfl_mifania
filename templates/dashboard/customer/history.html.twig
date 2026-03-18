@@ -6,7 +6,7 @@
 <div class="mx-1 min-h-screen bg-white p-8 shadow-md">
     <div class="mb-6 flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold text-mocha">
+            <h1 class="text-2xl font-bold">
                 {{ customer.firstName }} {{ customer.lastName }}
             </h1>
             <p class="text-sm text-gray-500">Customer ID: #{{ customer.id }}</p>
@@ -17,7 +17,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 class="text-xs uppercase font-semibold text-gray-400 mb-2">Contact Info</h3>
-            <p class="text-mocha font-medium">{{ customer.user.email }}</p>
+            <p class="text-brand font-medium">{{ customer.user.email }}</p>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 class="text-xs uppercase font-semibold text-gray-400 mb-2">Shipping Address</h3>
@@ -35,7 +35,7 @@
     {# Order History Table #}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-mocha">Order History</h2>
+            <h2 class="font-semibold text-brand">Order History</h2>
         </div>
 
         <div class="overflow-x-auto">
@@ -73,7 +73,7 @@
                             ${{ order.totalAmount|number_format(2) }}
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <a href="{{path('app_dashboard_order_show', {id: order.id }) }}" class="text-mocha-300 hover:underline">View</a>
+                            <a href="{{path('app_dashboard_order_show', {id: order.id }) }}" class="text-brand-300 hover:underline">View</a>
                         </td>
                     </tr>
                 {% else %}

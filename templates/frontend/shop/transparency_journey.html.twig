@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}The Journey of {{ product.name }} | Mifania Transparency{% endblock %}
+
+{% block main_content %}
+<div class="bg-white min-h-screen pb-20">
+
+    {# 1. HERO HEADER: The Origin #}
+    <section class="relative h-[60vh] flex items-center justify-center overflow-hidden bg-gray-900">
+        <img src="{{ product.image ? asset('uploads/products/' ~ product.image) : asset('images/placeholder.jpg') }}"
+             class="absolute inset-0 w-full h-full object-cover opacity-40 blur-sm scale-110" alt="Origin Image">
+        <div class="relative text-center px-6">
+            <p class="text-[10px] font-bold tracking-[0.4em] text-white uppercase mb-4">Mifania Transparency Passport</p>
+            <h1 class="text-4xl md:text-6xl font-bold text-white uppercase tracking-tighter mb-4">{{ product.name }}</h1>
+            <div class="flex items-center justify-center gap-4 text-white/80 text-xs font-medium uppercase tracking-widest">
+                <span>SKU: {{ product.id }}</span>
+                <span class="h-1 w-1 bg-white rounded-full"></span>
+                <span>{{ product.material|default('Eco-Fiber') }}</span>
+                <span class="h-1 w-1 bg-white rounded-full"></span>
+                <span>100% Traceable</span>
+            </div>
+        </div>
+    </section>
+
+    {# 2. THE JOURNEY TIMELINE #}
+    <div class="max-w-4xl mx-auto px-6 -mt-20 relative z-10">
+
+        <div class="bg-white shadow-2xl rounded-sm p-8 md:p-16 border border-gray-100">
+
+            <div class="text-center mb-16">
+                <h2 class="text-2xl font-bold text-brand-dark uppercase tracking-tight mb-4">From Seed to Studio</h2>
+                <p class="text-sm text-gray-500 leading-relaxed max-w-xl mx-auto italic">
+                    "Every Mifania garment tells a story of ethical labor, environmental respect, and artistic passion. Here is how your {{ product.name }} came to life."
+                </p>
+            </div>
+
+            {# Vertical Timeline #}
+            <div class="space-y-16 relative before:absolute before:inset-0 before:ml-5 md:before:mx-auto before:h-full before:w-0.5 before:bg-gray-100">
+
+                {# Stage 1: The Source #}
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white group-hover:border-brand transition-colors z-10 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        {{ ux_icon('lucide:leaf', { class: 'w-4 h-4 text-brand' }) }}
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[45%] p-6 bg-gray-50 rounded-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-brand text-[10px] uppercase tracking-widest mb-1">Raw Materials</h4>
+                        <p class="text-sm font-bold text-gray-900 mb-2">{{ product.story.title|default('Regenerative Origins') }}</p>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            {{ product.story.materialContent|default("Every fiber begins in the rich, volcanic soil of Negros Oriental. We prioritize regenerative agriculture, sourcing organic hemp and linen that requires no synthetic pesticides.") }}
+                        </p>
+                    </div>
+                </div>
+
+                {# Stage 2: The Artisan #}
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white group-hover:border-brand transition-colors z-10 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        {{ ux_icon('lucide:scissors', { class: 'w-4 h-4 text-brand' }) }}
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[45%] p-6 bg-gray-50 rounded-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-brand text-[10px] uppercase tracking-widest mb-1">Ethical Craft</h4>
+                        <p class="text-sm font-bold text-gray-900 mb-2">The Mifania Collective</p>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            {{ product.story.artisanContent|default("Hand-cut and sewn in our solar-powered studio by local artisans. Every worker is paid a fair living wage, ensuring dignity in every stitch.") }}
+                        </p>
+                    </div>
+                </div>
+
+                {# Stage 3: Low Impact #}
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white group-hover:border-brand transition-colors z-10 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        {{ ux_icon('lucide:droplet', { class: 'w-4 h-4 text-brand' }) }}
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[45%] p-6 bg-gray-50 rounded-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-brand text-[10px] uppercase tracking-widest mb-1">Eco-Dyeing</h4>
+                        <p class="text-sm font-bold text-gray-900 mb-2">Botanical Pigments</p>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            {{ product.story.dyeingContent|default("Using recycled rainwater and plant-based dyes, we ensure zero harmful chemicals are released into the Negros Oriental ecosystem.") }}
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            {# 3. IMPACT SUMMARY (Adds extra "Sustainability" value) #}
+            <div class="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-gray-100 pt-12">
+                <div class="text-center">
+                    <div class="text-brand font-bold text-2xl mb-1">70%</div>
+                    <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Water Saved</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-brand font-bold text-2xl mb-1">Zero</div>
+                    <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Plastic Used</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-brand font-bold text-2xl mb-1">100%</div>
+                    <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Fair Trade</p>
+                </div>
+            </div>
+
+            {# Footer Link #}
+            <div class="mt-12 text-center">
+                <a href="{{ path('app_shop') }}" class="inline-block bg-brand text-white px-12 py-4 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-brand-dark transition-all shadow-md hover:-translate-y-0.5">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ currentCategory|default('Shop') }} | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="text-gray-800 bg-white min-h-screen">
+    {# Page Header #}
+    <section class="py-16 bg-light-gray text-center border-b border-gray-200">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand">{{ currentCategory|default('Shop') }}</h1>
+        {% include 'components/frontend/breadcrumbs.html.twig' with {
+            items: [
+                { name: 'Home', url: path('app_home') },
+                { name: 'Shop' }
+            ]
+        } %}
+    </section>
+
+    <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-16">
+        {# Main Grid: Sidebar (Left) and Products (Right) #}
+        <div class="flex flex-col lg:flex-row gap-12">
+
+            {# --- Sidebar Filters (Left Column) --- #}
+            <aside class="lg:w-1/4 w-full">
+                <form
+                    data-controller="filter"
+                    data-filter-target="form"
+                    action="{{ app.request.pathinfo }}"
+                    method="get"
+                    class="pr-0 lg:pr-8 space-y-10 sticky top-24"
+                >
+                    {# Keep the search term hidden so it doesn't get lost when price/color is changed #}
+                    <input type="hidden" name="q" value="{{ searchTerm }}">
+
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-bold text-brand uppercase tracking-tighter">Filters</h3>
+
+                        {# Show 'Clear All' if any filter is active #}
+                        {% if searchTerm or selectedColors|length > 0 or currentMaxPrice < 5000 %}
+                            <a href="{{ path('app_shop') }}"
+                               class="text-[10px] uppercase tracking-widest text-red-500 hover:text-red-700 underline font-bold transition-colors">
+                                Clear All
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {# Price Filter #}
+                    <div class="pt-6 border-t border-gray-100">
+                        <h4 class="font-bold text-gray-900 mb-6 text-xs uppercase tracking-widest">Price Range</h4>
+                        <div class="flex justify-between items-center mb-4">
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                Max: <span data-filter-target="priceBadge" class="text-brand text-sm ml-1">PHP {{ currentMaxPrice }}</span>
+                            </p>
+                        </div>
+                        <input
+                            type="range"
+                            name="maxPrice"
+                            data-filter-target="priceSlider"
+                            data-action="input->filter#updateBadge change->filter#submitForm"
+                            min="0" max="5000" step="50"
+                            value="{{ currentMaxPrice }}"
+                            class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand"
+                        >
+                    </div>
+
+                    {# Color Filter #}
+                    <div class="pt-6 border-t border-gray-100">
+                        <h4 class="font-bold text-gray-900 mb-6 text-xs uppercase tracking-widest">Color</h4>
+                        <div class="grid grid-cols-5 gap-3">
+                            {% set availableColors = { 'Black': '#000000', 'Grey': '#808080', 'Green': '#2C4C3B', 'White': '#FFFFFF', 'Brown': '#5C3D2E' } %}
+                            {% for name, hex in availableColors %}
+                                <label class="cursor-pointer group relative" title="{{ name }}">
+                                    <input type="checkbox" name="colors[]" value="{{ name }}" class="hidden"
+                                        data-action="change->filter#submitForm"
+                                        {% if name in selectedColors %}checked{% endif %}>
+
+                                    <div class="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center transition-transform group-hover:scale-110
+                                                {% if name in selectedColors %}ring-2 ring-brand ring-offset-2{% endif %}"
+                                        style="background-color: {{ hex }};">
+                                    </div>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </form>
+            </aside>
+
+            {# --- Main Content (Right Column) --- #}
+            <div class="lg:w-3/4 w-full">
+
+                {# Toolbar #}
+                <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        Showing <span class="text-brand">{{ pagination.getTotalItemCount }}</span> results
+                    </p>
+                </div>
+
+                {# Search Results Feedback #}
+                {% if searchTerm %}
+                    <div class="mb-8 flex justify-between items-center bg-light-gray p-4 rounded-sm">
+                        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest">
+                            Results for: <span class="text-brand">"{{ searchTerm }}"</span>
+                        </h2>
+                    </div>
+                {% endif %}
+
+                {# Product Grid #}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for product in pagination %}
+                        <div class="relative group">
+
+                            {# ✨ HYBRID WISHLIST BUTTON OVERLAY ✨ #}
+                            {% set isWishlisted = false %}
+                            {% if app.user and app.user.customer and product in app.user.customer.wishlist %}
+                                {% set isWishlisted = true %}
+                            {% elseif not app.user and product.id in app.request.session.get('guest_wishlist', []) %}
+                                {% set isWishlisted = true %}
+                            {% endif %}
+
+                            <div class="absolute top-3 right-3 z-10">
+                                <form action="{{ path('app_wishlist_toggle', {id: product.id}) }}" method="POST">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('wishlist' ~ product.id) }}">
+
+                                    <button type="submit" class="p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:scale-110 transition-transform cursor-pointer" title="Toggle Wishlist">
+                                        {% if isWishlisted %}
+                                            {{ ux_icon('mdi:heart', { class: 'h-4 w-4 text-brand' }) }}
+                                        {% else %}
+                                            {{ ux_icon('mdi:heart-outline', { class: 'h-4 w-4 text-gray-400 hover:text-brand transition-colors' }) }}
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+
+                            {# The Reusable Product Card #}
+                            {% include 'components/frontend/product_card.html.twig' with {
+                                'image': (product.image is not empty and product.image != 'default.png')
+                                    ? asset('uploads/products/' ~ product.image)
+                                    : 'https://placehold.co/400x500?text=No+Image',
+                                'category': product.subCategory ? product.subCategory.name : product.gender.value,
+                                'name': product.name,
+                                'price': product.price,
+                                'slug': product.slug
+                            } %}
+                        </div>
+                    {% else %}
+                        {# Empty State #}
+                        <div class="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-20 border border-dashed border-gray-200 rounded-sm bg-gray-50">
+                            {{ ux_icon('lucide:package-open', { class: 'h-12 w-12 text-gray-300 mx-auto mb-4' }) }}
+                            <p class="text-sm font-bold text-gray-500 uppercase tracking-widest">No products found matching your filters.</p>
+                            <a href="{{ path('app_shop') }}" class="text-brand text-xs font-bold underline mt-2 inline-block">Clear all filters</a>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# Pagination #}
+                <div class="flex justify-center mt-16">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

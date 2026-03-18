@@ -4,7 +4,7 @@
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
-        title: 'Staffs',
+        title: 'Manage Staffs',
         new_path: 'app_staff_new',
         headers: ['ID', 'First Name', 'Last Name', 'Email', 'Account Status', 'Actions'],
         id: 'dashboard-table'
@@ -66,12 +66,6 @@
                                 {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
                             </button>
                         </div>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="7" class="py-8 text-center text-gray-500 italic">
-                        No staff records found.
                     </td>
                 </tr>
             {% endfor %}

@@ -1,0 +1,17 @@
+<a href="{{ path('app_product_details', {'slug': slug}) }}" class="group cursor-pointer block">
+    <div class="aspect-[3/4] overflow-hidden mb-4 bg-light-gray rounded-sm">
+        <img src="{{ image }}" alt="{{ name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+    </div>
+
+    <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">{{ category }}</p>
+
+    {% if product.ecoInfo %}
+        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 truncate">
+            {{ product.ecoInfo }}
+        </p>
+    {% endif %}
+
+    <h3 class="text-md font-bold text-brand group-hover:text-brand-dark transition-colors">{{ name }}</h3>
+
+    <p class="font-bold text-gray-800 mt-1">PHP {{ price|number_format(2) }}</p>
+</a>

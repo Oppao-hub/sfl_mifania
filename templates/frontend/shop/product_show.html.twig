@@ -1,0 +1,226 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }} | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="bg-white min-h-screen">
+    {# Page Header #}
+    <section class="py-16 bg-light-gray text-center border-b border-gray-200">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand">Product Details</h1>
+        {% include 'components/frontend/breadcrumbs.html.twig' with {
+                items: [
+                    { name: 'Home', url: path('app_home') },
+                    { name: 'Shop', url: path('app_shop') },
+                    { name: product.category.name, url: path('app_shop', { id: product.category.id }) },
+                    { name: product.name }
+                ]
+            }
+        %}
+    </section>
+
+    {# Main Product Section - Note the data-controller="product" here #}
+    <div class="max-w-7xl mx-auto px-4 py-16" data-controller="product">
+        <div class="flex flex-col lg:flex-row gap-16 items-start">
+
+            {# Left: Image Gallery #}
+            <div class="lg:w-1/2 w-full">
+                <div class="relative group bg-light-gray mb-4 overflow-hidden rounded-xl">
+                    <img src="{{ product.image ? asset('uploads/products/' ~ product.image) : 'https://placehold.co/800x1000?text=' ~ product.name|url_encode }}"
+                         alt="{{ product.name }}"
+                         class="w-full object-cover aspect-[4/5] shadow-sm">
+                </div>
+
+                <div class="grid grid-cols-4 gap-4">
+                    {% for i in 1..4 %}
+                    <div class="cursor-pointer border border-transparent hover:border-brand transition rounded-lg overflow-hidden thumbnail-option">
+                        <img src="{{ product.image ? asset('uploads/products/' ~ product.image) : 'https://placehold.co/200' }}"
+                             class="w-full aspect-square object-cover opacity-80 hover:opacity-100 transition">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Right: Product Information #}
+            <div class="lg:w-1/2 w-full space-y-8">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-light-brown font-bold mb-2">{{ product.category.name|default('Sustainable') }}</p>
+                    <h2 class="text-4xl lg:text-5xl text-brand leading-tight mb-4 font-bold uppercase">{{ product.name }}</h2>
+
+                    <div class="flex items-center gap-3">
+                        <div class="flex text-yellow-400 text-sm">★★★★★</div>
+                        <span class="text-xs text-light-brown font-medium tracking-wider">4.8 (245 Reviews)</span>
+                    </div>
+                </div>
+
+                <div class="flex items-baseline gap-6 border-b border-gray-200 pb-6">
+                    <span class="text-4xl font-bold text-brand uppercase">PHP {{ product.price|number_format(2) }}</span>
+                    {% if product.price < 1500 %}
+                        <span class="text-xl text-light-brown line-through font-medium">PHP 1,500.00</span>
+                    {% endif %}
+                </div>
+
+                {% if product.ecoInfo %}
+                    <div class="flex items-center gap-3 bg-brand/5 border border-brand/10 px-4 py-3 rounded-sm mb-8 w-fit">
+                        {{ ux_icon('lucide:leaf', {class: 'w-4 h-4 text-brand'}) }}
+                        <span class="text-[10px] font-bold text-brand uppercase tracking-widest">
+                            {{ product.ecoInfo }}
+                        </span>
+                    </div>
+                {% endif %}
+
+                <p class="text-light-brown text-sm leading-relaxed max-w-lg font-medium">
+                    {{ product.description|default('Elevate your wardrobe with our signature piece, crafted from ethically sourced materials for lasting comfort and timeless style.') }}
+                </p>
+
+                {# Color & Size Section (Now with Stimulus bindings) #}
+                <div class="space-y-8">
+                    {# Colors #}
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-widest">
+                            Color: <span data-product-target="colorDisplay" class="font-bold text-gray-900 ml-1">Select a color</span>
+                        </p>
+                        <div class="flex gap-4">
+                            {% for colorName, hexCode in {'Earthy Brown': '#5C3D2E', 'Natural White': '#F8F9FA', 'Forest Green': '#2C4C3B', 'Clay': '#A07855'} %}
+                                <button type="button"
+                                        data-action="click->product#selectColor"
+                                        data-product-target="colorButton"
+                                        data-color-name="{{ colorName }}"
+                                        class="w-8 h-8 rounded-full border-2 border-transparent ring-2 ring-transparent ring-offset-2 transition-all hover:scale-110 cursor-pointer"
+                                        style="background-color: {{ hexCode }};">
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {# Sizes #}
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-widest">
+                            Size: <span data-product-target="sizeDisplay" class="font-bold text-gray-900 ml-1">Select a size</span>
+                        </p>
+                        <div class="flex flex-wrap gap-3">
+                            {% for s in ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'] %}
+                                <button type="button"
+                                        data-action="click->product#selectSize"
+                                        data-product-target="sizeButton"
+                                        data-size-val="{{ s }}"
+                                        class="w-12 h-12 border border-gray-200 text-xs font-bold transition-colors uppercase tracking-widest cursor-pointer bg-white text-gray-500 hover:border-gray-900 hover:text-gray-900">
+                                    {{ s }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Availability #}
+                <div class="flex items-center gap-4 text-xs font-bold">
+                    <span class="text-light-brown uppercase tracking-widest underline cursor-pointer hover:text-brand transition">Clear Selection</span>
+                    <div class="px-3 py-1 bg-brand/10 text-brand border border-brand/20 uppercase tracking-tighter rounded-sm">In Stock</div>
+                </div>
+
+                {# Order Actions (Now properly wrapped in ONE form) #}
+                <div class="pt-6 border-t border-gray-100">
+                    <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="flex flex-wrap items-center gap-4">
+
+                        {# Quantity Selector #}
+                        <div class="flex items-center border border-gray-200 rounded-sm h-14 w-32 bg-white">
+                            <button type="button" data-action="click->product#decrement" class="px-4 h-full text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors font-bold text-lg">
+                                -
+                            </button>
+
+                            <input type="text" value="1" readonly
+                                data-product-target="quantityDisplay"
+                                class="w-full text-center border-none focus:ring-0 text-sm font-bold text-gray-800 bg-transparent">
+
+                            <button type="button" data-action="click->product#increment" class="px-4 h-full text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors font-bold text-lg">
+                                +
+                            </button>
+                        </div>
+
+                        {# The Hidden Inputs that actually get sent to your PHP CartController #}
+                        <input type="hidden" name="quantity" value="1" data-product-target="hiddenQuantityInput">
+                        <input type="hidden" name="color" value="" data-product-target="hiddenColorInput" required>
+                        <input type="hidden" name="size" value="" data-product-target="hiddenSizeInput" required>
+
+                        {# Add To Cart Button #}
+                        <button type="submit" class="flex-1 min-w-[140px] bg-brand text-white px-8 h-14 text-xs font-bold tracking-[0.2em] hover:bg-brand-dark transition-colors uppercase rounded-sm shadow-sm cursor-pointer">
+                            Add To Cart
+                        </button>
+
+                        {# Buy Now Button #}
+                        <button type="submit" name="buy_now" value="true" class="flex-1 min-w-[140px] bg-gray-900 text-white px-8 h-14 text-xs font-bold tracking-[0.2em] hover:bg-gray-800 transition-colors uppercase rounded-sm shadow-sm cursor-pointer">
+                            Buy Now
+                        </button>
+
+                    </form>
+
+                    {# ✨ HYBRID WISHLIST BUTTON ✨ #}
+                    <div class="mt-4">
+                        {% set isWishlisted = false %}
+                        {% if app.user and app.user.customer and product in app.user.customer.wishlist %}
+                            {% set isWishlisted = true %}
+                        {% elseif not app.user and product.id in app.request.session.get('guest_wishlist', []) %}
+                            {% set isWishlisted = true %}
+                        {% endif %}
+
+                        <form action="{{ path('app_wishlist_toggle', {id: product.id}) }}" method="POST">
+                            <input type="hidden" name="_token" value="{{ csrf_token('wishlist' ~ product.id) }}">
+
+                            <button type="submit" class="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-brand transition-colors uppercase tracking-widest border-b border-transparent hover:border-brand pb-0.5 cursor-pointer">
+                                {% if isWishlisted %}
+                                    {{ ux_icon('mdi:heart', { class: 'w-4 h-4 text-brand' }) }}
+                                    Remove from Wishlist
+                                {% else %}
+                                    {{ ux_icon('mdi:heart-outline', { class: 'w-4 h-4' }) }}
+                                    Save to Wishlist
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {# Meta Info #}
+                <div class="pt-10 space-y-3 border-t border-gray-200 text-[11px] text-light-brown uppercase tracking-widest">
+                    <p><span class="font-bold text-brand uppercase">Material :</span> {{ product.material }}</p>
+                    <div class="flex items-center gap-4 pt-2">
+                        <span class="font-bold text-brand uppercase">Share :</span>
+                        <div class="flex gap-4 text-light-brown">
+                            <a href="#" class="hover:text-brand transition cursor-pointer">FB</a>
+                            <a href="#" class="hover:text-brand transition cursor-pointer">IG</a>
+                            <a href="#" class="hover:text-brand transition cursor-pointer">PI</a>
+                        </div>
+                    </div>
+                </div>
+
+                {% if product.qrTag and product.qrTag.qrImagePath %}
+                    <div class="mt-10 bg-gray-50 p-6 rounded-sm border border-gray-100 flex flex-col sm:flex-row items-center sm:items-start gap-6 group">
+
+                        {# QR Image Box #}
+                        <div class="bg-white p-3 rounded-sm shadow-sm shrink-0 border border-gray-100 group-hover:shadow-md transition-shadow">
+                            <img src="{{ asset('uploads/qrcodes/' ~ product.qrTag.qrImagePath) }}"
+                                 alt="Transparency QR"
+                                 class="w-20 h-20 object-contain">
+                        </div>
+
+                        {# Transparency Text #}
+                        <div class="text-center sm:text-left">
+                            <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                                {{ ux_icon('lucide:smartphone', { class: 'w-4 h-4 text-brand' }) }}
+                                <h4 class="text-[10px] font-bold text-gray-900 uppercase tracking-widest">Product Journey</h4>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed mb-3 normal-case tracking-normal">
+                                Scan this unique QR code to discover the sustainable journey of this garment, from its raw organic origin to the artisan who crafted it.
+                            </p>
+
+                            {% if product.qrTag.qrCodeValue %}
+                                <a href="{{ product.qrTag.qrCodeValue }}" target="_blank" class="text-[9px] font-bold text-brand uppercase tracking-widest hover:text-brand-dark transition-colors border-b border-brand pb-0.5">
+                                    View transparency link &rarr;
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

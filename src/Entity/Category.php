@@ -2,12 +2,18 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
+#[ApiResource(
+    normalizationContext: ['groups' => ['category:read']],
+    denormalizationContext: ['groups' => ['category:write']]
+)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
@@ -17,13 +23,16 @@ class Category
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['category:read'])]
     #[ORM\Column(length: 50)]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['category:read'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 255, unique: true)]
+    #[Groups(['category:read'])]
     private ?string $slug = null;
 
     #[ORM\Column]
@@ -36,6 +45,7 @@ class Category
      * @var Collection<int, SubCategory>
      */
     #[ORM\OneToMany(targetEntity: SubCategory::class, mappedBy: 'category')]
+    #[Groups(['category:read'])]
     private Collection $subCategories;
 
     /**
@@ -44,6 +54,7 @@ class Category
     // This collection is no longer strictly necessary if Product only maps to SubCategory,
     // but kept here for potential denormalization/convenience.
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'category')]
+    #[Groups(['category:read'])]
     private Collection $products;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -180,7 +191,7 @@ class Category
             // Since Product is now directly linked to SubCategory,
             // this method is primarily for denormalized usage and should be reviewed/removed if unused.
             // Keeping the original logic for now, but note Product::$category was removed.
-            // $product->setCategory($this);
+            $product->setCategory($this);
         }
 
         return $this;
@@ -189,10 +200,9 @@ class Category
     public function removeProduct(Product $product): static
     {
         if ($this->products->removeElement($product)) {
-            // set the owning side to null (unless already changed)
-            // if ($product->getCategory() === $this) {
-            //     $product->setCategory(null);
-            // }
+            if ($product->getCategory() === $this) {
+                $product->setCategory(null);
+            }
         }
 
         return $this;

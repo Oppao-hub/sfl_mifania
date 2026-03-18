@@ -1,0 +1,27 @@
+<nav aria-label="Breadcrumb" class="mb-6 text-xs font-semibold tracking-wider uppercase text-gray-500 mt-4 flex justify-center items-center">
+    <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+
+        {% for item in items %}
+            <li class="flex items-center">
+
+                {# The Separator (Hidden on the first item) #}
+                {% if not loop.first %}
+                    {{ ux_icon('fluent:divider-tall-20-regular', { class: 'w-4 h-4 text-dark-gray mx-1 sm:mx-2 shrink-0' }) }}
+                {% endif %}
+
+                {# The Link or Active Text #}
+                {% if item.url is defined and item.url %}
+                    <a href="{{ item.url }}" class="hover:text-brand font-medium transition-colors whitespace-nowrap">
+                        {{ item.name }}
+                    </a>
+                {% else %}
+                    <span class="text-brand font-bold whitespace-nowrap" aria-current="page">
+                        {{ item.name }}
+                    </span>
+                {% endif %}
+
+            </li>
+        {% endfor %}
+
+    </ol>
+</nav>

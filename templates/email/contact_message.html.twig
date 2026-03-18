@@ -1,0 +1,16 @@
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+    <h2 style="color: #2C4C3B; margin-bottom: 20px;">New Contact Message from Mifania</h2>
+
+    <p><strong>Name:</strong> {{ name }}</p>
+    {# Using the new variable name here! #}
+    <p><strong>Email:</strong> <a href="mailto:{{ sender_email }}">{{ sender_email }}</a></p>
+    <p><strong>Subject:</strong> {{ subject }}</p>
+    <p><strong>Date:</strong> {{ date|date('F j, Y, g:i a') }}</p>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+
+    <h3 style="color: #374151; margin-bottom: 10px;">Message:</h3>
+    <div style="background-color: #f9fafb; padding: 15px; border-radius: 4px; color: #4b5563; line-height: 1.6;">
+        {{ message_content|nl2br }}
+    </div>
+</div>

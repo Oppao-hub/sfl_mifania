@@ -1,0 +1,119 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Search Results | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="animate-fadeIn max-w-5xl mx-auto">
+
+    {# Header #}
+    <div class="mb-10 text-center">
+        <div class="mx-auto w-16 h-16 bg-white border border-border-color rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+            {{ ux_icon('lucide:search', {class: 'w-6 h-6 text-brand'}) }}
+        </div>
+        <h1 class="text-3xl font-black text-brand-dark tracking-tighter uppercase mb-2">Search Results</h1>
+        <p class="text-sm font-bold text-gray uppercase tracking-widest">
+            {% if query %}
+                Query: <span class="text-brand">"{{ query }}"</span>
+            {% else %}
+                Please enter a search term above.
+            {% endif %}
+        </p>
+    </div>
+
+    {% if query %}
+        <div class="space-y-8">
+
+            {# Products Results #}
+            <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
+                <div class="bg-app-bg px-6 py-4 border-b border-border-color flex justify-between items-center">
+                    <h2 class="text-xs font-black text-brand-dark uppercase tracking-widest flex items-center gap-2">
+                        {{ ux_icon('lucide:package', {class: 'w-4 h-4'}) }} Products
+                    </h2>
+                    <span class="bg-white px-2 py-0.5 rounded-sm text-[10px] font-bold text-gray border border-border-color">{{ products|length }} Found</span>
+                </div>
+
+                {% if products|length > 0 %}
+                    <div class="divide-y divide-border-color">
+                        {% for product in products %}
+                            <div class="p-6 flex justify-between items-center hover:bg-row-hover transition-colors">
+                                <div>
+                                    <p class="text-sm font-bold text-brand-dark uppercase">{{ product.name }}</p>
+                                    <p class="text-[10px] text-gray font-bold uppercase tracking-widest mt-1">Ref #{{ product.id }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ path('app_product_show', { id: product.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}</a>
+                                    <a href="{{ path('app_product_edit', { id: product.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}</a>
+                                    <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_product_delete', {id: product.id}) }}', name: 'Product: {{ product.name|e('js') }}', token: '{{ csrf_token('delete' ~ product.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-xs font-bold text-gray uppercase tracking-widest py-10">No products found.</p>
+                {% endif %}
+            </div>
+
+            {# Orders Results #}
+            <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
+                <div class="bg-app-bg px-6 py-4 border-b border-border-color flex justify-between items-center">
+                    <h2 class="text-xs font-black text-brand-dark uppercase tracking-widest flex items-center gap-2">
+                        {{ ux_icon('lucide:shopping-bag', {class: 'w-4 h-4'}) }} Orders
+                    </h2>
+                    <span class="bg-white px-2 py-0.5 rounded-sm text-[10px] font-bold text-gray border border-border-color">{{ orders|length }} Found</span>
+                </div>
+
+                {% if orders|length > 0 %}
+                    <div class="divide-y divide-border-color">
+                        {% for order in orders %}
+                            <div class="p-6 flex justify-between items-center hover:bg-row-hover transition-colors">
+                                <div>
+                                    <p class="text-sm font-bold text-brand-dark uppercase">Order #{{ order.id }}</p>
+                                    <p class="text-[10px] text-gray font-bold uppercase tracking-widest mt-1">{{ order.customer.firstName }} {{ order.customer.lastName }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ path('app_order_show', { id: order.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}</a>
+                                    <a href="{{ path('app_order_edit', { id: order.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}</a>
+                                    <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_order_delete', {id: order.id}) }}', name: 'Order #{{ order.id }}', token: '{{ csrf_token('delete' ~ order.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-xs font-bold text-gray uppercase tracking-widest py-10">No orders found.</p>
+                {% endif %}
+            </div>
+
+            {# Customers Results #}
+            <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
+                <div class="bg-app-bg px-6 py-4 border-b border-border-color flex justify-between items-center">
+                    <h2 class="text-xs font-black text-brand-dark uppercase tracking-widest flex items-center gap-2">
+                        {{ ux_icon('lucide:users', {class: 'w-4 h-4'}) }} Customers
+                    </h2>
+                    <span class="bg-white px-2 py-0.5 rounded-sm text-[10px] font-bold text-gray border border-border-color">{{ customers|length }} Found</span>
+                </div>
+
+                {% if customers|length > 0 %}
+                    <div class="divide-y divide-border-color">
+                        {% for customer in customers %}
+                            <div class="p-6 flex justify-between items-center hover:bg-row-hover transition-colors">
+                                <div>
+                                    <p class="text-sm font-bold text-brand-dark uppercase">{{ customer.firstName }} {{ customer.lastName }}</p>
+                                    <p class="text-[10px] text-gray font-bold uppercase tracking-widest mt-1">{{ customer.user.email }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ path('app_customer_show', { id: customer.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}</a>
+                                    <a href="{{ path('app_customer_edit', { id: customer.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}</a>
+                                    <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_customer_delete', {id: customer.id}) }}', name: 'Customer: {{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}', token: '{{ csrf_token('delete' ~ customer.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-xs font-bold text-gray uppercase tracking-widest py-10">No customers found.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -2,9 +2,9 @@
 
 namespace App\Form;
 
-use App\Entity\Category;
 use App\Entity\SubCategory;
 use App\Entity\Product;
+use App\Entity\Story;
 use App\Entity\Enum\Size;
 use App\Entity\Enum\Color;
 use App\Entity\Enum\Gender;
@@ -22,23 +22,18 @@ class ProductType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', null, [
+            ->add('name', TextType::class, [
                 'label' => 'Product Name'
             ])
+            // DELETED Category field to enforce database normalization.
             ->add('subCategory', EntityType::class, [
                 'class' => SubCategory::class,
                 'choice_label' => 'name',
-                'placeholder' => 'Select a sub category',
+                'placeholder' => 'Select a sub-category',
                 'label' => 'Sub Category'
             ])
-            ->add('category', EntityType::class, [
-                'class' => Category::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Select a category',
-                'label' => 'Category'
-            ])
-            ->add('material', null, [
-                'label' => 'Material'
+            ->add('material', TextType::class, [
+                'label' => 'Primary Material'
             ])
             ->add('size', EnumType::class, [
                 'class' => Size::class,
@@ -48,32 +43,44 @@ class ProductType extends AbstractType
             ])
             ->add('color', EnumType::class, [
                 'class' => Color::class,
-                'label' => 'Color',
+                'label' => 'Color Palette',
                 'placeholder' => 'Select a color',
                 'choice_label' => fn(Color $color) => $color->value,
             ])
             ->add('gender', EnumType::class, [
                 'class' => Gender::class,
-                'label' => 'Gender',
+                'label' => 'Gender / Fit',
                 'placeholder' => 'Select a gender',
                 'choice_label' => fn(Gender $gender) => $gender->value,
             ])
             ->add('price', TextType::class, [
-                'label' => 'Price (PHP)',
+                'label' => 'MSRP (PHP)',
                 'invalid_message' => 'Please enter a valid number for the price.',
             ])
             ->add('cost', TextType::class, [
-                'label' => 'Cost (PHP)',
+                'label' => 'Archival Cost (PHP)',
                 'invalid_message' => 'Please enter a valid number for the cost.',
             ])
             ->add('description', null, [
-                'label' => 'Description'
+                'label' => 'Narrative Description'
             ])
-            ->add('ecoInfo', null, [
-                'label' => 'Eco Information'
+            // REPURPOSED ecoInfo to be strictly for short stats
+            ->add('ecoInfo', TextType::class, [
+                'label' => 'Quick Impact Stats',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'e.g., Saves 70L Water, 100% Fair Trade'
+                ]
+            ])
+            ->add('story', EntityType::class, [
+                'class' => Story::class,
+                'choice_label' => 'title',
+                'placeholder' => 'Use Default Mifania Manifesto',
+                'required' => false,
+                'label' => 'Transparency Narrative'
             ])
             ->add('image', FileType::class, [
-                'label' => 'Product Image (JPEG or PNG file)',
+                'label' => 'Product Visual (JPEG or PNG)',
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [

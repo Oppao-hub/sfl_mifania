@@ -4,7 +4,7 @@
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
-        title: 'Mifania Products',
+        title: 'Manage Products',
         total_count: total_products,
         new_path: 'app_product_new',
         headers: ['ID', 'Product Details', 'Gender', 'Size', 'Color', 'Price', 'Cost', 'Actions'],
@@ -25,25 +25,25 @@
                             <img src="/uploads/products/{{ product.image }}" class="h-full w-full object-cover" onerror="this.src='https://placehold.co/100x100?text=No+Img'">
                         </div>
                         <div>
-                            <div class="font-bold text-mocha">{{ product.name }}</div>
+                            <div class="font-bold text-brand">{{ product.name }}</div>
                             <div class="text-[10px] text-gray-400 uppercase tracking-tight">{{ product.slug }}</div>
                         </div>
                     </div>
                 </td>
-                <td class="border-y border-gray-200 px-4 py-3 text-sm text-mocha">
+                <td class="border-y border-gray-200 px-4 py-3 text-sm text-brand">
                     {{ product.gender.value }}
                 </td>
-                <td class="border-y border-gray-200 px-4 py-3 text-sm text-mocha">
+                <td class="border-y border-gray-200 px-4 py-3 text-sm text-brand">
                     {{ product.size.value }}
                 </td>
-                <td class="border-y border-gray-200 px-4 py-3 text-sm text-mocha">
+                <td class="border-y border-gray-200 px-4 py-3 text-sm text-brand">
                     {{ product.color.value }}
                 </td>
                 {# Price: Bold #}
-                <td class="border-y border-gray-200 px-4 py-3 text-mocha font-bold text-sm">
+                <td class="border-y border-gray-200 px-4 py-3 text-brand font-bold text-sm">
                     ₱{{ product.price|number_format(2) }}
                 </td>
-                <td class="border-y border-gray-200 px-4 py-3 text-mocha font-bold text-sm">
+                <td class="border-y border-gray-200 px-4 py-3 text-brand font-bold text-sm">
                     ₱{{ product.cost|number_format(2) }}
                 </td>
                 {# Actions: Rounded Right #}
@@ -60,12 +60,6 @@
                             @click="$dispatch('open-delete-modal', { url: '{{ path('app_product_delete', {id: product.id}) }}', name: 'Product {{ product.name }}', token: '{{ csrf_token('delete' ~ product.id) }}' })"
                             class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}</button>
                     </div>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6" class="py-6 text-center text-gray-400 text-sm italic">
-                    No products found within the inventory.
                 </td>
             </tr>
         {% endfor %}

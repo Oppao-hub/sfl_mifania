@@ -1,0 +1,116 @@
+{% extends "frontend/account/index.html.twig" %}
+
+{% block title %}Profile Information | Mifania{% endblock %}
+
+{% block account_content %}
+<div class="bg-white rounded-sm shadow-md border border-gray-100 p-6 md:p-10">
+
+    {# Header #}
+    <div class="flex justify-between items-center mb-10 border-b border-gray-100 pb-4">
+        <h2 class="text-lg font-bold text-gray-800 uppercase tracking-tighter">Personal Information</h2>
+    </div>
+
+    {# Profile Picture Section #}
+    <div class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
+        <div class="relative group">
+            {% if app.user and app.user.customer and app.user.customer.avatar %}
+                <img src="{{ asset('uploads/customer/avatars/' ~ app.user.customer.avatar) }}"
+                     class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white shadow-md">
+            {% else %}
+                {# Fixed the alignment of the fallback letter so it's perfectly centered #}
+                <div class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white shadow-md bg-light-gray flex items-center justify-center text-4xl text-brand font-bold">
+                    {{ app.user.firstName|default('U')|first }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center md:text-left mt-2 md:mt-6">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Customer Profile</p>
+            <h3 class="text-2xl font-bold text-brand-dark">
+                {{ app.user.customer.firstName|default(app.user.firstName|default('')) }}
+                {{ app.user.customer.lastName|default(app.user.lastName|default('')) }}
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">{{ app.user.email }}</p>
+        </div>
+    </div>
+
+    {# Information Display Grid #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+
+        {# First Name #}
+        <div>
+            <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">First Name</label>
+            <div class="font-bold text-gray-800 text-sm border-b border-gray-100 pb-2">
+                {{ app.user.customer.firstName|default('-') }}
+            </div>
+        </div>
+
+        {# Last Name #}
+        <div>
+            <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Last Name</label>
+            <div class="font-bold text-gray-800 text-sm border-b border-gray-100 pb-2">
+                {{ app.user.customer.lastName|default('-') }}
+            </div>
+        </div>
+
+        {# Email #}
+        <div>
+            <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Email Address</label>
+            <div class="font-bold text-gray-800 text-sm border-b border-gray-100 pb-2">
+                {{ app.user.email }}
+            </div>
+        </div>
+
+        {# Phone #}
+        <div>
+            <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Contact Number</label>
+            <div class="font-bold text-gray-800 text-sm border-b border-gray-100 pb-2">
+                {{ app.user.customer.contactNumber|default('<span class="text-gray-300 italic">Not provided</span>')|raw }}
+            </div>
+        </div>
+
+        {# Shipping Address (Added this since they can edit it!) #}
+        <div class="md:col-span-2 mt-4">
+            <h4 class="text-sm font-bold text-brand uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Shipping Details</h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Street Address</label>
+                    <div class="font-bold text-gray-800 text-sm">
+                        {{ app.user.customer.address|default('<span class="text-gray-300 italic">Not provided</span>')|raw }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">City & State</label>
+                    <div class="font-bold text-gray-800 text-sm">
+                        {% if app.user.customer.city or app.user.customer.state %}
+                            {{ app.user.customer.city|default('') }}{{ app.user.customer.city and app.user.customer.state ? ', ' : '' }}{{ app.user.customer.state|default('') }}
+                        {% else %}
+                            <span class="text-gray-300 italic">-</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Country & Postal Code</label>
+                    <div class="font-bold text-gray-800 text-sm">
+                        {% if app.user.customer.country or app.user.customer.postalCode %}
+                            {{ app.user.customer.country|default('') }} {{ app.user.customer.postalCode|default('') }}
+                        {% else %}
+                            <span class="text-gray-300 italic">-</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-10 flex justify-end">
+        <a href="{{ path('app_account_edit') }}" class="inline-flex justify-center items-center gap-2 py-3 px-8 border border-transparent shadow-sm text-xs font-bold uppercase tracking-widest rounded-sm text-white bg-brand hover:bg-brand-dark hover:shadow-md focus:outline-none transition-all w-full sm:w-auto cursor-pointer">
+            {{ ux_icon('lucide:edit', { class: 'w-4 h-4' }) }}
+            Edit Profile
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -22,5 +22,5 @@ knp_paginator:
         distinct: true
 
     template:
-        pagination: "@KnpPaginator/Pagination/twitter_bootstrap_v5.html.twig"
+        pagination: '/components/shared/_pagination.html.twig'
         filtration: "@KnpPaginator/Pagination/filtration.html.twig"

@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Enum\Size;
 use App\Entity\Enum\Color;
@@ -12,13 +15,15 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Serializer\Annotation\Groups; // REQUIRED FOR API
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['product:read']]
+    normalizationContext: ['groups' => ['product:read']],
+    denormalizationContext: ['groups' => ['product:write']]
 )]
+#[ApiFilter(SearchFilter::class, properties: ['color' => 'exact'])]
 class Product
 {
     #[ORM\Id]
@@ -70,11 +75,12 @@ class Product
     #[Groups(['product:read'])]
     private ?string $slug = null;
 
+    #[Groups(['product:read'])]
     #[ORM\OneToOne(mappedBy: 'product', cascade: ['persist', 'remove'])]
     private ?QRTag $qrTag = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['product:read'])]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = 'default.png';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -115,11 +121,21 @@ class Product
     #[Groups(['product:read'])]
     private ?Category $category = null;
 
+    /**
+     * @var Collection<int, Customer>
+     */
+    #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'wishlist')]
+    private Collection $wishlisted;
+
+    #[ORM\ManyToOne(inversedBy: 'Product')]
+    private ?Story $story = null;
+
     public function __construct()
     {
         $this->orderItems = new ArrayCollection();
         $this->stocks = new ArrayCollection();
         $this->cartItems = new ArrayCollection();
+        $this->wishlisted = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -267,4 +283,43 @@ class Product
     public function setSubCategory(?SubCategory $subCategory): static { $this->subCategory = $subCategory; return $this; }
     public function getCategory(): ?Category { return $this->category; }
     public function setCategory(?Category $category): static { $this->category = $category; return $this; }
+
+    /**
+     * @return Collection<int, Customer>
+     */
+    public function getWishlisted(): Collection
+    {
+        return $this->wishlisted;
+    }
+
+    public function addWishlisted(Customer $wishlisted): static
+    {
+        if (!$this->wishlisted->contains($wishlisted)) {
+            $this->wishlisted->add($wishlisted);
+            $wishlisted->addWishlist($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlisted(Customer $wishlisted): static
+    {
+        if ($this->wishlisted->removeElement($wishlisted)) {
+            $wishlisted->removeWishlist($this);
+        }
+
+        return $this;
+    }
+
+    public function getStory(): ?Story
+    {
+        return $this->story;
+    }
+
+    public function setStory(?Story $story): static
+    {
+        $this->story = $story;
+
+        return $this;
+    }
 }

@@ -118,6 +118,12 @@ class Customer
     #[ORM\OneToOne(inversedBy: 'customer', cascade: ['persist', 'remove'])]
     private ?User $user = null;
 
+    /**
+     * @var Collection<int, Product>
+     */
+    #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: 'wishlisted')]
+    private Collection $wishlist;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -126,6 +132,7 @@ class Customer
         $this->rewardTransactions = new ArrayCollection();
         $this->carts = new ArrayCollection();
         $this->redemptions = new ArrayCollection();
+        $this->wishlist = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -399,6 +406,30 @@ class Customer
     public function setUser(?User $user): static
     {
         $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Product>
+     */
+    public function getWishlist(): Collection
+    {
+        return $this->wishlist;
+    }
+
+    public function addWishlist(Product $wishlist): static
+    {
+        if (!$this->wishlist->contains($wishlist)) {
+            $this->wishlist->add($wishlist);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlist(Product $wishlist): static
+    {
+        $this->wishlist->removeElement($wishlist);
+
         return $this;
     }
 }

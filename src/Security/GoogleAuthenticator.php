@@ -2,21 +2,23 @@
 
 namespace App\Security;
 
+use App\Entity\Cart;
 use App\Entity\User;
 use App\Entity\Customer;
 use App\Entity\Wallet;
-use App\Entity\Enum\Provider;
 use App\Service\RegisterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use KnpU\OAuth2ClientBundle\Security\Authenticator\OAuth2Authenticator;
 use League\OAuth2\Client\Provider\GoogleUser;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class GoogleAuthenticator extends OAuth2Authenticator
 {
@@ -25,12 +27,17 @@ class GoogleAuthenticator extends OAuth2Authenticator
     private $entityManager;
     private $registerNotifier;
 
-    public function __construct(ClientRegistry $clientRegistry, RouterInterface $router, EntityManagerInterface $entityManager, RegisterNotifier $registerNotifier)
+    private $urlGenerator;
+
+    use TargetPathTrait;
+
+    public function __construct(ClientRegistry $clientRegistry, RouterInterface $router, EntityManagerInterface $entityManager, RegisterNotifier $registerNotifier, UrlGeneratorInterface $urlGenerator)
     {
         $this->clientRegistry = $clientRegistry;
         $this->router = $router;
         $this->entityManager = $entityManager;
         $this->registerNotifier = $registerNotifier;
+        $this->urlGenerator = $urlGenerator;
     }
 
     public function supports(Request $request): bool
@@ -71,9 +78,13 @@ class GoogleAuthenticator extends OAuth2Authenticator
             $wallet->setBalance(0.0);
             $wallet->setRewardPoints(0);
 
+            $cart = new Cart();
+            $cart->setCustomer($customer);
+
             $this->entityManager->persist($user);
             $this->entityManager->persist($customer);
             $this->entityManager->persist($wallet);
+            $this->entityManager->persist($cart);
             $this->entityManager->flush();
 
             $this->registerNotifier->sendNewUserNotification($user);
@@ -92,7 +103,16 @@ class GoogleAuthenticator extends OAuth2Authenticator
 
     public function onAuthenticationSuccess(Request $request, $token, string $firewallName): ?RedirectResponse
     {
-        return new RedirectResponse($this->router->generate('app_home'));
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
+        }
+
+        $user = $token->getUser();
+        if (in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_STAFF', $user->getRoles())) {
+            return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
+        }
+
+        return new RedirectResponse($this->router->generate('app_shop'));
     }
 
     public function onAuthenticationFailure(Request $request, \Symfony\Component\Security\Core\Exception\AuthenticationException $exception): ?RedirectResponse

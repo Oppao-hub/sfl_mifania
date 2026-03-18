@@ -4,7 +4,7 @@
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
-        title: 'Admins',
+        title: 'Manage Admins',
         new_path: 'app_admin_new',
         headers: ['ID', 'First Name', 'Last Name', 'Email', 'Account Status', 'Actions'],
         id: 'dashboard-table'
@@ -23,7 +23,7 @@
 
                             <select name="status"
                                     onchange="triggerConfirmation(this.form, this, '{{ admin.user.status.value }}', 'Update Account Status')"
-                                    class="text-xs font-semibold py-1 pl-2 pr-6 border-gray-300 rounded-lg focus:ring-mocha focus:border-mocha cursor-pointer w-full
+                                    class="text-xs font-semibold py-1 pl-2 pr-6 border-gray-300 rounded-lg focus:ring-brand focus:border-brand cursor-pointer w-full
                                     {% if admin.user.status.value == 'Active' %}
                                         text-green-800 bg-green-100 border-green-200
                                     {% else %}
@@ -45,13 +45,13 @@
                     <td class="border border-gray-300 py-3 px-4 text-sm text-center">
                         <div class="flex justify-center items-center gap-3">
                             <a href="{{ path('app_admin_show', { id: admin.id }) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                               class="text-dashboard-brand hover:text-dashboard-olive transition-colors">
                                 {{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}
                             </a>
 
                             {# Edit #}
                             <a href="{{ path('app_admin_edit', { id: admin.id }) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
+                               class="text-dashboard-brand hover:text-dashboard-olive transition-colors">
                                 {{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}
                             </a>
 
@@ -66,12 +66,6 @@
                                 {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
                             </button>
                         </div>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="7" class="py-8 text-center text-gray-500 italic">
-                        No admin records found.
                     </td>
                 </tr>
             {% endfor %}

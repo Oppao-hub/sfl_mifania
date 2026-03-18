@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mifania | Sustainable Fashion Line{% endblock %}
+
+{% macro format_count(num) %}
+    {% if num >= 1000 %}
+        {{ (num // 1000) * 1000 }}+
+    {% elseif num >= 100 %}
+        {{ (num // 100) * 100 }}+
+    {% elseif num >= 10 %}
+        {{ (num // 10) * 10 }}+
+    {% elseif num > 0 %}
+        {{ num }}
+    {% else %}
+        Coming Soon
+    {% endif %}
+{% endmacro %}
+
+{% import _self as display %}
+
+{% block main_content %}
+    {# Hero Section  #}
+    <section class="relative bg-gray-200 overflow-hidden min-h-[500px] lg:h-[85vh] flex items-center"
+            style="background-image: url('{{ asset('uploads/home/hero/home-hero.png') }}'); background-size: cover; background-position: center;">
+        <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 w-full">
+            <div class="flex flex-col justify-center px-6 md:px-12 lg:px-20 py-16 order-2 md:order-1 bg-white/40 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none mt-auto md:mt-0">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8 text-brand-dark">
+                    <span class="text-gray-800">Fashion that</span><br>
+                    <span class="text-brand">respects our planet</span>
+                </h1>
+                <div>
+                    <a href="{{ path('app_shop') }}" class="bg-brand hover:bg-brand-dark text-white px-8 py-4 text-xs lg:text-sm font-bold tracking-widest rounded-sm shadow-sm transition-all inline-block uppercase cursor-pointer">
+                        Explore The Collection
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {# Benefits Section #}
+    {% include 'components/frontend/benefits.html.twig' %}
+
+    {# category Section #}
+    <section class="bg-white pb-12 lg:pb-16 px-6 md:px-12 border-b border-gray-100">
+        {# Categories Grid #}
+        <div class="max-w-[1440px] mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {# Left Column (Women) #}
+                <div class="relative overflow-hidden h-[400px] lg:h-[600px] group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop_collection', { collectionName: 'Women' }) }}'">
+                    {# 1. Image now fills the ENTIRE box #}
+                    <img src="{{ asset('uploads/home/category/women.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700">
+
+                    {# 2. The sleek white gradient overlay for readable text #}
+                    <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-transparent z-0"></div>
+
+                    <div class="absolute top-8 left-8 lg:top-12 lg:left-12 z-10 max-w-[60%]">
+                        <span class="bg-brand text-white px-3 py-1 text-[10px] font-bold rounded-sm mb-4 inline-block shadow-sm uppercase tracking-widest">
+                            {{ display.format_count(women_count|default(0)) }} Items
+                        </span>
+                        <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark mb-4 uppercase tracking-tight">Women</h2>
+                        <ul class="text-xs lg:text-sm text-gray-800 space-y-2 font-bold">
+                            <li>Blazers</li>
+                            <li>T-Shirts & Blouses</li>
+                            <li>Dresses</li>
+                            <li>Jackets & Coats</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {# Right Column #}
+                <div class="flex flex-col gap-6 h-[600px] lg:h-[600px]">
+
+                    {# Men's #}
+                    <div class="flex-1 relative overflow-hidden group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop_collection', { collectionName: 'Men' }) }}'">
+                        <img src="{{ asset('uploads/home/category/men.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-transparent z-0"></div>
+
+                        <div class="absolute top-8 left-8 lg:top-10 lg:left-10 z-10 max-w-[60%]">
+                            <span class="bg-brand text-white px-3 py-1 text-[10px] font-bold rounded-sm mb-3 inline-block shadow-sm uppercase tracking-widest">
+                             {{ display.format_count(men_count|default(0)) }} Items
+                            </span>
+                            <h2 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">Men</h2>
+                            <ul class="text-xs lg:text-sm text-gray-800 space-y-1 font-bold">
+                                <li>Blazers</li>
+                                <li>Shirts</li>
+                                <li>Jackets</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {# Accessories #}
+                    <div class="flex-1 relative overflow-hidden group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop_collection', { collectionName: 'Accessories' }) }}'">
+                        <img src="{{ asset('uploads/home/category/accessories.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-transparent z-0"></div>
+
+                        <div class="absolute top-8 left-8 lg:top-10 lg:left-10 z-10 max-w-[60%]">
+                            <span class="bg-brand text-white px-3 py-1 text-[10px] font-bold rounded-sm mb-3 inline-block shadow-sm uppercase tracking-widest">
+                                {{ display.format_count(acc_count|default(0)) }} Items
+                            </span>
+                            <h2 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">Accessories</h2>
+                            <ul class="text-xs lg:text-sm text-gray-800 space-y-1 font-bold">
+                                <li>Handbags</li>
+                                <li>Watches</li>
+                                <li>Sunglasses</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Top Selling Products - Using the new Component and Pure White Background Wrapper #}
+    <section class="w-full bg-light-gray border-t border-gray-100">
+        <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-16 lg:py-24">
+            <div class="mb-10 lg:mb-12 text-center lg:text-left">
+                <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Our Products</p>
+                <h2 class="text-3xl lg:text-4xl font-bold text-brand uppercase tracking-tight">Top Sellers</h2>
+            </div>
+
+            {# Responsive Grid for Products #}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for product in topProducts %}
+                    {% include 'components/frontend/product_card.html.twig' with {
+                        'image': product.image != 'default.png'
+                            ? asset('uploads/products/' ~ product.image)
+                            : 'https://placehold.co/400x500?text=No+Image',
+                        'category': product.subCategory ? product.subCategory.name : product.gender.value,
+                        'name': product.name,
+                        'price': product.price,
+                        'slug': product.slug
+                    } %}
+                {% else %}
+                    <div class="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12 text-gray-400">
+                        <p>New products arriving soon!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# Story Section #}
+    <section id="story" class="py-16 lg:py-24 px-6 md:px-12 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl lg:text-4xl font-bold text-brand text-center mb-12 lg:mb-16 uppercase tracking-tight">Our Story & Values</h2>
+
+            {# Banner Image - Adjusted heights for mobile #}
+            <div class="relative rounded-sm overflow-hidden h-[400px] lg:h-[300px] mb-12 lg:mb-16">
+                 <img src="{{ asset('uploads/home/story/story-values.png') }}" class="w-full h-full object-cover">
+                 <div class="absolute inset-0 bg-black/40 lg:bg-black/20"></div>
+                 <div class="absolute inset-0 flex items-center p-6 lg:p-12">
+                     <div class="max-w-lg text-white">
+                         <h3 class="text-2xl lg:text-3xl font-bold mb-4 uppercase tracking-wide">Weaving Nature In Every Thread</h3>
+                         <p class="text-sm leading-relaxed font-medium">At MIFANIA, we prove that timeless style shouldn't cost the planet. We reject fast fashion, creating sustainable pieces designed to last.</p>
+                     </div>
+                 </div>
+            </div>
+
+            {# Fixed Grid: Added aspect ratio classes to the images instead of hardcoded heights! #}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+                <div class="flex flex-col h-full">
+                    <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Consciously Crafted</h3>
+                    <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">Crafted from GOTS-certified organic cotton and recycled materials, our toxic-free garments are safe for both you and the ecosystem.</p>
+                    <img src="{{ asset('uploads/home/story/crafted.jpg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
+                </div>
+                <div class="flex flex-col h-full">
+                    <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Ethically Made</h3>
+                    <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">We partner exclusively with SA8000-certified factories to ensure fair wages, safety, and dignity for the hands that craft our clothes.</p>
+                    <img src="{{ asset('uploads/home/story/ethically-made.jpg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
+                </div>
+                <div class="flex flex-col h-full">
+                    <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Circular By Design</h3>
+                    <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">Through the MIFANIA Circle program, we design for longevity and offer a recycling path to ensure our clothes never end up in a landfill.</p>
+                    <img src="{{ asset('uploads/home/story/circular-design.jpeg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include 'components/frontend/home/home_faq.html.twig' %}
+    {% include 'components/frontend/home/newsletter.html.twig' %}
+{% endblock %}

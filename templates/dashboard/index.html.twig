@@ -1,189 +1,121 @@
 {% extends 'dashboard/dashboard.html.twig' %}
+
 {% block main_content %}
-	<main
-		class="flex-grow p-4 w-full ">
-		<!-- Dashboard Content Grid -->
-		<div
-			class="space-y-6">
-			<!-- Row 1: Statistic Cards -->
-			<div
-				class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-				<!-- Card 1: Total Customers -->
-				<div class="bg-white p-5 rounded-xl shadow-lg flex items-center space-x-4">
-					<div class="p-3 rounded-xl bg-soft-violet text-primary-violet">
-						{{ ux_icon('lucide:users', {class: 'w-6 h-6'}) }}
-					</div>
-					<div>
-						<p class="text-2xl font-bold text-mocha">{{ totalCustomers }}</p>
-						<p class="text-sm text-gray-500">Total Customers</p>
-					</div>
-				</div>
+<div class="space-y-8 animate-fadeIn">
 
-				<!-- Card 2: Total Products -->
-				<div class="bg-white p-5 rounded-xl shadow-lg flex items-center space-x-4">
-					<div class="p-3 rounded-xl bg-orange-100 text-orange-500">
-						{{ ux_icon('lucide:package', {class: 'w-6 h-6'}) }}
-					</div>
-					<div>
-						<p class="text-2xl font-bold text-mocha">{{ totalProducts }}</p>
-						<p class="text-sm text-gray-500">Total Products</p>
-					</div>
-				</div>
+    {# Row 1: Statistic Cards #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-				<!-- Card 3: Total Orders -->
-				<div class="bg-white p-5 rounded-xl shadow-lg flex items-center space-x-4">
-					<div class="p-3 rounded-xl bg-red-100 text-red-500">
-						{{ ux_icon('lucide:shopping-bag', {class: 'w-6 h-6'}) }}
-					</div>
-					<div>
-						<p class="text-2xl font-bold text-mocha">{{ totalOrders }}</p>
-						<p class="text-sm text-gray-500">Total Orders</p>
-					</div>
-				</div>
+        {% set stats = [
+            {'label': 'Total Customers', 'value': totalCustomers, 'icon': 'users'},
+            {'label': 'Total Products', 'value': totalProducts, 'icon': 'package'},
+            {'label': 'Total Orders', 'value': totalOrders, 'icon': 'shopping-bag'},
+            {'label': 'Total Sales', 'value': '₱' ~ totalSales|number_format(2), 'icon': 'credit-card'}
+        ] %}
 
-				<!-- Card 4: Total Sales -->
-				<div class="bg-white p-5 rounded-xl shadow-lg flex items-center space-x-4">
-					<div class="p-3 rounded-xl bg-green-100 text-green-500">
-						{{ ux_icon('lucide:chart-no-axes-combined', {class: 'w-6 h-6'}) }}
-					</div>
-					<div>
-						<p class="text-2xl font-bold text-mocha">PHP
-							{{ totalSales }}</p>
-						<p class="text-sm text-gray-500">Total Sales</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-					<h2 class="text-lg font-semibold text-mocha mb-2">
-						Recent Orders
-					</h2>
-					<div class="overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead>
-								<tr class="text-left text-xs font-medium text-mocha-400 uppercase tracking-wider">
-									<th class="py-3 px-2">Product</th>
-									<th class="py-3 px-2">ID</th>
-									<th class="py-3 px-2">Customer</th>
-									<th class="py-3 px-2">Date</th>
-									<th class="py-3 px-2">Price</th>
-									<th class="py-3 px-2">Status</th>
-								</tr>
-							</thead>
-							<tbody
-								class="divide-y divide-gray-100">
-								<!-- Order Row 1 -->
-								{% for order in orders %}
-									<tr class="text-sm text-mocha">
-										<td
-											class="py-3 px-2 flex">
-											{# 1. Extract the first OrderItem from the collection #}
-											{% set firstItem = order.orderItems|first %}
-
-											{# 2. Only proceed if an item exists and has a product linked #}
-											{% if firstItem and firstItem.product is not null %}
-												<img class="h-10 w-10 mr-2 rounded-lg object-cover ring-1 ring-gray-100 dark:ring-gray-700" src="{{ asset('/uploads/products/' ~ firstItem.product.image) }}" alt="{{ firstItem.product.name }}"/>
-												{{ firstItem.product.name }}
-											{% else %}
-												<div class="text-mocha italic">No Items</div>
-											{% endif %}
-										</td>
-										<td class="py-3 px-2 font-medium text-mocha">{{ order.id }}
-										</td>
-										<td class="py-3 px-2">{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
-										<td class="py-3 px-2">{{ order.createdAt|date('F d, Y') }}</td>
-										<td class="py-3 px-2">{{ order.totalAmount }}</td>
-										<td class="py-3 px-2">
-                                            <span class="px-3 py-2 text-xs font-semibold rounded-sm
-                                            {% if order.orderStatus.value == 'Completed' %}
-                                                text-green-800 bg-green-100 border-green-200
-                                            {% elseif order.orderStatus.value == 'Delivered' %}
-                                                text-teal-700 bg-teal-100 border-teal-200
-                                            {% elseif order.orderStatus.value == 'Shipped' %}
-                                                text-indigo-700 bg-indigo-100 border-indigo-200
-                                            {% elseif order.orderStatus.value == 'Processing' %}
-                                                text-blue-700 bg-blue-100 border-blue-200
-                                            {% elseif order.orderStatus.value == 'Pending' %}
-                                                text-orange-700 bg-orange-100 border-orange-200
-                                            {% elseif order.orderStatus.value == 'Cancelled' %}
-                                                text-red-700 bg-red-100 border-red-200
-                                            {% else %}
-                                                text-gray-700 bg-gray-50 border-gray-200
-                                            {% endif %}">{{ order.orderStatus.value }}</span>
-                                        </td>
-									</tr>
-								{% endfor %}
-							</tbody>
-						</table>
-					</div>
-				</div>
-
-				<div class="bg-white p-6 rounded-xl shadow-lg flex flex-col h-full border border-gray-100">
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="text-lg font-bold text-mocha">
-                            Top Selling Products
-                        </h2>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="text-left border-b border-gray-100">
-                                    <th class="pb-3 pl-2 text-xs font-bold text-mocha-400 uppercase tracking-wider w-12">Rank</th>
-                                    <th class="pb-3 pl-2 text-xs font-bold text-mocha-400 uppercase tracking-wider">Product</th>
-                                    <th class="pb-3 text-right text-xs font-bold text-mocha-400 uppercase tracking-wider">Sales</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                {% for product in topSellingProducts %}
-                                    <tr class="group hover:bg-gray-50 transition duration-150 ease-in-out">
-
-                                        <td class="py-3 pl-2 font-bold text-sm">
-                                            {% if loop.index == 1 %}
-                                                <span class="text-yellow-500 flex items-center">
-                                                    <span class="mr-1">#1</span>
-                                                </span>
-                                            {% elseif loop.index == 2 %}
-                                                <span class="text-mocha-400 flex items-center">
-                                                    <span class="mr-1">#2</span>
-                                                </span>
-                                            {% elseif loop.index == 3 %}
-                                                <span class="text-amber-600 flex items-center">
-                                                    <span class="mr-1">#3</span>
-                                                </span>
-                                            {% else %}
-                                                <span class="text-mocha-400">#{{ loop.index }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-3">
-                                            <div class="flex flex-col">
-                                                <span class="text-sm font-semibold text-mocha group-hover:text-green-400 transition">
-                                                    {{ product.name }}
-                                                </span>
-                                                <span class="text-xs font-medium text-green-600">
-                                                    +PHP {{ product.revenue|number_format(2) }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3 text-right">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-mocha border border-blue-100">
-                                                {{ product.unitsSold }} sold
-                                            </span>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="3" class="py-8 text-center text-gray-500 italic">
-                                            No sales data available yet.
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+        {% for stat in stats %}
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-border-color flex items-center gap-5 group hover:shadow-md hover:border-brand/30 transition-all">
+                <div class="p-4 rounded-xl bg-app-bg text-brand group-hover:bg-brand/10 transition-colors shrink-0">
+                    {{ ux_icon('lucide:' ~ stat.icon, {class: 'w-6 h-6'}) }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] text-gray font-bold uppercase tracking-widest mb-1 truncate">{{ stat.label }}</p>
+                    <p class="text-2xl font-black text-brand-dark tracking-tighter truncate">{{ stat.value }}</p>
                 </div>
             </div>
+        {% endfor %}
+    </div>
+
+    {# Row 2: Data Tables #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {# Recent Orders #}
+        <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-border-color">
+            <h2 class="text-sm font-black text-brand-dark uppercase tracking-widest mb-6 border-b border-border-color pb-4">
+                Recent Orders
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray uppercase tracking-widest">Product</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray uppercase tracking-widest">Order ID</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray uppercase tracking-widest">Customer</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray uppercase tracking-widest">Date</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray uppercase tracking-widest text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-color">
+                        {% for order in orders %}
+                            <tr class="hover:bg-row-hover transition-colors">
+                                <td class="py-4 px-4 flex items-center gap-3">
+                                    {% set firstItem = order.orderItems|first %}
+                                    {% if firstItem and firstItem.product %}
+                                        <img class="h-10 w-10 rounded-sm object-cover border border-border-color" src="{{ asset('/uploads/products/' ~ firstItem.product.image) }}" alt="{{ firstItem.product.name }}"/>
+                                        <span class="text-sm font-bold text-brand-dark truncate max-w-[150px]">{{ firstItem.product.name }}</span>
+                                    {% else %}
+                                        <div class="h-10 w-10 rounded-sm bg-app-bg border border-border-color flex items-center justify-center">{{ ux_icon('lucide:image-off', {class: 'w-4 h-4 text-gray'}) }}</div>
+                                        <span class="text-sm font-medium text-gray italic">No Items</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-4 text-xs font-mono font-bold text-dark-gray">#{{ order.id }}</td>
+                                <td class="py-4 px-4 text-sm font-medium text-dark-gray">{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
+                                <td class="py-4 px-4 text-xs font-bold text-gray">{{ order.createdAt|date('M d, Y') }}</td>
+                                <td class="py-4 px-4 text-right">
+                                    <span class="inline-flex px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-sm bg-brand/10 text-brand border border-brand/20">
+                                        {{ order.orderStatus.value }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="py-8 text-center text-sm font-bold text-gray">No recent orders found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </main>
+
+        {# Top Selling Products #}
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-border-color flex flex-col h-full">
+            <h2 class="text-sm font-black text-brand-dark uppercase tracking-widest mb-6 border-b border-border-color pb-4">
+                Top Sellers
+            </h2>
+            <div class="overflow-x-auto flex-grow">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-2 text-[10px] font-bold text-gray uppercase tracking-widest w-12">Rank</th>
+                            <th class="py-3 px-2 text-[10px] font-bold text-gray uppercase tracking-widest">Product</th>
+                            <th class="py-3 px-2 text-right text-[10px] font-bold text-gray uppercase tracking-widest">Sold</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-color">
+                        {% for product in topSellingProducts %}
+                            <tr class="group hover:bg-row-hover transition-colors">
+                                <td class="py-4 px-2">
+                                    <span class="text-sm font-black {% if loop.index == 1 %}text-yellow-500{% elseif loop.index == 2 %}text-gray{% elseif loop.index == 3 %}text-orange-400{% else %}text-gray{% endif %}">
+                                        #{{ loop.index }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-2">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-bold text-brand-dark truncate max-w-[120px]">{{ product.name }}</span>
+                                        <span class="text-[10px] font-bold text-brand uppercase tracking-widest mt-0.5">₱{{ product.revenue|number_format(2) }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-2 text-right">
+                                    <span class="inline-flex px-2 py-1 text-[10px] font-black bg-app-bg text-dark-gray rounded-sm border border-border-color">
+                                        {{ product.unitsSold }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="3" class="py-8 text-center text-sm font-bold text-gray">No sales data available yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

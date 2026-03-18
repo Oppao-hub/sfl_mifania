@@ -76,4 +76,27 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByMaxPrice(int $price): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.price <= :price')
+            ->setParameter('price', $price)
+            ->orderBy('p.price', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function searchByTerm(string $query): array
+    {
+        return $this->createQueryBuilder('p')
+            // This searches if the query is ANYWHERE inside the name or description
+            ->andWhere('p.name LIKE :query OR p.description LIKE :query')
+            // The '%' symbols act as wildcards (e.g., %Organic%)
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('p.id', 'DESC') // Show newest products first
+            ->setMaxResults(50)       // Limit to 50 so it doesn't slow down your app
+            ->getQuery()
+            ->getResult();
+    }
 }

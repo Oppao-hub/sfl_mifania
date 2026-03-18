@@ -4,12 +4,12 @@
         {{
         isActive
             ? 'bg-dashboard-mint text-dashboard-olive shadow-sm'
-            : 'text-gray-400 hover:bg-gray-50 hover:text-mocha'
+            : 'text-gray-400 hover:bg-gray-50 hover:text-dark-gray'
         }}"
 >
     {# Optional: If you want to add icons, pass an 'icon' prop with the icon name #}
     {% if icon is defined %}
-        {{ ux_icon(icon, { class: 'w-5 h-5 text-gray-300 group-hover:text-mocha' }) }}
+        {{ ux_icon(icon, { class: 'w-5 h-5 text-gray-300 group-hover:text-dark-gray' }) }}
     {% endif %}
 
     <span class="whitespace-nowrap overflow-hidden">

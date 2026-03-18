@@ -9,13 +9,13 @@
     style="display: none;"> {# Prevent flicker on load #}
 
     <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 md:hidden">
-        <p class="text-sm font-semibold text-mocha truncate">{{ app.user.admin.firstName ~ ' ' ~ app.user.admin.lastName }}</p>
+        <p class="text-sm font-semibold text-dark-gray truncate">{{ app.user.admin.firstName ~ ' ' ~ app.user.admin.lastName }}</p>
         <p class="text-xs text-gray-500 uppercase">
             {% if is_granted('ROLE_ADMIN') %}Administrator{% elseif is_granted('ROLE_STAFF') %}Staff{% endif %}
         </p>
     </div>
 
-    <a href="{{ path('app_account') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-mocha transition-colors">
+    <a href="{{ path('app_account') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-dark-gray transition-colors">
         Your Profile
     </a>
 

@@ -8,7 +8,7 @@
 {% block main_content %}
 
 	{% embed 'components/table/table.html.twig' with{
-    title: 'Stock Inventory',
+    title: 'Manage Stock Inventory',
     new_path: 'app_stock_new',
     headers: ['ID','Product', 'Quantity', 'Location', 'Stock Status', 'Added By', 'Actions'],
     id: 'dashboard-table'
@@ -22,7 +22,7 @@
 					<td
 						class="border border-gray-300 px-4 py-2 text-sm">
 						{# Link to product detail, similar to how the product table links name/category #}
-						<a href="{{ path('app_product_show', { id: stock.product.id }) }}" class="text-mocha hover:underline">
+						<a href="{{ path('app_product_show', { id: stock.product.id }) }}" class="text-brand hover:underline">
 							{{ stock.product.name }}
 						</a>
 					</td>
@@ -55,19 +55,12 @@
 							class="flex justify-center items-center gap-3">
 							{# View Icon - Path points to stock show route #}
 							<twig:ActionIcon
-							path="{{ path('app_stock_show', {'id': stock.id}) }}" svgPath="M12 4.5C7 4.5 2.73 8 1 12c1.73 4 6 7.5 11 7.5s9.27-3.5 11-7.5c-1.73-4-6-7.5-11-7.5z M12 16a4 4 0 110-8 4 4 0 010 8z" class="w-5 h-5 text-mocha" label="View"/>
+							path="{{ path('app_stock_show', {'id': stock.id}) }}" svgPath="M12 4.5C7 4.5 2.73 8 1 12c1.73 4 6 7.5 11 7.5s9.27-3.5 11-7.5c-1.73-4-6-7.5-11-7.5z M12 16a4 4 0 110-8 4 4 0 010 8z" class="w-5 h-5 text-brand" label="View"/>
 							{# Edit Icon - Path points to stock edit route #}
-							<twig:ActionIcon path="{{ path('app_stock_edit', {'id': stock.id}) }}" svgPath="M11 4H4a1 1 0 00-1 1v16a1 1 0 001 1h16a1 1 0 001-1v-7 M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" class="w-5 h-5 text-mocha" label="Edit"/>
+							<twig:ActionIcon path="{{ path('app_stock_edit', {'id': stock.id}) }}" svgPath="M11 4H4a1 1 0 00-1 1v16a1 1 0 001 1h16a1 1 0 001-1v-7 M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" class="w-5 h-5 text-brand" label="Edit"/>
 
 							<twig:ActionIcon path="#" onclick="openDeleteModal({{ stock.id }}, '{{ stock.product.name|e('js') }}', '{{ csrf_token('delete' ~ stock.id) }}')" svgPath="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 7V4a1 1 0 011-1h2a1 1 0 011 1v3" class="w-5 h-5 text-red-600" label="Delete"/>
 						</div>
-					</td>
-				</tr>
-			{% else %}
-				<tr>
-					{# Colspan must match the number of columns (6 data + 1 action) #}
-					<td colspan="7" class="border border-gray-300 px-4 py-4 text-center text-gray-500">
-						No stock records found.
 					</td>
 				</tr>
 			{% endfor %}

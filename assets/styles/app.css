@@ -3,48 +3,23 @@
 @source not "../../public";
 
 @theme {
-    /* --- 🌿 Core Brand Palette --- */
-    --color-white: #FFFFFF;
-    --color-cream: #F7F7F7;
-    --color-green: #626F3A;
-    --color-mocha: #3D3D3D;
-    --color-light-brown: #A49C91;
-    --color-brand: #6B7C57;
-    --color-brand-dark: #556345;
-    --color-light-gray: #EAEAEA;
+    /* --- 🌿 Core Brand Palette (Frontend & Base) --- */
+    --color-brand: #52622E;         /* Primary Mifania Olive */
+    --color-brand-light: #6A7B42;   /* Softened for hovers */
+    --color-brand-dark: #3F4C23;    /* Deepened for active states */
+    --color-light-brown: #8A7363;   /* Richer tone for secondary text */
 
     /* --- 🩶 UI Neutrals & Shades --- */
-    --color-cream-100: #F7F7F7;
-    --color-cream-200: #F0F0F0;
-    --color-cream-300: #E8E8E8;
-    --color-border-color: #E0E0E0;
-    --color-row-hover: #F2F2F2;
+    --color-white: #FFFFFF;
+    --color-app-bg: #FBFBFA;        /* Seamless Mifania Alabaster background */
+    --color-light-gray: #F3F4F6;
+    --color-gray: #6A7282;
+    --color-dark-gray: #4B5563;
 
-    /* --- 🫒 Olive / Green Shades --- */
-    --color-green-50: #EFF1E7;
-    --color-green-500: #626F3A;
-    --color-green-550: #586334; /* Fixed the missing green-550 */
-
-    /* --- 🤎 Mocha / Brown Shades --- */
-    --color-mocha-200: #808080;
-    --color-mocha-500: #3D3D3D;
-
-    /* --- 🏗️ Unified Dashboard Colors --- */
-    --color-dashboard-bg: #f1f8ed;
-    --color-dashboard-surface: #ffffff;
-    --color-dashboard-olive: #6b703d;
-    --color-dashboard-mint: #e8f3e1;
-    --color-dashboard-mint-hover: #dce9d3;
-    --color-dashboard-mocha: #3e322b;
-    --color-dashboard-gray: #e5e7eb;
-
-    /* --- ✅ Status Colors --- */
-    --color-success: #626F3A;
-    --color-danger: #DC3545;
-    --color-terracotta: #B45239;
+    --color-border-color: #EAE8E3;
+    --color-row-hover: #F9F9F8;
 }
 
-.accordion-content { transition: max-height 0.3s ease-in-out; }
 /* --- Base Styles --- */
 html {
     scroll-behavior: smooth;
@@ -56,32 +31,40 @@ body {
     color: var(--color-dashboard-mocha);
 }
 
-[x-cloak] { display: none !important; }
+.accordion-content {
+    transition: max-height 0.3s ease-in-out;
+}
+
+[x-cloak] {
+    display: none !important;
+}
 
 /* --- 📋 Unified Table & DataTables 2.0 Styles --- */
-/*The Control Row Wrapper */
+
+/* The Control Row Wrapper */
 .dt-controls {
-    @apply w-full border-b border-gray-50 pb-4;
+    @apply w-full border-b border-gray-100 pb-4;
 }
 
 /* 1. Search Input */
 .dt-search input {
-    @apply bg-dashboard-bg/50 ring-1 ring-dashboard-olive/30 rounded-xl px-4 py-2 text-sm text-mocha outline-none w-64 transition-all;
+    @apply bg-dashboard-bg/50 ring-1 ring-dashboard-olive/30 rounded-xl px-4 py-2 text-sm text-dashboard-mocha outline-none w-64 transition-all;
 }
+
 .dt-search input:focus {
     @apply ring-2 ring-dashboard-olive/50;
 }
 
 /* 2. Length Dropdown */
 .dt-length select {
-    @apply bg-dashboard-bg/50 ring-1 ring-dashboard-olive/30 rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-mocha outline-none cursor-pointer;
+    @apply bg-dashboard-bg/50 ring-1 ring-dashboard-olive/30 rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-dashboard-mocha outline-none cursor-pointer;
 }
 
 .dt-length select:focus-visible {
     @apply ring-2 ring-dashboard-olive/50;
 }
 
-/* 2. Style the Info/Count Badge (Top Right) */
+/* 3. Style the Info/Count Badge (Top Right) */
 .dataTables_info {
     @apply px-3 py-1.5 bg-dashboard-bg/50 text-dashboard-mocha/50 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border border-cream-200 shadow-sm;
 }
@@ -93,7 +76,7 @@ body {
            transition-all focus:border-dashboard-olive focus:ring-0;
 }
 
-/* 3. Info Text */
+/* 4. Info Text */
 .dt-info {
     @apply flex items-center gap-2 px-4 py-2 mr-2 bg-dashboard-mint text-dashboard-mocha
            rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border-none;
@@ -104,9 +87,9 @@ body {
     @apply w-1.5 h-1.5 rounded-full bg-dashboard-olive animate-pulse;
 }
 
-/* 4. Pagination (Corrected !important usage) */
+/* 5. Pagination */
 .dt-paging .dt-paging-button {
-    @apply border-none bg-transparent text-mocha/40 font-black text-xs px-3 py-2 rounded-xl transition-all cursor-pointer;
+    @apply border-none bg-transparent text-dashboard-mocha/40 font-black text-xs px-3 py-2 rounded-xl transition-all cursor-pointer;
 }
 
 /* Use standard CSS for !important overrides in DataTables */
@@ -121,7 +104,7 @@ body {
     color: var(--color-dashboard-olive) !important;
 }
 
-/* 5. Floating Table Rows */
+/* 6. Floating Table Rows */
 .dt-contaier {
     @apply mt-5;
 }
@@ -129,14 +112,20 @@ body {
 .js-datatable tbody tr td {
     @apply border-y border-cream-200 bg-white transition-all duration-300 py-3 px-4;
 }
-.js-datatable tbody tr td:first-child { @apply border-l rounded-l-2xl; }
-.js-datatable tbody tr td:last-child { @apply border-r rounded-r-2xl; }
+
+.js-datatable tbody tr td:first-child {
+    @apply border-l rounded-l-2xl;
+}
+
+.js-datatable tbody tr td:last-child {
+    @apply border-r rounded-r-2xl;
+}
 
 .js-datatable tbody tr:hover td {
     @apply border-dashboard-olive/20 bg-dashboard-bg/30;
 }
 
-/* 6. Sorting Arrows */
+/* 7. Sorting Arrows */
 span.dt-column-order {
     @apply inline-flex flex-col gap-[2px] ml-2 align-middle;
     width: 10px;
@@ -144,16 +133,21 @@ span.dt-column-order {
 
 span.dt-column-order::before {
     content: "";
-    @apply border-b-4 border-l-4 border-r-4 border-t-0 border-l-transparent border-r-transparent border-b-mocha/20;
+    @apply border-b-4 border-l-4 border-r-4 border-t-0 border-l-transparent border-r-transparent border-b-dashboard-mocha/20;
 }
 
 span.dt-column-order::after {
     content: "";
-    @apply border-t-4 border-l-4 border-r-4 border-b-0 border-l-transparent border-r-transparent border-t-mocha/20;
+    @apply border-t-4 border-l-4 border-r-4 border-b-0 border-l-transparent border-r-transparent border-t-dashboard-mocha/20;
 }
 
-th.dt-ordering-asc span.dt-column-order::before { @apply border-b-green; }
-th.dt-ordering-desc span.dt-column-order::after { @apply border-t-green; }
+th.dt-ordering-asc span.dt-column-order::before {
+    @apply border-b-dashboard-olive;
+}
+
+th.dt-ordering-desc span.dt-column-order::after {
+    @apply border-t-dashboard-olive;
+}
 
 /* --- 🔑 Animations --- */
 @keyframes fadeIn {

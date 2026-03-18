@@ -5,29 +5,29 @@
 {% block main_content %}
 <div class="mx-1 min-h-screen bg-white p-8 rounded-xl shadow-lg">
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold text-mocha">Sub Category: {{ sub_category.name }}</h1>
+        <h1 class="text-3xl font-bold text-brand">Sub Category: {{ sub_category.name }}</h1>
     </div>
 
     <div class="space-y-6">
         {# Detail Card #}
         <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-            <h2 class="text-xl font-semibold text-mocha mb-4 border-b pb-2">SubCategory Information</h2>
+            <h2 class="text-xl font-semibold text-brand mb-4 border-b pb-2">SubCategory Information</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
                 {# Row 1: ID and Name #}
                 <div>
                     <p class="text-sm font-medium text-gray-500"><strong>Sub Category ID</strong></p>
-                    <p class="text-lg font-bold text-mocha">{{ sub_category.id }}</p>
+                    <p class="text-lg font-bold text-brand">{{ sub_category.id }}</p>
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500"><strong>Sub Category Name</strong></p>
-                    <p class="text-lg text-mocha">{{ sub_category.name }}</p>
+                    <p class="text-lg text-brand">{{ sub_category.name }}</p>
                 </div>
 
                 {# Row 2: Parent Category and Slug #}
                 <div>
                     <p class="text-sm font-medium text-gray-500"><strong>Parent Category</strong></p>
-                    <p class="text-lg text-mocha">
+                    <p class="text-lg text-brand">
                         {# Assuming SubCategory has a getCategory() method #}
                         {% if sub_category.category is defined and sub_category.category %}
                             {# Link to the parent category's details page (optional) #}
@@ -41,24 +41,24 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500"><strong>Slug</strong></p>
-                    <p class="text-lg text-mocha">{{ sub_category.slug }}</p>
+                    <p class="text-lg text-brand">{{ sub_category.slug }}</p>
                 </div>
 
                 {# Row 3: Created/Updated At #}
                 <div>
                     <p class="text-sm font-medium text-gray-500"><strong>Created At</strong></p>
-                    <p class="text-lg text-mocha">{{ sub_category.createdAt ? sub_category.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</p>
+                    <p class="text-lg text-brand">{{ sub_category.createdAt ? sub_category.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</p>
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500"><strong>Updated At</strong></p>
-                    <p class="text-lg text-mocha">{{ sub_category.updatedAt ? sub_category.updatedAt|date('Y-m-d H:i:s') : 'N/A' }}</p>
+                    <p class="text-lg text-brand">{{ sub_category.updatedAt ? sub_category.updatedAt|date('Y-m-d H:i:s') : 'N/A' }}</p>
                 </div>
 
                 {# Row 4: Description (takes full width) #}
                 <div class="md:col-span-2">
                     <p class="text-sm font-medium text-gray-500">Description</p>
                     <div class="bg-white p-4 rounded-lg border border-gray-100 mt-1">
-                        <p class="text-base text-mocha whitespace-pre-wrap">{{ sub_category.description | default('No description provided.') }}</p>
+                        <p class="text-base text-brand whitespace-pre-wrap">{{ sub_category.description | default('No description provided.') }}</p>
                     </div>
                 </div>
             </div>
@@ -81,7 +81,7 @@
             </a>
 
             {# Back Button (Use the appropriate route, assuming 'app_sub_category_index') #}
-            <a href="{{ path('app_dashboard_sub_category_index') }}" class="px-4 py-2 text-sm text-mocha border border-gray-300 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition duration-150">
+            <a href="{{ path('app_dashboard_sub_category_index') }}" class="px-4 py-2 text-sm text-brand border border-gray-300 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition duration-150">
                 Back
             </a>
         </div>

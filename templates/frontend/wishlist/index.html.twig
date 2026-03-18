@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Wishlist | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="bg-white min-h-screen">
+
+    {# Page Header #}
+    <section class="py-16 bg-[#FBFBFA] text-center border-b border-gray-100">
+        <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-gray-900 uppercase mb-4">My Wishlist</h1>
+
+        {% if not app.user %}
+            <p class="text-[10px] uppercase font-black tracking-[0.2em] text-gray-400">
+                <a href="{{ path('app_login') }}" class="text-brand underline hover:text-brand-dark transition-colors">Sign in</a> to save these items permanently.
+            </p>
+        {% endif %}
+    </section>
+
+    <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-16">
+
+        {% if products|length > 0 %}
+            {# Toolbar #}
+            <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Showing <span class="text-brand">{{ products|length }}</span> saved items
+                </p>
+            </div>
+
+            {# Product Grid #}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {% for product in products %}
+                    <div class="relative group">
+
+                        {# Remove from Wishlist Button (Always Red/Filled on this page) #}
+                        <div class="absolute top-3 right-3 z-10">
+                            <form action="{{ path('app_wishlist_toggle', {id: product.id}) }}" method="POST">
+                                <input type="hidden" name="_token" value="{{ csrf_token('wishlist' ~ product.id) }}">
+                                <button type="submit" class="p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:scale-110 transition-transform cursor-pointer" title="Remove from Wishlist">
+                                    {{ ux_icon('mdi:heart', { class: 'h-4 w-4 text-brand' }) }}
+                                </button>
+                            </form>
+                        </div>
+
+                        {# The Reusable Product Card Component #}
+                        {% include 'components/frontend/product_card.html.twig' with {
+                            'image': (product.image is not empty and product.image != 'default.png')
+                                ? asset('uploads/products/' ~ product.image)
+                                : 'https://placehold.co/400x500?text=No+Image',
+                            'category': product.subCategory ? product.subCategory.name : product.gender.value,
+                            'name': product.name,
+                            'price': product.price,
+                            'slug': product.slug
+                        } %}
+                    </div>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            {# Empty State #}
+            <div class="text-center py-20 border border-dashed border-gray-200 rounded-sm bg-gray-50 max-w-2xl mx-auto">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-white shadow-sm mb-6">
+                    {{ ux_icon('lucide:heart', { class: 'h-6 w-6 text-gray-300' }) }}
+                </div>
+                <h3 class="text-lg font-black text-gray-900 uppercase tracking-tighter mb-2">Your wishlist is empty</h3>
+                <p class="text-sm font-medium text-gray-500 mb-8 px-6">You haven't saved any items yet. Start exploring our sustainable collection to find your favorites.</p>
+                <a href="{{ path('app_shop') }}" class="inline-block bg-brand text-white px-8 py-4 text-[10px] font-bold uppercase tracking-[0.2em] rounded-sm hover:bg-brand-dark transition-all shadow-md hover:-translate-y-0.5">
+                    Explore Collection
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

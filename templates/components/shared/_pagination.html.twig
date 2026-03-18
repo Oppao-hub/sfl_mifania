@@ -1,0 +1,33 @@
+{% if pageCount > 1 %}
+    <nav class="flex justify-center items-center gap-2 mt-12 font-['Montserrat']">
+        {# Previous Page #}
+        {% if previous is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}"
+               class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-100 text-brand hover:bg-light-gray transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </a>
+        {% endif %}
+
+        {# Page Numbers #}
+        {% for page in pagesInRange %}
+            {% if page != current %}
+                <a href="{{ path(route, query|merge({(pageParameterName): page})) }}"
+                   class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-100 text-brand font-bold hover:bg-light-gray transition text-sm">
+                    {{ page }}
+                </a>
+            {% else %}
+                <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white font-bold shadow-md text-sm">
+                    {{ page }}
+                </span>
+            {% endif %}
+        {% endfor %}
+
+        {# Next Page #}
+        {% if next is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): next})) }}"
+               class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-100 text-brand hover:bg-light-gray transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </a>
+        {% endif %}
+    </nav>
+{% endif %}

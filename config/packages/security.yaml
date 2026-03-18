@@ -18,7 +18,7 @@ security:
                 check_path: /api/login
                 username_path: email
                 password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
+                success_handler: App\Security\JwtAuthenticationSuccessHandler
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
         api:
@@ -58,20 +58,28 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/email-verification, roles: PUBLIC_ACCESS }
+       # 1. API Rules
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED }
-        - { path: ^/admin/dashboard, roles: [ROLE_ADMIN, ROLE_STAFF] }
-        - { path: ^/admin/activity-log, roles: ROLE_ADMIN }
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/staff, roles: ROLE_ADMIN }
-        - { path: ^/customer, roles: ROLE_ADMIN }
+
+        # 2. Admin & Staff Rules
+        - { path: ^/admin/account, roles: ROLE_ADMIN }
+        - { path: ^/staff/account, roles: ROLE_STAFF }
         - { path: ^/dashboard, roles: [ROLE_ADMIN, ROLE_STAFF] }
+
+        # 3.Authenticated Rules
         - { path: ^/google/connect, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/cart, roles: ROLE_CUSTOMER }
-        - { path: ^/checkout, roles: ROLE_USER }
-        - { path: ^/account, roles: [ROLE_USER, ROLE_CUSTOMER, ROLE_STAFF, ROLE_ADMIN]}
+        - { path: ^/cart, roles: PUBLIC_ACCESS }
+        - { path: ^/wishlist, roles: PUBLIC_ACCESS }
+        - { path: ^/checkout, roles: ROLE_CUSTOMER }
+        - { path: ^/orders, roles: ROLE_CUSTOMER }
+        - { path: ^/account, roles: ROLE_CUSTOMER }
+
+        # 4. Public Pages
+        - { path: ^/email-verification, roles: PUBLIC_ACCESS }
+        - { path: ^/home, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

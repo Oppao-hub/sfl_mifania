@@ -1,78 +1,127 @@
+{# templates/dashboard/staff/show.html.twig #}
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}Staff{% endblock %}
+{% block title %}Staff: {{ staff.firstName }} {{ staff.lastName }}{% endblock %}
 
 {% block main_content %}
-<div class="mx-1 min-h-screen bg-white p-8 shadow-md">
-    <div class="container mx-auto p-4 md:px-8 lg:px-12">
-    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Profile</h1>
-    <div class="bg-white shadow-lg p-6 mb-6 flex justify-center border border-gray-100">
-        <div class="flex items-center">
-            <img class="w-48 h-48 rounded-md object-cover border-2 border-mocha-100"
-                src="{{ staff.avatar ? asset('uploads/staff/avatars/' ~ staff.avatar) : asset('uploads/default/default-avatar.jpg') }}"
-                alt="{{ staff.firstName }}'s Avatar"
-            >
+<div class="p-6 md:p-10 animate-fadeIn max-w-7xl mx-auto">
+
+    {# 1. TOP NAVIGATION & ACTION HEADER #}
+    <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
+        <div class="flex items-center gap-5">
+            <a href="{{ path('app_staff_index') }}"
+               class="p-3 bg-white rounded-xl border border-cream-200 text-dashboard-mocha hover:text-dashboard-olive transition-all shadow-sm active:scale-95">
+                {{ ux_icon('lucide:arrow-left', {class: 'w-5 h-5'}) }}
+            </a>
+            <div>
+                <h1 class="text-4xl font-black text-dashboard-mocha tracking-tighter leading-none uppercase">
+                    {{ staff.firstName }} <span class="text-dashboard-olive">{{ staff.lastName }}</span>
+                </h1>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] text-dashboard-mocha/40 uppercase font-black tracking-widest italic font-mono">Staff Manifest #{{ staff.id }}</span>
+                    <span class="px-2 py-0.5 bg-dashboard-bg/50 text-dashboard-mocha/60 rounded-md text-[10px] font-bold uppercase tracking-tighter border border-cream-200">System Operator</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+             <a href="{{ path('app_staff_edit', { id: staff.id }) }}"
+               class="px-6 py-3 bg-dashboard-olive text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-dashboard-mocha transition-all shadow-xl shadow-dashboard-olive/10 flex items-center gap-2">
+                {{ ux_icon('lucide:user-cog', {class: 'w-4 h-4'}) }}
+                Modify Access
+            </a>
+            <button type="button"
+                @click="$dispatch('open-delete-modal', {
+                    url: '{{ path('app_staff_delete', {id: staff.id}) }}',
+                    name: '{{ staff.firstName }} {{ staff.lastName }}',
+                    token: '{{ csrf_token('delete' ~ staff.id) }}'
+                })"
+                class="px-6 py-3 bg-white border border-red-100 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 transition-all flex items-center gap-2 active:scale-95">
+                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                Void Authority
+            </button>
         </div>
     </div>
 
-    <!-- Personal Information Card -->
-    <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-100">
-        <div class="flex justify-between items-center mb-4 border-b pb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Personal Information</h2>
-        </div>
-        <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-sm">
-            <div>
-                <dt class="font-medium text-gray-500">First Name</dt>
-                <dd class="mt-1 text-gray-900 text-base font-medium">{{ staff.firstName }}</dd>
+    {# 2. QUICK STATS SUMMARY #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {% macro quickStat(label, value, icon) %}
+            <div class="bg-white p-6 rounded-xl border border-cream-200 shadow-sm flex items-start gap-4">
+                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                    {{ ux_icon(icon, {class: 'w-4 h-4'}) }}
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-dashboard-mocha/30 mb-1 leading-none">{{ label }}</p>
+                    <p class="text-sm font-bold text-dashboard-mocha leading-tight">{{ value|default('N/A') }}</p>
+                </div>
             </div>
-            <div>
-                <dt class="font-medium text-gray-500">Last Name</dt>
-                <dd class="mt-1 text-gray-900 text-base font-medium">{{ staff.lastName }}</dd>
-            </div>
-            <div>
-                <dt class="font-medium text-gray-500">Email address</dt>
-                <dd class="mt-1 text-gray-900 text-base font-medium">{{ staff.user.email ?: 'N/A' }}</dd>
-            </div>
-        </dl>
+        {% endmacro %}
+
+        {{ _self.quickStat('Access Email', staff.user.email, 'lucide:mail') }}
+        {{ _self.quickStat('Operating Since', staff.createdAt|date('M d, Y'), 'lucide:calendar') }}
+        {{ _self.quickStat('Security Status', 'Active', 'lucide:shield-check') }}
     </div>
 
-    <!-- Address Card -->
-    <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-100">
-        <div class="flex justify-between items-center mb-4 border-b pb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Geographic Information</h2>
-        </div>
-    </div>
+    {# 3. MAIN CONTENT GRID #}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-    <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-100">
-        <div class="flex justify-between items-center mb-4 border-b pb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Account Information</h2>
-        </div>
-        <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-sm">
-            <div>
-                <dt class="font-medium text-gray-500">staff Since</dt>
-                <dd class="mt-1 text-gray-900 text-base font-medium">{{ staff.createdAt|date('F jS, Y') }}</dd>
+        {# Left Column: Identity Card #}
+        <div class="lg:col-span-8 bg-white rounded-xl border border-cream-200 shadow-sm overflow-hidden h-fit">
+            <div class="p-8 border-b border-gray-50 flex items-center gap-3">
+                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                    {{ ux_icon('lucide:fingerprint', {class: 'w-5 h-5'}) }}
+                </div>
+                <h2 class="text-lg font-black text-dashboard-mocha tracking-tighter uppercase">Identity Specifications</h2>
             </div>
-        </dl>
-    </div>
 
-    <div class="flex gap-3 justify-end">
-        {# Edit button #}
-        <a href="{{ path('app_staff_edit', { id: staff.id }) }}"
-            class="px-4 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover transition">
-            Edit
-        </a>
+            <div class="p-8 md:p-10">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    {% macro manifestRow(label, value) %}
+                        <div>
+                            <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-dashboard-mocha/30 mb-1.5">{{ label }}</dt>
+                            <dd class="text-base font-bold text-dashboard-mocha">{{ value|default('—') }}</dd>
+                        </div>
+                    {% endmacro %}
 
-        {# Delete form #}
-        <a
-            href="#"
-            onclick="openDeleteModal({{ staff.id }}, '{{ staff.firstName ~ ' ' ~ staff.lastName|e('js') }}', '{{ csrf_token('delete' ~ staff.id) }}')"
-            class="px-4 py-2 bg-danger text-white text-sm font-medium rounded-xl hover:bg-danger-hover transition"
-        >
-            Delete
-        <a href="{{ path('app_staff_index') }}"
-            class="px-4 py-2 bg-white border border-gray-300 text-gray-500 text-sm font-semibold rounded-xl hover:bg-row-hover transition">
-            Back
-        </a>
+                    {{ _self.manifestRow('Staff First Name', staff.firstName) }}
+                    {{ _self.manifestRow('Staff Last Name', staff.lastName) }}
+                    <div class="md:col-span-2">
+                        {{ _self.manifestRow('Official Communication Channel', staff.user.email) }}
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        {# Right Column: Visual Reference & Audit #}
+        <div class="lg:col-span-4 space-y-8">
+            {# Visual Profile Reference #}
+            <div class="bg-white p-8 rounded-xl border border-cream-200 shadow-sm">
+                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-dashboard-mocha/30 mb-6 text-center">Visual ID Reference</p>
+                <div class="p-1 border border-cream-100 rounded-2xl mx-auto w-44">
+                    <img class="w-full aspect-square rounded-xl object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-500"
+                         src="{{ staff.avatar ? asset('uploads/staff/avatars/' ~ staff.avatar) : asset('uploads/default/default-avatar.jpg') }}"
+                         alt="Staff Visual">
+                </div>
+            </div>
+
+            {# Audit Trail #}
+            <div class="bg-white p-8 rounded-xl border border-cream-200 shadow-sm">
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-dashboard-mocha/30 mb-6 border-b border-gray-50 pb-4">Audit Record</h3>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-dashboard-mocha/40 mb-1">Onboarding Date</p>
+                        <p class="text-sm font-bold text-dashboard-mocha">{{ staff.createdAt|date('F d, Y') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-dashboard-mocha/40 mb-1">Account Role</p>
+                        <span class="inline-flex items-center gap-1.5 text-[10px] font-black text-dashboard-olive uppercase tracking-widest">
+                            <span class="w-1.5 h-1.5 bg-dashboard-olive rounded-full"></span>
+                            Staff Member
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,55 @@
+<div class="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+
+            {# Individual Toast Card #}
+            <div x-data="{ show: false }"
+                 x-init="
+                    setTimeout(() => show = true, 100);
+                    setTimeout(() => show = false, 5000); {# Auto-hide after 5 seconds #}
+                 "
+                 x-show="show"
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="opacity-0 translate-x-8"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 x-transition:leave="transition ease-in duration-200 transform"
+                 x-transition:leave-start="opacity-100 translate-x-0"
+                 x-transition:leave-end="opacity-0 translate-x-8"
+                 style="display: none;"
+                 class="pointer-events-auto max-w-sm w-full bg-white/90 backdrop-blur-md shadow-xl rounded-sm border-l-4 p-4 flex items-start gap-3
+                 {% if label == 'success' %} border-brand
+                 {% elseif label == 'error' %} border-red-500
+                 {% else %} border-blue-500 {% endif %}
+                 ">
+
+                {# Dynamic Icon based on flash type #}
+                <div class="shrink-0 mt-0.5">
+                    {% if label == 'success' %}
+                        <div class="text-brand bg-brand/10 p-1.5 rounded-full">{{ ux_icon('lucide:check', { class: 'w-4 h-4' }) }}</div>
+                    {% elseif label == 'error' %}
+                        <div class="text-red-500 bg-red-50 p-1.5 rounded-full">{{ ux_icon('lucide:alert-triangle', { class: 'w-4 h-4' }) }}</div>
+                    {% else %}
+                        <div class="text-blue-500 bg-blue-50 p-1.5 rounded-full">{{ ux_icon('lucide:info', { class: 'w-4 h-4' }) }}</div>
+                    {% endif %}
+                </div>
+
+                {# Text Content #}
+                <div class="flex-1">
+                    <p class="text-[10px] font-bold text-gray-800 uppercase tracking-widest mb-0.5">
+                        {% if label == 'success' %} Success
+                        {% elseif label == 'error' %} Error
+                        {% else %} Notice {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500 leading-relaxed">{{ message }}</p>
+                </div>
+
+                {# Manual Close Button #}
+                <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none">
+                    {{ ux_icon('lucide:x', { class: 'w-4 h-4' }) }}
+                </button>
+            </div>
+
+        {% endfor %}
+    {% endfor %}
+</div>

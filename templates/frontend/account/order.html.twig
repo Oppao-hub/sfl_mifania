@@ -1,0 +1,118 @@
+{% extends 'frontend/account/index.html.twig' %}
+
+{% block title %}My Orders | Mifania{% endblock %}
+
+{% block account_content %}
+<div class="container mx-auto max-w-4xl">
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+
+        {# Header Area #}
+        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+            <h3 class="text-lg font-bold text-gray-800 uppercase tracking-tighter">Order History</h3>
+            <a href="{{ path('app_shop') }}" class="text-[10px] uppercase tracking-widest text-brand hover:text-brand-dark font-bold underline transition-colors">
+                Continue Shopping
+            </a>
+        </div>
+
+        {% if orders is defined and orders|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-100 text-[10px] uppercase tracking-widest">
+                            <th class="pb-3 font-bold pl-2">Order ID</th>
+                            <th class="pb-3 font-bold">Date</th>
+                            <th class="pb-3 font-bold">Status</th>
+                            <th class="pb-3 font-bold">Payment</th>
+                            <th class="pb-3 font-bold text-right">Total</th>
+                            <th class="pb-3 font-bold text-center pr-2">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-gray-50">
+                    {% for order in orders|sort((a, b) => b.createdAt <=> a.createdAt) %}
+                        <tr class="hover:bg-gray-50 transition duration-150">
+
+                            {# Order ID #}
+                            <td class="py-4 pl-2">
+                                <span class="font-bold text-gray-800">#{{ order.id }}</span>
+                            </td>
+
+                            {# Date & Time #}
+                            <td class="py-4 text-gray-500">
+                                <span class="font-bold text-gray-700">{{ order.createdAt ? order.createdAt|date('M d, Y') : '-' }}</span>
+                                <span class="block text-xs text-gray-400">{{ order.createdAt ? order.createdAt|date('h:i A') : '' }}</span>
+                            </td>
+
+                            {# Order Status Badge #}
+                            <td class="py-4">
+                                {% set statusClass = 'bg-gray-100 text-gray-800' %}
+                                {% if order.orderStatus.value == 'Delivered' or order.orderStatus.value == 'Completed' %}
+                                    {% set statusClass = 'bg-green-100 text-green-800' %}
+                                {% elseif order.orderStatus.value == 'Processing' or order.orderStatus.value == 'Shipped' %}
+                                    {% set statusClass = 'bg-blue-100 text-blue-800' %}
+                                {% elseif order.orderStatus.value == 'Cancelled' %}
+                                    {% set statusClass = 'bg-red-100 text-red-800' %}
+                                {% elseif order.orderStatus.value == 'Pending' %}
+                                    {% set statusClass = 'bg-yellow-100 text-yellow-800' %}
+                                {% endif %}
+
+                                <span class="inline-flex items-center px-2 py-1 rounded-sm text-[10px] uppercase tracking-widest font-bold {{ statusClass }}">
+                                    {{ order.orderStatus.value }}
+                                </span>
+                            </td>
+
+                            {# Payment Method & Status #}
+                            <td class="py-4">
+                                <p class="font-bold text-sm text-gray-800">{{ order.paymentMethod.value }}</p>
+                                {% set payStatusClass = 'text-red-500' %}
+                                {% if order.paymentStatus.value == 'Paid' or order.paymentStatus.value == 'Completed' %}
+                                    {% set payStatusClass = 'text-green-600' %}
+                                {% elseif order.paymentStatus.value == 'Pending' %}
+                                    {% set payStatusClass = 'text-yellow-600' %}
+                                {% endif %}
+                                <p class="text-[10px] uppercase tracking-widest font-bold {{ payStatusClass }}">
+                                    {{ order.paymentStatus.value }}
+                                </p>
+                            </td>
+
+                            {# Total Amount #}
+                            <td class="py-4 text-right">
+                                <span class="font-bold text-brand">₱ {{ order.totalAmount|number_format(2) }}</span>
+                                {% if order.rewardPoints > 0 %}
+                                    <span class="block text-[10px] font-bold text-green-600 uppercase tracking-widest mt-0.5">
+                                        +{{ order.rewardPoints }} pts
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            {# Action Button #}
+                            <td class="py-4 text-center pr-2">
+                                <a href="{{ path('app_account_order_view', {'id': order.id}) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-light-gray text-gray-400 hover:bg-brand hover:text-white transition-all shadow-sm group" title="View Details">
+                                    {{ ux_icon('lucide:eye', { class: 'w-4 h-4 group-hover:scale-110 transition-transform' }) }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {# --- EMPTY STATE --- #}
+            <div class="text-center py-16 border border-dashed border-gray-200 rounded-sm bg-gray-50">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                    {{ ux_icon('lucide:shopping-bag', { class: 'w-8 h-8 text-gray-300' }) }}
+                </div>
+                <h4 class="text-gray-900 font-bold text-sm uppercase tracking-widest mb-1">No orders yet</h4>
+                <p class="text-gray-500 text-xs max-w-xs mx-auto leading-relaxed mb-6">
+                    You haven't placed any orders yet. Start exploring our sustainable collection!
+                </p>
+                <a href="{{ path('app_shop') }}" class="inline-flex items-center gap-2 bg-brand text-white px-6 py-2.5 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-brand-dark transition-colors shadow-sm">
+                    {{ ux_icon('lucide:shopping-cart', { class: 'w-4 h-4' }) }}
+                    Go to Shop
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

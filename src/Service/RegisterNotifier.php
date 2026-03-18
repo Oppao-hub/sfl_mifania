@@ -19,7 +19,7 @@ class RegisterNotifier
             ->from('Mifania System <mifaniapaolo0012@gmail.com>')
             ->to($this->adminEmail)
             ->subject('🚀 New User Registration: ' . $user->getEmail())
-            ->htmlTemplate('email/index.html.twig')
+            ->htmlTemplate('email/admin_email.html.twig')
             ->context([
                 'user' => $user,
                 'date' => new \DateTime(),

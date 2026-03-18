@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout | Mifania{% endblock %}
+
+{% block main_content %}
+<section class="bg-gray-50 py-16 px-6 md:px-12 min-h-[70vh]">
+    <div class="max-w-[1440px] mx-auto">
+
+        <a href="{{ path('app_cart_show') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand transition-colors mb-6">
+            {{ ux_icon('lucide:arrow-left', { class: 'h-4 w-4' }) }} Back to Cart
+        </a>
+
+        <h1 class="text-3xl font-bold text-brand mb-8">Checkout</h1>
+
+        {# THE FIX: form_start wraps the ENTIRE grid layout now! #}
+        {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-12', novalidate: 'novalidate' } }) }}
+
+            {# LEFT COLUMN: Checkout Form Inputs #}
+            <div class="lg:col-span-2 space-y-6">
+
+                {# Catch any global form errors #}
+                {{ form_errors(checkoutForm, {'attr': {'class': 'text-red-500 text-xs font-bold uppercase tracking-widest bg-red-50 p-4 border border-red-100 rounded-md'}}) }}
+
+                <div class="bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4 uppercase tracking-tighter">Shipping Details</h2>
+
+                    <div class="space-y-6">
+                        <div>
+                            {{ form_label(checkoutForm.shippingAddress, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
+                            {{ form_widget(checkoutForm.shippingAddress, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors', rows: 3 } }) }}
+                            {{ form_errors(checkoutForm.shippingAddress, {'attr': {'class': 'text-red-500 text-[10px] uppercase font-bold mt-1'}}) }}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                {{ form_label(checkoutForm.city, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
+                                {{ form_widget(checkoutForm.city, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors' } }) }}
+                                {{ form_errors(checkoutForm.city, {'attr': {'class': 'text-red-500 text-[10px] uppercase font-bold mt-1'}}) }}
+                            </div>
+                            <div>
+                                {{ form_label(checkoutForm.postalCode, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
+                                {{ form_widget(checkoutForm.postalCode, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors' } }) }}
+                                {{ form_errors(checkoutForm.postalCode, {'attr': {'class': 'text-red-500 text-[10px] uppercase font-bold mt-1'}}) }}
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-6 border-t border-gray-100">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 uppercase tracking-tighter">Payment Method</h3>
+                            <div class="space-y-3">
+                                {% for child in checkoutForm.paymentMethod %}
+                                    <div class="flex items-center p-4 border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors cursor-pointer">
+                                        {{ form_widget(child, { attr: { class: 'w-4 h-4 text-brand border-gray-300 focus:ring-brand cursor-pointer' } }) }}
+                                        {{ form_label(child, null, { label_attr: { class: 'ml-3 block text-sm font-bold text-gray-700 cursor-pointer w-full mb-0 uppercase tracking-widest' } }) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-6 border-t border-gray-100">
+                            {{ form_label(checkoutForm.orderNotes, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
+                            {{ form_widget(checkoutForm.orderNotes, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors', rows: 2 } }) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# RIGHT COLUMN: Order Summary #}
+            <div class="lg:col-span-1">
+                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 sticky top-28">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 uppercase tracking-tighter">Order Summary</h2>
+
+                    <div class="space-y-4 mb-6 max-h-[350px] overflow-y-auto pr-2">
+                        {% for item in cart.cartItems %}
+                            <div class="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
+                                <img src="{{ item.product.image ? asset('uploads/products/' ~ item.product.image) : asset('images/default-product.png') }}"
+                                     class="w-16 h-20 object-cover rounded-sm border border-gray-100" alt="{{ item.product.name }}">
+                                <div class="flex-1">
+                                    <h3 class="text-xs font-bold text-gray-800 line-clamp-2">{{ item.product.name }}</h3>
+                                    <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-medium">Qty: {{ item.quantity }}</p>
+                                    <p class="text-sm font-bold text-brand mt-1">PHP {{ item.subtotal|number_format(2) }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="space-y-4 text-sm text-gray-600 mb-6 border-b border-t border-gray-100 py-6">
+                        <div class="flex justify-between items-center">
+                            <span>Subtotal</span>
+                            <span class="font-bold text-gray-800">PHP {{ cart.totalPrice|number_format(2) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Shipping</span>
+                            <span class="font-bold text-green-600 uppercase tracking-wider text-xs bg-green-50 px-2 py-1 rounded-sm">Free</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-8">
+                        <span class="text-sm font-bold text-gray-800 uppercase tracking-widest">Total</span>
+                        <span class="text-2xl font-bold text-brand">PHP {{ cart.totalPrice|number_format(2) }}</span>
+                    </div>
+
+                    {# Because the form wrapper is native now, this is just a normal submit button! #}
+                    <button type="submit" class="w-full bg-brand text-white py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-brand-dark transition-all shadow-md hover:shadow-lg cursor-pointer">
+                        Place Order
+                    </button>
+
+                    <div class="flex items-center justify-center gap-2 text-[10px] text-gray-400 mt-4 uppercase tracking-widest font-bold">
+                         {{ ux_icon('lucide:shield-check', { class: 'h-4 w-4' }) }}
+                         Secure Checkout
+                    </div>
+                </div>
+            </div>
+
+        {{ form_end(checkoutForm) }}
+    </div>
+</section>
+{% endblock %}

@@ -13,12 +13,12 @@
     {# Header Section: Responsive layout (stacks on mobile) #}
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 border-b border-gray-50 pb-6">
         <div>
-            <h2 class="text-2xl font-bold text-mocha">Personal Information</h2>
+            <h2 class="text-2xl font-bold text-brand">Personal Information</h2>
             <p class="text-sm text-gray-400 mt-1">Manage your personal details and contact info.</p>
         </div>
 
         {# Edit Button #}
-        <a href="{{ path('app_account_edit') }}"
+        <a href="{{ is_granted('ROLE_ADMIN') ? path('app_admin_account_edit') : path('app_staff_account_edit') }}"
            class="inline-flex items-center justify-center px-5 py-2.5 bg-[#e8f3e1] text-[#6b703d] font-bold text-sm rounded-xl hover:bg-[#dce9d3] transition-all shadow-sm">
             {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4 mr-2'}) }}
             Edit Details

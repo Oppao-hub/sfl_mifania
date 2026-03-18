@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign In | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="min-h-screen flex flex-col lg:flex-row bg-[#FBFBFA]">
+
+    {# LEFT SIDE: The Brand Editorial Visual #}
+    <div class="hidden lg:flex lg:w-1/2 relative bg-gray-900 overflow-hidden items-center justify-center">
+        <img src="https://images.unsplash.com/photo-1434389670869-c49ed9f01b0b?q=80&w=1200&auto=format&fit=crop"
+             alt="Mifania Sustainable Lifestyle"
+             class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay">
+
+        <div class="relative z-10 text-center p-12">
+            <h2 class="text-white text-5xl font-bold uppercase tracking-tighter mb-4">Welcome Back</h2>
+            <p class="text-white/80 text-sm font-medium tracking-widest uppercase">To Conscious Craftsmanship</p>
+        </div>
+    </div>
+
+    {# RIGHT SIDE: The Form #}
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 md:p-24">
+        <div class="w-full max-w-md">
+
+            <div class="text-center mb-10">
+                <h1 class="text-3xl font-bold text-brand-dark uppercase tracking-tight mb-2">Sign In</h1>
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-widest">Access your Mifania account</p>
+            </div>
+
+            <form method="post" class="space-y-6">
+
+                {# Error Handling #}
+                {% if error %}
+                    <div class="bg-red-50 text-red-600 p-4 rounded-sm text-xs font-bold uppercase tracking-widest border border-red-100 flex items-center gap-3">
+                        {{ ux_icon('lucide:alert-circle', {class: 'w-4 h-4'}) }}
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
+
+                {# Google OAuth Button #}
+                <a href="{{ path('connect_google') }}"
+                   class="w-full flex items-center justify-center gap-3 py-3.5 rounded-sm bg-white border border-gray-200 text-gray-700 font-bold text-xs uppercase tracking-widest hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm">
+                    <img src="{{ asset('icons/icons8-google.svg') }}" class="h-4 w-4" alt="Google">
+                    <span>Continue with Google</span>
+                </a>
+
+                {# Visual Separator #}
+                <div class="relative flex items-center py-2">
+                    <div class="flex-grow border-t border-gray-200"></div>
+                    <span class="flex-shrink mx-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">or sign in with email</span>
+                    <div class="flex-grow border-t border-gray-200"></div>
+                </div>
+
+                {# Username / Email #}
+                <div>
+                    <label for="inputEmail" class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Email Address</label>
+                    <input type="email" value="{{ last_username }}" name="email" id="inputEmail"
+                           class="w-full px-4 py-3 bg-white border border-gray-200 rounded-sm focus:border-brand focus:ring-0 text-sm font-bold text-gray-900 transition-colors"
+                           autocomplete="email" required autofocus>
+                </div>
+
+                {# Password #}
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label for="inputPassword" class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Password</label>
+                        <a href="#" class="text-[10px] font-bold text-brand hover:text-brand-dark transition-colors border-b border-transparent hover:border-brand-dark pb-0.5">Forgot Password?</a>
+                    </div>
+                    <input type="password" name="password" id="inputPassword"
+                           class="w-full px-4 py-3 bg-white border border-gray-200 rounded-sm focus:border-brand focus:ring-0 text-sm font-bold text-gray-900 transition-colors"
+                           autocomplete="current-password" required>
+                </div>
+
+                {# CSRF Token & Remember Me #}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="remember_me" name="_remember_me" class="w-4 h-4 rounded-sm border-gray-300 text-brand focus:ring-brand cursor-pointer">
+                    <label for="remember_me" class="ml-3 text-xs font-medium text-gray-500 cursor-pointer">Keep me securely signed in</label>
+                </div>
+
+                {# Submit Action #}
+                <button type="submit" class="w-full bg-brand text-white h-14 rounded-sm text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-dark transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mt-4 cursor-pointer">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-10 text-center border-t border-gray-100 pt-8">
+                <p class="text-xs text-gray-500 font-medium">
+                    New to Mifania?
+                    <a href="{{ path('app_register') }}" class="font-bold text-brand uppercase tracking-widest ml-2 hover:text-brand-dark transition-colors">Create an Account</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

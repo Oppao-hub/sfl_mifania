@@ -63,14 +63,14 @@ class CustomerRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    // Unused methods are commented out for clarity
-    // public function findByExampleField($value): array
-    // {
-    //    // ...
-    // }
-
-    // public function findOneBySomeField($value): ?Customer
-    // {
-    //    // ...
-    // }
+    public function searchByTerm(string $query): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.id LIKE :query OR c.firstName LIKE :query OR c.lastName LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('c.id', 'DESC')
+            ->setMaxResults(50)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -1,0 +1,63 @@
+{# templates/dashboard/story/index.html.twig #}
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Brand Narratives{% endblock %}
+
+{% block main_content %}
+    {% embed 'components/table/table.html.twig' with {
+        title: 'Manage Stories',
+        total_count: stories|length,
+        new_path: 'app_story_new',
+        headers: ['ID', 'Story Headline', 'Material Preview', 'Artisan Preview', 'Dyeing Preview', 'Actions'],
+        id: 'dashboard-story-table'
+    } %}
+
+    {% block rows %}
+        {% for story in stories %}
+            <tr class="hover:bg-dashboard-bg/50 transition-colors">
+                {# ID Column #}
+                <td class="border-y border-l border-gray-200 rounded-l-xl px-4 py-3 text-sm font-mono text-gray-500">
+                    {{ story.id }}
+                </td>
+
+                {# Title #}
+                <td class="border-y border-gray-200 px-4 py-3">
+                    <div class="font-bold text-dashboard-mocha text-sm tracking-tight">{{ story.title }}</div>
+                </td>
+
+                {# Preview #}
+                <td class="border border-gray-300 px-4 py-2 text-sm">
+                    "{{ story.materialContent|slice(0, 15) ~ '...' }}"
+                </td>
+
+                {# Preview #}
+                <td class="border border-gray-300 px-4 py-2 text-sm">
+                    "{{ story.artisanContent|slice(0, 15) ~ '...' }}"
+                </td>
+
+                {# Preview #}
+                <td class="border border-gray-300 px-4 py-2 text-sm">
+                    "{{ story.dyeingContent|slice(0, 15) ~ '...' }}"
+                </td>
+
+                {# Actions #}
+                <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
+                    <div class="flex justify-center items-center gap-3">
+                        <a href="{{ path('app_story_show', { id: story.id }) }}"
+                           class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}</a>
+
+                        <a href="{{ path('app_story_edit', { id: story.id }) }}"
+                           class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}</a>
+
+                        <button type="button"
+                                @click="$dispatch('open-delete-modal', { url: '{{ path('app_story_delete', {id: story.id}) }}', name: 'Story: {{ story.title|e('js') }}', token: '{{ csrf_token('delete' ~ story.id) }}' })"
+                                class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">
+                            {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endblock %}
+    {% endembed %}
+{% endblock %}

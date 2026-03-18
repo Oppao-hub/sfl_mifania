@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}About Us | Mifania Sustainable Fashion Line{% endblock %}
+
+{% set company_stats = [
+    { 'number': '3+',   'label': 'Years' },
+    { 'number': '15+',  'label': 'Stores' },
+    { 'number': customerCount|default('500') ~ '+', 'label': 'Customers' },
+    { 'number': '12+',  'label': 'Awards' }
+] %}
+
+{% block main_content %}
+
+    {# ==========================================
+       SECTION 1: Page Header
+       ========================================== #}
+    <section class="py-16 bg-light-gray text-center border-b border-gray-200">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand">About Us</h1>
+        <div class="mt-4 flex justify-center items-center uppercase tracking-wider font-semibold">
+            {% include 'components/breadcrumbs.html.twig' with {
+                items: [
+                    { name: 'Home', url: path('app_home') },
+                    { name: 'About Us' }
+                ]
+            } %}
+        </div>
+    </section>
+
+    {# ==========================================
+       SECTION 2: Our Story & Impact Stats
+       ========================================== #}
+    <section class="bg-white py-16 lg:py-24">
+        <div class="max-w-[1440px] mx-auto px-6 md:px-12">
+
+            {# Story Intro #}
+            <div class="max-w-4xl mx-auto text-center mb-16">
+                <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-4">Our Story</p>
+                <h2 class="text-3xl lg:text-5xl font-bold text-brand-dark mb-6 leading-tight">Consciously Crafted: Where <br>Nature Meets Timeless Style</h2>
+                <p class="text-sm text-gray-500 leading-relaxed mb-8 max-w-2xl mx-auto">
+                    At MIFANIA, we believe that fashion should leave a positive footprint. Born from a desire to merge timeless elegance with environmental responsibility, we source only the finest organic and recycled materials to create garments that respect both you and the Earth.
+                </p>
+                <div class="inline-block">
+                    <p class="text-3xl text-brand mb-1" style="font-family: 'Dancing Script', cursive;">Paolo Mifania</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Paolo Mifania • Founder & CEO</p>
+                </div>
+            </div>
+
+            {# Masonry Image Grid #}
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 mb-16">
+                <div class="lg:col-span-7 h-[350px] md:h-[500px]">
+                    <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover rounded-sm shadow-sm" alt="Sustainable Fashion Fabric">
+                </div>
+                <div class="lg:col-span-5 flex flex-col gap-4 lg:gap-6 h-[500px]">
+                    <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=1000&auto=format&fit=crop" class="w-full h-1/2 object-cover rounded-sm shadow-sm" alt="Eco Friendly Clothing">
+                    <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=1000&auto=format&fit=crop" class="w-full h-1/2 object-cover rounded-sm shadow-sm" alt="Sustainable Manufacturing">
+                </div>
+            </div>
+
+            {# Stats Banner #}
+            <div class="bg-brand py-12 px-6 rounded-sm text-white grid grid-cols-2 md:grid-cols-4 gap-8 text-center shadow-lg">
+                {% for stat in company_stats %}
+                    <div class="group">
+                        <h3 class="text-4xl lg:text-5xl font-bold mb-1 transition-transform duration-500 group-hover:scale-110">
+                            {{ stat.number }}
+                        </h3>
+                        <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">
+                            {{ stat.label }}
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </section>
+
+    {# ==========================================
+       SECTION 3: Product Quality
+       ========================================== #}
+    <section class="bg-light-gray border-y border-gray-100">
+        <div class="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2">
+            <div class="h-[400px] lg:h-auto">
+                <img src="https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover" alt="Quality Materials">
+            </div>
+            <div class="p-8 md:p-16 lg:p-24 flex flex-col justify-center">
+                <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-4">Our Product Quality</p>
+                <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark mb-6 leading-tight">We Make Things Comfy,<br>Pretty, and Fancy</h2>
+                <p class="text-sm text-gray-500 mb-10 leading-relaxed">
+                    Every stitch is intentional. We reject the fast-fashion cycle, opting instead to create durable, high-quality garments that become staples in your wardrobe for years to come.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <div>
+                        <div class="text-brand mb-4">
+                            {{ ux_icon('lucide:leaf', { class: 'h-10 w-10' }) }}
+                        </div>
+                        <h4 class="font-bold text-brand-dark mb-2 uppercase tracking-wide">100% Organic</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">GOTS-certified cotton grown without harmful pesticides.</p>
+                    </div>
+                    <div>
+                        <div class="text-brand mb-4">
+                            {{ ux_icon('lucide:wind', { class: 'h-10 w-10' }) }}
+                        </div>
+                        <h4 class="font-bold text-brand-dark mb-2 uppercase tracking-wide">Breathable</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Natural fibers that regulate temperature perfectly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ==========================================
+       SECTION 4: Sustainable Delivery (NEW)
+       ========================================== #}
+    <section class="py-16 lg:py-24 px-6 md:px-12 bg-white border-b border-gray-100">
+        <div class="max-w-[1440px] mx-auto text-center">
+
+            <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">How We Ship</p>
+            <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark mb-12">Sustainable Delivery</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 text-left">
+
+                {# Feature 1: Packaging #}
+                <div class="p-8 bg-gray-50 rounded-sm hover:bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-gray-100 group">
+                    <div class="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        {{ ux_icon('lucide:package', { class: 'w-8 h-8' }) }}
+                    </div>
+                    <h3 class="font-bold text-gray-900 uppercase tracking-widest mb-3 text-sm">Eco-Friendly Packaging</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">All our garments are shipped in 100% compostable mailers made from cornstarch, leaving absolutely zero plastic behind.</p>
+                </div>
+
+                {# Feature 2: Carbon Neutral #}
+                <div class="p-8 bg-gray-50 rounded-sm hover:bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-gray-100 group">
+                    <div class="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        {{ ux_icon('lucide:truck', { class: 'w-8 h-8' }) }}
+                    </div>
+                    <h3 class="font-bold text-gray-900 uppercase tracking-widest mb-3 text-sm">Carbon-Neutral Shipping</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">We calculate the carbon footprint of every delivery and invest in verified local reforestation projects to completely offset it.</p>
+                </div>
+
+                {# Feature 3: Fast & Free #}
+                <div class="p-8 bg-gray-50 rounded-sm hover:bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-gray-100 group">
+                    <div class="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        {{ ux_icon('lucide:clock', { class: 'w-8 h-8' }) }}
+                    </div>
+                    <h3 class="font-bold text-gray-900 uppercase tracking-widest mb-3 text-sm">Fast & Free Delivery</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">Enjoy free shipping nationwide on all orders over PHP 1,500. Expect your sustainable pieces to arrive quickly and safely.</p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    {# ==========================================
+       SECTION 5: Meet Our Team
+       ========================================== #}
+    <section class="max-w-[1440px] mx-auto py-16 lg:py-24 px-6 md:px-12 bg-white">
+        <div class="text-center mb-16">
+            <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Our People</p>
+            <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark">Meet Our Team</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
+            {% set team = [
+                { name: 'Arlene McCoy', role: 'Fashion Designer', img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2' },
+                { name: 'Bessie Cooper', role: 'Lead Artisan', img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956' },
+                { name: 'Jenny Wilson', role: 'Operations Manager', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb' }
+            ] %}
+
+            {% for member in team %}
+                <div class="group cursor-pointer">
+                    <div class="relative overflow-hidden mb-6 bg-gray-100 rounded-sm aspect-[4/5] shadow-sm">
+                        <img src="{{ member.img }}?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out" alt="{{ member.name }}">
+                        <div class="absolute top-4 right-4 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
+                            <a href="#" class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-brand shadow-sm transition-colors">{{ ux_icon('lucide:facebook', { class: 'h-4 w-4' }) }}</a>
+                            <a href="#" class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-brand shadow-sm transition-colors">{{ ux_icon('lucide:instagram', { class: 'h-4 w-4' }) }}</a>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-lg text-brand-dark group-hover:text-brand transition-colors">{{ member.name }}</h3>
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">{{ member.role }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+{% endblock %}

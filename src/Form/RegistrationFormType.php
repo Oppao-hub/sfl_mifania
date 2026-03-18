@@ -13,8 +13,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Email;
-
 
 class RegistrationFormType extends AbstractType
 {
@@ -23,7 +21,6 @@ class RegistrationFormType extends AbstractType
         $builder
             ->add('firstName', TextType::class, [
                 'label' => 'First name',
-                'required' => true,
                 'mapped' => false,
                 'constraints' => [
                     new NotBlank(['message' => 'Please enter your first name']),
@@ -32,7 +29,6 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('lastName', TextType::class, [
                 'label' => 'Last name',
-                'required' => true,
                 'mapped' => false,
                 'constraints' => [
                     new NotBlank(['message' => 'Please enter your last name']),
@@ -40,16 +36,7 @@ class RegistrationFormType extends AbstractType
                 ],
             ])
             ->add('email', EmailType::class, [
-            'attr' => ['autocomplete' => 'email'],
-            'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please enter an email',
-                    ]),
-                    // Add a valid email constraint
-                    new Email([
-                        'message' => 'The email "{{ value }}" is not a valid email.',
-                    ]),
-                ],
+                'attr' => ['autocomplete' => 'email'],
             ])
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,
@@ -69,7 +56,7 @@ class RegistrationFormType extends AbstractType
                     new Length([
                         'min' => 6,
                         'minMessage' => 'Your password should be at least {{ limit }} characters',
-                        'max' => 4096,
+                        'max' => 4096, // Max length allowed by Symfony for security reasons
                     ]),
                 ],
             ])
