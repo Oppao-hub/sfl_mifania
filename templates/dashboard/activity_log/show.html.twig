@@ -1,0 +1,107 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Activity Log: #{{ log.id }}{% endblock %}
+
+{% block main_content %}
+<div class="p-6 md:p-10 animate-fadeIn max-w-7xl mx-auto">
+
+    {# 1. TOP NAVIGATION & ACTION HEADER #}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div class="flex items-center gap-5">
+            <a href="{{ path('app_activity_log_index') }}"
+               class="p-3 bg-white rounded-xl border border-border-color text-gray hover:text-brand-dark transition-all shadow-sm active:scale-95">
+                {{ ux_icon('lucide:arrow-left', {class: 'w-5 h-5'}) }}
+            </a>
+            <div>
+                <h1 class="text-4xl font-black text-brand-dark tracking-tighter leading-none uppercase">
+                    Log Entry <span class="text-brand font-mono">#{{ log.id }}</span>
+                </h1>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] text-gray uppercase font-black tracking-widest italic font-mono">System Audit Trail</span>
+                    <span class="px-2 py-0.5 bg-app-bg text-gray rounded-md text-[10px] font-bold uppercase tracking-tighter border border-border-color">Immutable Record</span>
+                </div>
+            </div>
+        </div>
+
+        {# No edit/delete buttons to maintain audit integrity #}
+        <div class="px-4 py-2 bg-success/10 border border-success/20 text-success text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-2 shadow-sm">
+            {{ ux_icon('lucide:shield-check', {class: 'w-4 h-4'}) }}
+            Secured
+        </div>
+    </div>
+
+    {# 2. CONTENT GRID #}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        {# Left Column: Details #}
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden">
+            <div class="p-8 border-b border-border-color flex items-center gap-3 bg-app-bg">
+                <div class="p-2 bg-white rounded-lg text-brand border border-border-color shadow-sm">
+                    {{ ux_icon('lucide:clipboard-list', {class: 'w-5 h-5'}) }}
+                </div>
+                <h2 class="text-lg font-black text-brand-dark tracking-tighter uppercase">Action Specifications</h2>
+            </div>
+
+            <div class="p-8 md:p-10">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    <div>
+                        <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">Actor (User)</dt>
+                        <dd class="text-base font-bold text-brand-dark">
+                            {% if log.user %}
+                                {{ log.user.userIdentifier }}
+                            {% else %}
+                                <span class="text-gray italic font-medium">System / Anonymous</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">Privilege Role</dt>
+                        <dd>
+                            <span class="inline-flex px-3 py-1.5 bg-brand/10 text-brand rounded-md text-[10px] font-black uppercase tracking-widest border border-brand/20">
+                                {{ log.role|default('N/A')|replace({'ROLE_': ''}) }}
+                            </span>
+                        </dd>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">Action Taken</dt>
+                        <dd class="text-2xl font-black text-brand-dark uppercase tracking-tighter">{{ log.action }}</dd>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">Target Data / Context</dt>
+                        <dd class="text-sm font-medium text-dark-gray bg-app-bg p-6 rounded-xl border border-border-color leading-relaxed break-words shadow-inner">
+                            {{ log.targetData|default('No additional context provided for this action.') }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        {# Right Column: Audit Metadata #}
+        <div class="lg:col-span-4 space-y-8">
+            <div class="bg-white p-8 rounded-2xl border border-border-color shadow-sm">
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-gray mb-6 border-b border-border-color pb-4">Audit Record</h3>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Timestamp</p>
+                        <p class="text-sm font-bold text-brand-dark">{{ log.createdAt|date('F d, Y / H:i:s') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Log Identity</p>
+                        <p class="text-sm font-mono font-bold text-gray">#{{ log.id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Data Integrity</p>
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-app-bg border border-border-color rounded-md text-[10px] font-black text-gray uppercase tracking-widest shadow-sm">
+                            {{ ux_icon('lucide:check-circle-2', {class: 'w-4 h-4 text-brand'}) }} Verified
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

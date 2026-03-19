@@ -1,42 +1,40 @@
 {% form_theme form 'form/error_theme.html.twig' %}
 
-{# 1. Centralized Boutique Styles #}
-{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-dashboard-mocha/50 ml-1 block mb-2' %}
-{% set input_base = 'w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-dashboard-olive focus:ring-0 text-sm font-bold text-dashboard-mocha transition-all' %}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-gray ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all shadow-inner' %}
 {% set select_style = 'boutique-select ' ~ input_base %}
 
-{{ form_start(form, {'attr': {'class': 'relative', 'novalidate': 'novalidate'}}) }}
+{{ form_start(form, {'attr': {'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
 
     {# --- FIXED STICKY HEADER --- #}
-    {# 'sticky top-0' works best when the bar is at the very top of the form flow #}
-    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border border-cream-200 rounded-xl mb-8 p-6 shadow-xl shadow-dashboard-mocha/5 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="sticky top-4 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-            <div class="w-2 h-2 rounded-full bg-dashboard-olive animate-pulse"></div>
+            <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
             <div>
-                <h1 class="text-xl font-black text-dashboard-mocha tracking-tighter uppercase leading-none">
-                    {{ product.name|default('New Product') }}
+                <h1 class="text-xl font-black text-brand-dark tracking-tighter uppercase leading-none">
+                    {{ form.vars.value.name|default('New Product') }}
                 </h1>
-                <p class="text-[9px] text-dashboard-mocha/30 mt-1 uppercase font-black tracking-[0.3em]">Spec. Manifest #{{ product.id }}</p>
+                <p class="text-[9px] text-gray mt-1 uppercase font-black tracking-[0.3em]">Spec. Manifest #{{ form.vars.value.id|default('000') }}</p>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
             <a href="{{ path('app_product_index') }}"
-               class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-dashboard-mocha/40 border border-dashboard-olive/20 hove:border-dashboard-olive/20 hover:bg-dashboard-olive/5 hover:text-dashboard-mocha rounded-xl transition-all">
+               class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray border border-border-color bg-white hover:bg-row-hover hover:text-brand-dark rounded-xl transition-all cursor-pointer">
                 Discard
             </a>
             <button type="submit"
-                    class="px-8 py-3 bg-dashboard-olive text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-dashboard-olive/20 hover:bg-dashboard-olive/90 transition-all active:scale-95 cursor-pointer">
-                {{ button_label|default('Save') }}
+                    class="px-8 py-3 bg-brand text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-md shadow-brand/20 hover:bg-brand-dark transition-all active:scale-95 cursor-pointer">
+                {{ button_label|default('Save Manifest') }}
             </button>
         </div>
     </div>
 
     {# --- MAIN FORM CARD --- #}
-    <div class="bg-white rounded-xl shadow-[0_20px_50px_rgba(66,43,28,0.06)] border border-cream-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
 
         {# SECTION 1: Taxonomy #}
-        <div class="p-8 md:p-10 border-b border-gray-50 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="p-8 md:p-10 border-b border-border-color grid grid-cols-1 md:grid-cols-2 gap-8">
             {% for field in [form.name, form.subCategory] %}
                 <div>
                     {{ form_label(field, null, { label_attr: {'class': label_style} }) }}
@@ -46,7 +44,7 @@
         </div>
 
         {# SECTION 2: Physical Attributes #}
-        <div class="p-8 md:p-10 bg-dashboard-bg/10 border-b border-gray-50 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="p-8 md:p-10 bg-app-bg border-b border-border-color grid grid-cols-1 md:grid-cols-4 gap-6">
             {% for field in [form.material, form.size, form.color, form.gender] %}
                 <div>
                     {{ form_label(field, null, { label_attr: {'class': label_style} }) }}
@@ -56,57 +54,58 @@
         </div>
 
         {# SECTION 3: Financials #}
-        <div class="p-8 md:p-10 border-b border-gray-50 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="p-8 md:p-10 border-b border-border-color grid grid-cols-1 md:grid-cols-2 gap-8">
             {% for field in [form.price, form.cost] %}
                 <div>
                     {{ form_label(field, null, { label_attr: {'class': label_style} }) }}
                     <div class="relative group">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-dashboard-mocha/20 font-black group-focus-within:text-dashboard-olive transition-colors">₱</span>
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray font-black group-focus-within:text-brand transition-colors">₱</span>
                         {{ form_widget(field, {'attr': {'class': input_base ~ ' pl-10'}}) }}
                     </div>
                 </div>
             {% endfor %}
         </div>
 
-        {# SECTION 4: NARRATIVE & SUSTAINABILITY (Description & Eco Info) #}
-        <div class="p-8 md:p-10 border-b border-gray-50 space-y-8">
+        {# SECTION 4: NARRATIVE & SUSTAINABILITY #}
+        <div class="p-8 md:p-10 border-b border-border-color space-y-8 bg-app-bg">
             <div>
                 {{ form_label(form.description, null, { label_attr: {'class': label_style} }) }}
-                {{ form_widget(form.description, {'attr': {'class': input_base ~ ' min-h-[150px] italic leading-relaxed', 'placeholder': 'Describe the collection piece...'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': input_base ~ ' min-h-[150px] italic leading-relaxed bg-white', 'placeholder': 'Describe the collection piece...'}}) }}
                 {{ form_errors(form.description) }}
             </div>
             <div>
-                {{ form_label(form.ecoInfo, 'Sustainability Impact (Eco Info)', { label_attr: {'class': label_style ~ ' text-dashboard-olive'} }) }}
+                {{ form_label(form.ecoInfo, 'Sustainability Impact (Eco Info)', { label_attr: {'class': label_style ~ ' text-brand'} }) }}
                 <div class="relative">
-                    <div class="absolute left-4 top-4 text-dashboard-olive/40">{{ ux_icon('lucide:leaf', {class: 'w-4 h-4'}) }}</div>
-                    {{ form_widget(form.ecoInfo, {'attr': {'class': input_base ~ ' pl-12 bg-dashboard-bg/20 border-dashboard-olive/10 italic text-dashboard-olive', 'placeholder': 'Materials used, ethical sourcing details...'}}) }}
+                    <div class="absolute left-4 top-4 text-brand/40">{{ ux_icon('lucide:leaf', {class: 'w-4 h-4'}) }}</div>
+                    {{ form_widget(form.ecoInfo, {'attr': {'class': input_base ~ ' pl-12 bg-brand/5 border-brand/20 italic text-brand placeholder:text-brand/50', 'placeholder': 'Materials used, ethical sourcing details...'}}) }}
                 </div>
                 {{ form_errors(form.ecoInfo) }}
             </div>
             <div>
-                {{ form_label(form.story, 'Transparency Narrative', { label_attr: {'class': label_style ~ ' text-dashboard-olive'} }) }}
+                {{ form_label(form.story, 'Transparency Narrative', { label_attr: {'class': label_style ~ ' text-brand'} }) }}
                 <div class="relative">
-                    <div class="absolute left-4 top-4 text-dashboard-olive/40">{{ ux_icon('lucide:book-open', {class: 'w-4 h-4'}) }}</div>
-                    {{ form_widget(form.story, {'attr': {'class': select_style ~ ' pl-12 bg-dashboard-bg/20 border-dashboard-olive/10 text-dashboard-olive font-bold'}}) }}
+                    <div class="absolute left-4 top-4 text-brand/40">{{ ux_icon('lucide:book-open', {class: 'w-4 h-4'}) }}</div>
+                    {{ form_widget(form.story, {'attr': {'class': select_style ~ ' pl-12 bg-brand/5 border-brand/20 text-brand font-bold'}}) }}
                 </div>
                 {{ form_errors(form.story) }}
             </div>
         </div>
 
         {# SECTION 5: Media #}
-        <div class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-12 gap-10">
+        <div class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-12 gap-10 bg-white">
             {% if form.vars.value and form.vars.value.image %}
                 <div class="md:col-span-3">
                     <label class="{{ label_style }}">Current Visual</label>
-                    <div class="aspect-square rounded-xl overflow-hidden border border-cream-200">
-                        <img src="{{ asset('uploads/products/' ~ form.vars.value.image) }}" class="w-full h-full object-cover">
+                    <div class="aspect-square rounded-xl overflow-hidden border border-border-color p-1 shadow-sm mt-2">
+                        <img src="{{ asset('uploads/products/' ~ form.vars.value.image) }}" class="w-full h-full object-cover rounded-lg">
                     </div>
                 </div>
             {% endif %}
+
             <div class="{{ form.vars.value and form.vars.value.image ? 'md:col-span-9' : 'md:col-span-12' }}">
                 <label class="{{ label_style }}">Update Imagery</label>
-                <div class="bg-dashboard-bg/10 border-2 border-dashed border-dashboard-bg rounded-xl p-8 hover:bg-dashboard-bg/20 transition-all cursor-pointer">
-                    {{ form_widget(form.image, {'attr': {'class': 'text-xs text-dashboard-mocha/40 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-white file:text-dashboard-mocha hover:file:bg-dashboard-olive hover:file:text-white transition-all'}}) }}
+                <div class="bg-app-bg border-2 border-dashed border-border-color rounded-2xl p-8 hover:border-brand/30 transition-all cursor-pointer">
+                    {{ form_widget(form.image, {'attr': {'class': 'text-xs text-gray file:mr-6 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-brand/10 file:text-brand hover:file:bg-brand hover:file:text-white transition-all cursor-pointer'}}) }}
                 </div>
             </div>
         </div>

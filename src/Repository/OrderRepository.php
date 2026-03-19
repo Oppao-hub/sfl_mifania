@@ -44,4 +44,30 @@ class OrderRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getMonthlySalesData(int $monthsBack = 6): array
+    {
+        $salesData = [];
+
+        // Loop backwards from 5 months ago up to this current month (6 months total)
+        for ($i = $monthsBack - 1; $i >= 0; $i--) {
+            $start = new \DateTime("first day of -$i month midnight");
+            $end   = new \DateTime("last day of -$i month 23:59:59");
+
+            $total = $this->createQueryBuilder('o')
+                ->select('SUM(o.totalAmount)')
+                ->where('o.createdAt BETWEEN :start AND :end')
+                ->setParameter('start', $start)
+                ->setParameter('end', $end)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            $salesData[] = [
+                'month' => $start->format('M'), // Formats to 'Jan', 'Feb', etc.
+                'total' => (float) ($total ?? 0), // Fallback to 0 if no sales
+            ];
+        }
+
+        return $salesData;
+    }
 }

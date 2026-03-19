@@ -25,8 +25,8 @@
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
            class="fixed inset-y-0 left-0 w-72 bg-white border-r border-border-color flex flex-col z-50 p-6 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:h-screen lg:shadow-sm">
 
-        <div class="mb-10 flex items-center justify-between">
-            <img src="{{ asset('uploads/logo/logo.svg') }}" alt="MIFANIA" class="h-8 w-auto">
+        <div class="mb-10 flex items-center justify-center">
+            <img src="{{ asset('uploads/logo/logo.svg') }}" alt="MIFANIA" class="h-12 w-auto">
             <button @click="sidebarOpen = false" class="lg:hidden p-2 text-gray hover:bg-row-hover rounded-xl transition-colors">
                 {{ ux_icon('lucide:x', {class: 'w-5 h-5'}) }}
             </button>

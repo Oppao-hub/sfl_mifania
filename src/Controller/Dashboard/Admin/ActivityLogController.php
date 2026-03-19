@@ -16,8 +16,16 @@ class ActivityLogController extends AbstractController
     {
         $logs = $entityManager->getRepository(ActivityLog::class)->findBy([], ['createdAt' => 'DESC']);
 
-        return $this->render('admin/activity_log/index.html.twig', [
+        return $this->render('dashboard/activity_log/index.html.twig', [
             'logs' => $logs,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_activity_log_show')]
+    public function show(ActivityLog $log): Response
+    {
+        return $this->render('dashboard/activity_log/show.html.twig', [
+            'log' => $log,
         ]);
     }
 }

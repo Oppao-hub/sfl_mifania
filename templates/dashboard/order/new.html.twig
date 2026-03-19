@@ -3,9 +3,10 @@
 {% block title %}Add Order{% endblock %}
 
 {% block main_content %}
-    {{ include('dashboard/order/_form.html.twig', {
-        form: form,
-        button_label: 'Add Order',
-        button_class: 'px-3 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover'
-    }) }}
+    <div class="max-w-5xl mx-auto">
+        {{ include('dashboard/order/_form.html.twig', {
+            form: form,
+            button_label: 'Create Order'
+        }) }}
+    </div>
 {% endblock %}

@@ -26,6 +26,24 @@
         {% endfor %}
     </div>
 
+    {# --- THE CHART SECTION --- #}
+    <div class="bg-white p-8 rounded-2xl shadow-sm border border-border-color mb-6 animate-fadeIn">
+        <div class="flex items-center gap-3 mb-6 border-b border-border-color pb-4">
+            <div class="p-2 bg-app-bg rounded-xl text-brand border border-border-color">
+                {{ ux_icon('lucide:chart-line', {class: 'w-5 h-5'}) }}
+            </div>
+            <div>
+                <h2 class="text-sm font-black text-brand-dark uppercase tracking-widest">Revenue Overview</h2>
+                <p class="text-[10px] text-gray mt-1 uppercase font-bold tracking-widest">Last 6 Months</p>
+            </div>
+        </div>
+
+        {# This single line renders the entire interactive canvas! #}
+        <div class="w-full h-[300px] flex items-center justify-center">
+            {{ render_chart(chart) }}
+        </div>
+    </div>
+
     {# Row 2: Data Tables #}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

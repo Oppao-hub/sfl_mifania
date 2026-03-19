@@ -3,9 +3,10 @@
 {% block title %}New Admin{% endblock %}
 
 {% block main_content %}
-    {{ include('dashboard/admin/_form.html.twig', {
-        form: form,
-        button_label: 'Create Admin',
-        button_class: 'px-3 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover'
-    }) }}
+    <div class="max-w-4xl mx-auto">
+        {{ include('dashboard/admin/_form.html.twig', {
+            form: form,
+            button_label: 'Create Administrative Profile'
+        }) }}
+    </div>
 {% endblock %}

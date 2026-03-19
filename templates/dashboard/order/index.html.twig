@@ -1,5 +1,6 @@
-{# templates/dashboard/order/index.html.twig #}
 {% extends "dashboard/dashboard.html.twig" %}
+
+{% block title %}Order Management{% endblock %}
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
@@ -10,19 +11,24 @@
     } %}
         {% block rows %}
             {% for order in orders %}
-                <tr class="hover:bg-dashboard-bg/50 transition-colors">
-                    <td class="border-y border-l border-gray-200 rounded-l-xl px-4 py-3">{{ order.id }}</td>
-                    <td class="border-y border-gray-200 px-4 py-3">{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
-                    <td class="border-y border-gray-200 px-4 py-3 font-bold">₱{{ order.totalAmount }}</td>
-                    <td class="border-y border-gray-200 px-4 py-3 text-xs">{{ order.rewardPoints }}</td>
+                <tr class="hover:bg-row-hover transition-colors group">
+                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">#{{ order.id }}</td>
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-black text-brand-dark">₱{{ order.totalAmount|number_format(2) }}</td>
+                    <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-terracotta">{{ order.rewardPoints }} pts</td>
 
                     {# Payment Method Selector #}
-                    <td class="border-y border-gray-200 px-4 py-3">
+                    <td class="border-y border-border-color px-4 py-3">
                         <form method="post" action="{{ path('app_order_change_payment_method', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_payment_method' ~ order.id) }}">
                             <select name="payment_method"
-                                    @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ order.paymentMethod.value }}', title: 'Payment Method' })"
-                                    class="text-[10px] font-bold py-1 px-2 border border-gray-100 rounded-lg bg-gray-50/50 cursor-pointer w-full">
+                                    @change="$dispatch('open-status-modal', {
+                                        url: '{{ path('app_order_change_payment_method', {id: order.id}) }}',
+                                        email: 'Order #{{ order.id }}',
+                                        currentStatus: '{{ order.paymentMethod.value }}',
+                                        token: '{{ csrf_token('change_payment_method' ~ order.id) }}'
+                                    }); this.value = '{{ order.paymentMethod.value }}';"
+                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border border-border-color bg-app-bg text-dark-gray w-full">
                                 {% for method in paymentMethods %}
                                     <option value="{{ method.value }}" {% if order.paymentMethod.value == method.value %}selected{% endif %}>{{ method.value }}</option>
                                 {% endfor %}
@@ -31,15 +37,20 @@
                     </td>
 
                     {# Payment Status Selector #}
-                    <td class="border-y border-gray-200 px-4 py-3">
+                    <td class="border-y border-border-color px-4 py-3">
                         <form method="post" action="{{ path('app_order_change_payment_status', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_payment_status' ~ order.id) }}">
                             <select name="payment_status"
-                                    @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ order.paymentStatus.value }}', title: 'Payment Status' })"
-                                    class="text-[10px] font-bold py-1 px-2 rounded-lg cursor-pointer w-full border-none
-                                    {% if order.paymentStatus.value == 'Paid' %} bg-green-100 text-green-700
-                                    {% elseif order.paymentStatus.value == 'Pending' %} bg-orange-100 text-orange-700
-                                    {% else %} bg-red-100 text-red-700 {% endif %}">
+                                    @change="$dispatch('open-status-modal', {
+                                        url: '{{ path('app_order_change_payment_status', {id: order.id}) }}',
+                                        email: 'Order #{{ order.id }}',
+                                        currentStatus: '{{ order.paymentStatus.value }}',
+                                        token: '{{ csrf_token('change_payment_status' ~ order.id) }}'
+                                    }); this.value = '{{ order.paymentStatus.value }}';"
+                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border-none w-full
+                                    {% if order.paymentStatus.value == 'Paid' %} bg-success/10 text-success
+                                    {% elseif order.paymentStatus.value == 'Pending' %} bg-warning/10 text-warning
+                                    {% else %} bg-danger/10 text-danger {% endif %}">
                                 {% for pStatus in paymentStatuses %}
                                     <option value="{{ pStatus.value }}" {% if order.paymentStatus.value == pStatus.value %}selected{% endif %}>{{ pStatus.value }}</option>
                                 {% endfor %}
@@ -48,15 +59,20 @@
                     </td>
 
                     {# Order Status Selector #}
-                    <td class="border-y border-gray-200 px-4 py-3">
+                    <td class="border-y border-border-color px-4 py-3">
                         <form method="post" action="{{ path('app_order_change_status', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_status' ~ order.id) }}">
                             <select name="status"
-                                    @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ order.orderStatus.value }}', title: 'Order Status' })"
-                                    class="text-[10px] font-bold py-1 px-2 rounded-lg cursor-pointer w-full border-none
-                                    {% if order.orderStatus.value == 'Completed' %} bg-green-100 text-green-700
-                                    {% elseif order.orderStatus.value == 'Cancelled' %} bg-red-100 text-red-700
-                                    {% else %} bg-blue-100 text-blue-700 {% endif %}">
+                                    @change="$dispatch('open-status-modal', {
+                                        url: '{{ path('app_order_change_status', {id: order.id}) }}',
+                                        email: 'Order #{{ order.id }}',
+                                        currentStatus: '{{ order.orderStatus.value }}',
+                                        token: '{{ csrf_token('change_status' ~ order.id) }}'
+                                    }); this.value = '{{ order.orderStatus.value }}';"
+                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border-none w-full
+                                    {% if order.orderStatus.value == 'Completed' %} bg-success/10 text-success
+                                    {% elseif order.orderStatus.value == 'Cancelled' %} bg-danger/10 text-danger
+                                    {% else %} bg-brand/10 text-brand {% endif %}">
                                 {% for oStatus in statuses %}
                                     <option value="{{ oStatus.value }}" {% if order.orderStatus.value == oStatus.value %}selected{% endif %}>{{ oStatus.value }}</option>
                                 {% endfor %}
@@ -65,18 +81,25 @@
                     </td>
 
                     {# Actions #}
-                    <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
-                        <div class="flex justify-center items-center gap-3">
-                            <a  href="{{ path('app_order_show', { id: order.id }) }}"
-                                class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}</a>
-
-                            <a  href="{{ path('app_order_edit', { id: order.id }) }}"
-                                class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}</a>
-
-                            <button
-                                type="button"
-                                @click="$dispatch('open-delete-modal', { url: '{{ path('app_order_delete', {id: order.id}) }}', name: 'Order #{{ order.id }}', token: '{{ csrf_token('delete' ~ order.id) }}' })"
-                                class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}</button>
+                    <td class="border-y border-border-color py-3 px-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            <a href="{{ path('app_order_show', { id: order.id }) }}"
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
+                            </a>
+                            <a href="{{ path('app_order_edit', { id: order.id }) }}"
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
+                            </a>
+                            <button type="button"
+                                @click="$dispatch('open-delete-modal', {
+                                    url: '{{ path('app_order_delete', {id: order.id}) }}',
+                                    name: 'Order #{{ order.id }}',
+                                    token: '{{ csrf_token('delete' ~ order.id) }}'
+                                })"
+                                class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                            </button>
                         </div>
                     </td>
                 </tr>

@@ -12,37 +12,42 @@
 
         {% block rows %}
             {% for customer in customers %}
-                <tr class="hover:bg-dashboard-bg/50 transition-colors group">
-                    <td class="border-y border-l border-gray-200 rounded-l-xl px-4 py-3 text-sm font-mono text-gray-400">
-                        {{ customer.id }}
+                <tr class="hover:bg-row-hover transition-colors group">
+                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">
+                        #{{ customer.id }}
                     </td>
-                    <td class="border-y border-gray-200 px-4 py-3 text-sm font-semibold text-brand">
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
                         {{ customer.firstName }}
                     </td>
-                    <td class="border-y border-gray-200 px-4 py-3 text-sm font-semibold text-brand">
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
                         {{ customer.lastName }}
                     </td>
-
-                    <td class="border-y border-gray-200 px-4 py-3 text-sm text-gray-500">
+                    <td class="border-y border-border-color px-4 py-3 text-sm text-gray">
                         {{ customer.user.email }}
                     </td>
-                    <td class="border-y border-gray-200 px-4 py-3 text-sm text-gray-500 italic">
+                    <td class="border-y border-border-color px-4 py-3 text-sm text-gray truncate max-w-[150px]">
                         {{ customer.address }}
                     </td>
-                    <td class="border-y border-gray-200 px-4 py-3 text-sm text-gray-500 italic">
+                    <td class="border-y border-border-color px-4 py-3 text-sm text-gray">
                         {{ customer.city }}
                     </td>
-                    <td class="border-y border-gray-200 px-4 py-3 text-center">
+
+                    <td class="border-y border-border-color px-4 py-3 text-center">
                         <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': customer.user.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ customer.user.id) }}">
 
                             <select name="status"
-                                    @change="$dispatch('confirm-action', { form: $el.form, select: $el, originalVal: '{{ customer.user.status.value }}', title: 'Account Status' })"
-                                    class="text-[10px] font-bold py-1 px-2 rounded-lg cursor-pointer w-full border-none focus:ring-0
+                                    @change="$dispatch('open-status-modal', {
+                                        url: '{{ path('app_admin_user_toggle_status', {id: customer.user.id}) }}',
+                                        email: '{{ customer.user.email|e('js') }}',
+                                        currentStatus: '{{ customer.user.status.value }}',
+                                        token: '{{ csrf_token('toggle' ~ customer.user.id) }}'
+                                    }); this.value = '{{ customer.user.status.value }}';"
+                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none transition-colors border
                                     {% if customer.user.status.value == 'Active' %}
-                                        bg-green-100 text-green-700
+                                        text-success bg-success/10 border-success/20 hover:bg-success/20
                                     {% else %}
-                                        bg-red-100 text-red-700
+                                        text-danger bg-danger/10 border-danger/20 hover:bg-danger/20
                                     {% endif %}">
                                 <option value="Active" {% if customer.user.status.value == 'Active' %}selected{% endif %}>Active</option>
                                 <option value="Deactivated" {% if customer.user.status.value != 'Active' %}selected{% endif %}>Deactivated</option>
@@ -50,36 +55,28 @@
                         </form>
                     </td>
 
-                    {# Actions: Rounded Right #}
-                    <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
-                        <div class="flex justify-center items-center gap-3">
-                            {# History #}
+                    <td class="border-y border-border-color py-3 px-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
                             <a href="{{ path('app_customer_history', {'id': customer.id}) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
-                                {{ ux_icon('lucide:history', {class: 'w-5 h-5'}) }}
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all" title="Order History">
+                                {{ ux_icon('lucide:history', {class: 'w-4 h-4'}) }}
                             </a>
-
-                            {# View #}
                             <a href="{{ path('app_customer_show', { id: customer.id }) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
-                                {{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                             </a>
-
-                            {# Edit #}
                             <a href="{{ path('app_customer_edit', { id: customer.id }) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
-                                {{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
-
-                            {# Delete (Using the Alpine Modal we built) #}
                             <button type="button"
                                 @click="$dispatch('open-delete-modal', {
                                     url: '{{ path('app_customer_delete', {id: customer.id}) }}',
                                     name: '{{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}',
                                     token: '{{ csrf_token('delete' ~ customer.id) }}'
                                 })"
-                                class="text-red-400 hover:text-[#B45239] transition-colors cursor-pointer">
-                                {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                                class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                             </button>
                         </div>
                     </td>

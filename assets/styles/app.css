@@ -3,21 +3,26 @@
 @source not "../../public";
 
 @theme {
-    /* --- 🌿 Core Brand Palette (Frontend & Base) --- */
-    --color-brand: #52622E;         /* Primary Mifania Olive */
-    --color-brand-light: #6A7B42;   /* Softened for hovers */
-    --color-brand-dark: #3F4C23;    /* Deepened for active states */
-    --color-light-brown: #8A7363;   /* Richer tone for secondary text */
+    /* --- 🌿 Core Brand Palette --- */
+    --color-brand: #52622E;
+    --color-brand-light: #6A7B42;
+    --color-brand-dark: #3F4C23;
+    --color-light-brown: #8A7363;
 
     /* --- 🩶 UI Neutrals & Shades --- */
     --color-white: #FFFFFF;
-    --color-app-bg: #FBFBFA;        /* Seamless Mifania Alabaster background */
+    --color-app-bg: #FBFBFA;
     --color-light-gray: #F3F4F6;
     --color-gray: #6A7282;
     --color-dark-gray: #4B5563;
-
     --color-border-color: #EAE8E3;
     --color-row-hover: #F9F9F8;
+
+    /* --- ✅ Status Colors --- */
+    --color-success: #52622E;
+    --color-danger: #DC3545;
+    --color-warning: #D97706;
+    --color-terracotta: #B45239;
 }
 
 /* --- Base Styles --- */
@@ -27,8 +32,8 @@ html {
 
 body {
     font-family: "Montserrat", sans-serif;
-    background-color: var(--color-dashboard-bg);
-    color: var(--color-dashboard-mocha);
+    background-color: var(--color-app-bg);
+    color: var(--color-brand-dark);
 }
 
 .accordion-content {
@@ -39,78 +44,67 @@ body {
     display: none !important;
 }
 
-/* --- 📋 Unified Table & DataTables 2.0 Styles --- */
+/* --- 📋 Unified DataTables 2.0 Styles --- */
 
 /* The Control Row Wrapper */
-.dt-controls {
-    @apply w-full border-b border-gray-100 pb-4;
+.dt-layout-row:has(.dt-search),
+.dt-layout-row:has(.dt-length) {
+    @apply w-full border-b border-border-color pb-4 mb-4;
 }
 
 /* 1. Search Input */
 .dt-search input {
-    @apply bg-dashboard-bg/50 ring-1 ring-dashboard-olive/30 rounded-xl px-4 py-2 text-sm text-dashboard-mocha outline-none w-64 transition-all;
+    @apply bg-app-bg/50 ring-1 ring-border-color rounded-xl px-4 py-2 text-sm text-brand-dark outline-none w-64 transition-all;
 }
 
 .dt-search input:focus {
-    @apply ring-2 ring-dashboard-olive/50;
+    @apply ring-2 ring-brand/30 border-brand;
 }
 
 /* 2. Length Dropdown */
 .dt-length select {
-    @apply bg-dashboard-bg/50 ring-1 ring-dashboard-olive/30 rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-dashboard-mocha outline-none cursor-pointer;
+    @apply bg-app-bg/50 ring-1 ring-border-color rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-dark outline-none cursor-pointer transition-all;
 }
 
 .dt-length select:focus-visible {
-    @apply ring-2 ring-dashboard-olive/50;
+    @apply ring-2 ring-brand/30 border-brand;
 }
 
-/* 3. Style the Info/Count Badge (Top Right) */
-.dataTables_info {
-    @apply px-3 py-1.5 bg-dashboard-bg/50 text-dashboard-mocha/50 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border border-cream-200 shadow-sm;
-}
-
-.dataTables_length select,
-.dataTables_filter input {
-    @apply bg-white border border-gray-200 rounded-xl px-4 py-2
-           text-xs font-bold text-dashboard-mocha outline-none
-           transition-all focus:border-dashboard-olive focus:ring-0;
-}
-
-/* 4. Info Text */
+/* 3. Info Text (Bottom Left) */
 .dt-info {
-    @apply flex items-center gap-2 px-4 py-2 mr-2 bg-dashboard-mint text-dashboard-mocha
-           rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border-none;
+    @apply flex items-center gap-2 px-4 py-2 mr-2 bg-brand/10 text-brand-dark
+           rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border-none shadow-sm w-fit;
 }
 
 .dt-info::before {
     content: "";
-    @apply w-1.5 h-1.5 rounded-full bg-dashboard-olive animate-pulse;
+    @apply w-1.5 h-1.5 rounded-full bg-brand animate-pulse;
 }
 
-/* 5. Pagination */
+/* 4. Pagination */
 .dt-paging .dt-paging-button {
-    @apply border-none bg-transparent text-dashboard-mocha/40 font-black text-xs px-3 py-2 rounded-xl transition-all cursor-pointer;
+    @apply border-none bg-transparent text-gray font-black text-xs px-3 py-2 rounded-xl transition-all cursor-pointer;
 }
 
 /* Use standard CSS for !important overrides in DataTables */
 .dt-paging .dt-paging-button.current {
-    background-color: var(--color-dashboard-olive) !important;
-    color: white !important;
+    background-color: var(--color-brand) !important;
+    color: var(--color-white) !important;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
 }
 
 .dt-paging .dt-paging-button:hover:not(.current) {
-    background-color: var(--color-dashboard-bg) !important;
-    color: var(--color-dashboard-olive) !important;
+    background-color: var(--color-app-bg) !important;
+    color: var(--color-brand) !important;
 }
 
-/* 6. Floating Table Rows */
-.dt-contaier {
+/* 5. Floating Table Rows */
+.dt-container {
     @apply mt-5;
 }
 
 .js-datatable tbody tr td {
-    @apply border-y border-cream-200 bg-white transition-all duration-300 py-3 px-4;
+    @apply border-y border-border-color bg-white transition-all duration-300 py-3 px-4;
 }
 
 .js-datatable tbody tr td:first-child {
@@ -122,10 +116,10 @@ body {
 }
 
 .js-datatable tbody tr:hover td {
-    @apply border-dashboard-olive/20 bg-dashboard-bg/30;
+    @apply border-brand/20 bg-row-hover;
 }
 
-/* 7. Sorting Arrows */
+/* 6. Sorting Arrows */
 span.dt-column-order {
     @apply inline-flex flex-col gap-[2px] ml-2 align-middle;
     width: 10px;
@@ -133,20 +127,20 @@ span.dt-column-order {
 
 span.dt-column-order::before {
     content: "";
-    @apply border-b-4 border-l-4 border-r-4 border-t-0 border-l-transparent border-r-transparent border-b-dashboard-mocha/20;
+    @apply border-b-4 border-l-4 border-r-4 border-t-0 border-l-transparent border-r-transparent border-b-gray/30;
 }
 
 span.dt-column-order::after {
     content: "";
-    @apply border-t-4 border-l-4 border-r-4 border-b-0 border-l-transparent border-r-transparent border-t-dashboard-mocha/20;
+    @apply border-t-4 border-l-4 border-r-4 border-b-0 border-l-transparent border-r-transparent border-t-gray/30;
 }
 
 th.dt-ordering-asc span.dt-column-order::before {
-    @apply border-b-dashboard-olive;
+    @apply border-b-brand;
 }
 
 th.dt-ordering-desc span.dt-column-order::after {
-    @apply border-t-dashboard-olive;
+    @apply border-t-brand;
 }
 
 /* --- 🔑 Animations --- */

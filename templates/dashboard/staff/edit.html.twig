@@ -3,9 +3,10 @@
 {% block title %}Edit Staff Profile{% endblock %}
 
 {% block main_content %}
-    {{ include('dashboard/staff/_form.html.twig', {
-        form: form,
-        button_label: 'Update Staff',
-        button_class: 'cursor-pointer px-4 py-2 bg-success text-sm font-semibold text-white rounded-xl hover:bg-success-hover'
-    }) }}
+    <div class="max-w-4xl mx-auto">
+        {{ include('dashboard/staff/_form.html.twig', {
+            form: form,
+            button_label: 'Update Staff'
+        }) }}
+    </div>
 {% endblock %}

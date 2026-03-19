@@ -1,47 +1,45 @@
-{# templates/dashboard/staff/_form.html.twig #}
 {% form_theme form 'form/error_theme.html.twig' %}
 
-{# 1. Centralized Boutique Styles #}
-{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-dashboard-mocha/50 ml-1 block mb-2' %}
-{% set input_base = 'w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-dashboard-olive focus:ring-0 text-sm font-bold text-dashboard-mocha transition-all placeholder:text-gray-300' %}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-gray ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all placeholder:text-gray/50 shadow-inner' %}
 
-{{ form_start(form, {'attr': {'id': 'staff-form', 'class': 'relative', 'novalidate': 'novalidate'}}) }}
+{{ form_start(form, {'attr': {'id': 'staff-form', 'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
 
     {# --- FIXED STICKY HEADER --- #}
-    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border border-cream-200 rounded-xl mb-8 p-6 shadow-xl shadow-dashboard-mocha/5 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="sticky top-4 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-            <div class="w-2 h-2 rounded-full bg-dashboard-olive animate-pulse"></div>
+            <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
             <div>
                 {% set staff = form.vars.data %}
-                <h1 class="text-xl font-black text-dashboard-mocha tracking-tighter uppercase leading-none">
+                <h1 class="text-xl font-black text-brand-dark tracking-tighter uppercase leading-none">
                     {{ staff.id ? staff.firstName ~ ' ' ~ staff.lastName : 'New Staff Record' }}
                 </h1>
-                <p class="text-[9px] text-dashboard-mocha/30 mt-1 uppercase font-black tracking-[0.3em]">Staff Manifest #{{ staff.id|default('000') }}</p>
+                <p class="text-[9px] text-gray mt-1 uppercase font-black tracking-[0.3em]">Staff Manifest #{{ staff.id|default('000') }}</p>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
             <a href="{{ path('app_staff_index') }}"
-               class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-dashboard-mocha/40 border border-dashboard-olive/20 hover:bg-dashboard-olive/5 rounded-xl transition-all">
+               class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray border border-border-color bg-white hover:bg-row-hover hover:text-brand-dark rounded-xl transition-all cursor-pointer">
                 Discard
             </a>
             <button type="submit"
-                    class="px-8 py-3 bg-dashboard-olive text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-dashboard-olive/20 hover:bg-dashboard-olive/90 transition-all active:scale-95 cursor-pointer">
+                    class="px-8 py-3 bg-brand text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-md shadow-brand/20 hover:bg-brand-dark transition-all active:scale-95 cursor-pointer">
                 {{ button_label|default('Commit Record') }}
             </button>
         </div>
     </div>
 
     {# --- MAIN FORM CARD --- #}
-    <div class="bg-white rounded-xl shadow-[0_20px_50px_rgba(66,43,28,0.06)] border border-cream-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
 
         {# SECTION 1: Identity & Access #}
-        <div class="p-8 md:p-10 border-b border-gray-50">
+        <div class="p-8 md:p-10 border-b border-border-color">
             <div class="mb-10 flex items-center gap-3">
-                <div class="p-2 bg-dashboard-bg rounded-lg text-dashboard-olive">
+                <div class="p-2 bg-app-bg rounded-xl text-brand border border-border-color">
                     {{ ux_icon('lucide:user-cog', {class: 'w-5 h-5'}) }}
                 </div>
-                <h3 class="text-lg font-black text-dashboard-mocha tracking-tighter uppercase">General Details</h3>
+                <h3 class="text-lg font-black text-brand-dark tracking-tighter uppercase">General Details</h3>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -65,48 +63,49 @@
                     <div class="md:col-span-2">
                         {{ form_label(form.password, null, {'label_attr': {'class': label_style}}) }}
                         {{ form_widget(form.password, {'attr': {'class': input_base}}) }}
-                        <p class="text-[9px] uppercase font-bold text-terracotta tracking-widest mt-3 ml-1 italic opacity-60">Security Requirement: Minimum 8 characters required</p>
+                        <p class="text-[9px] uppercase font-bold text-terracotta tracking-widest mt-3 ml-1 italic opacity-80">Security Requirement: Minimum 8 characters required</p>
                     </div>
                 {% endif %}
             </div>
         </div>
 
-        {# SECTION 2: Media & Avatar (The Mint Wash Section) #}
-        <div class="p-8 md:p-10 bg-dashboard-bg/10 grid grid-cols-1 md:grid-cols-12 gap-10 items-center border-b border-gray-50">
+        {# SECTION 2: Media & Avatar #}
+        <div class="p-8 md:p-10 bg-app-bg grid grid-cols-1 md:grid-cols-12 gap-10 items-center border-b border-border-color">
             {% if staff.avatar is defined and staff.avatar %}
                 <div class="md:col-span-3">
                     <label class="{{ label_style }}">Current Visual ID</label>
-                    <div class="p-1 border border-cream-200 rounded-2xl bg-white mt-2">
-                        <img src="{{ asset('uploads/avatars/' ~ staff.avatar) }}"
-                             class="w-full aspect-square object-cover rounded-xl shadow-sm">
+                    <div class="p-1 border border-border-color rounded-2xl bg-white mt-2 shadow-sm">
+                        <img src="{{ asset('uploads/staff/avatars/' ~ staff.avatar) }}"
+                             class="w-full aspect-square object-cover rounded-xl">
                     </div>
                 </div>
             {% endif %}
 
             <div class="{{ staff.avatar is defined and staff.avatar ? 'md:col-span-9' : 'md:col-span-12' }}">
                 <label class="{{ label_style }}">Update Staff Imagery</label>
-                <div class="bg-white border-2 border-dashed border-cream-300 rounded-xl p-8 hover:border-dashboard-olive/30 transition-all cursor-pointer">
+                <div class="bg-white border-2 border-dashed border-border-color rounded-2xl p-8 hover:border-brand/30 transition-all cursor-pointer">
                     {{ form_widget(form.avatar, {
                         'attr': {
-                            'class': 'block w-full text-xs text-dashboard-mocha/40
-                                      file:mr-6 file:py-2 file:px-4
+                            'class': 'block w-full text-xs text-gray
+                                      file:mr-6 file:py-2.5 file:px-6
                                       file:rounded-xl file:border-0
-                                      file:text-[10px] file:font-black file:uppercase file:bg-dashboard-bg file:text-dashboard-mocha'
+                                      file:text-[10px] file:font-black file:uppercase file:tracking-widest
+                                      file:bg-brand/10 file:text-brand hover:file:bg-brand hover:file:text-white file:transition-colors cursor-pointer'
                         }
                     }) }}
                 </div>
-                <p class="text-[9px] uppercase font-bold text-dashboard-mocha/20 tracking-widest mt-4 ml-1">Recommended: 1:1 Aspect Ratio (Square)</p>
+                <p class="text-[9px] uppercase font-bold text-gray tracking-widest mt-4 ml-1">Recommended: 1:1 Aspect Ratio (Square)</p>
             </div>
         </div>
 
         {# SECTION 3: SECURITY ACTIONS #}
         {% if staff.id is defined and staff.id and staff.user is defined %}
-            <div class="p-8 border-t border-gray-50 flex justify-start">
+            <div class="p-8 flex justify-start bg-white">
                 <a href="{{ path('app_admin_reset_password', {'id': staff.user.id}) }}"
-                   class="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-orange-500/60 hover:text-orange-600 transition-all"
+                   class="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-warning hover:text-warning transition-all"
                    onclick="return confirm('Send archival credential reset to this staff member?');">
-                    <div class="p-2.5 bg-orange-50 rounded-xl group-hover:bg-orange-500 group-hover:text-white transition-all shadow-sm">
-                        {{ ux_icon('lucide:refresh-cw', {class: 'w-3.5 h-3.5'}) }}
+                    <div class="p-2.5 bg-warning/10 rounded-xl group-hover:bg-warning group-hover:text-white transition-all shadow-sm">
+                        {{ ux_icon('lucide:refresh-cw', {class: 'w-4 h-4'}) }}
                     </div>
                     Reset Password
                 </a>

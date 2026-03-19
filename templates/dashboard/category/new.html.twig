@@ -3,13 +3,10 @@
 {% block title %}Add Category{% endblock %}
 
 {% block main_content %}
-<div class="mx-1 min-h-screen bg-white p-8 mb-1 shadow-md">
-    <h1 class="text-2xl font-bold text-brand mb-6">Add New Category</h1>
-
-    {{ include('dashboard/category/_form.html.twig', {
-        form: form,
-        button_label: 'Add Category',
-        button_class: 'px-3 py-2 bg-success hover:bg-success-hover text-white text-sm font-semibold rounded-xl'
-    }) }}
-</div>
+    <div class="max-w-4xl mx-auto">
+        {{ include('dashboard/category/_form.html.twig', {
+            form: form,
+            button_label: 'Create Category'
+        }) }}
+    </div>
 {% endblock %}

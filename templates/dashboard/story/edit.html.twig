@@ -3,8 +3,10 @@
 {% block title %}Edit Story: {{ story.title }}{% endblock %}
 
 {% block main_content %}
-    {{ include('dashboard/story/_form.html.twig', {
-        story: story,
-        button_label: 'Update Narrative'
-    }) }}
+    <div class="max-w-4xl mx-auto">
+        {{ include('dashboard/story/_form.html.twig', {
+            story: story,
+            button_label: 'Update Narrative'
+        }) }}
+    </div>
 {% endblock %}

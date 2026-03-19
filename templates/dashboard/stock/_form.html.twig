@@ -1,66 +1,89 @@
 {% form_theme form 'form/error_theme.html.twig' %}
 
-{{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-gray ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all shadow-inner placeholder:text-gray/50' %}
+{% set select_style = 'boutique-select ' ~ input_base %}
 
-{# Row 1: Product and Location (Two-column grid) #}
-<div class="bg-gray-50 p-6 mb-4 rounded-xl border border-gray-200">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-            {{ form_label(form.product, 'Product:', { label_attr: {'class': 'font-semibold block mb-1'} })}}
-            {# Assuming 'product' is an EntityType field #}
-            {{ form_widget(form.product, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet'}}) }}
-            {{ form_errors(form.product) }}
+{{ form_start(form, {'attr': {'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
+
+    {# --- FIXED STICKY HEADER --- #}
+    <div class="sticky top-4 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
+            <div>
+                <h1 class="text-xl font-black text-brand-dark tracking-tighter uppercase leading-none">
+                    {{ form.vars.data.id ? 'Edit Stock Record' : 'New Stock Entry' }}
+                </h1>
+                <p class="text-[9px] text-gray mt-1 uppercase font-black tracking-[0.3em]">Logistics Manifest #{{ form.vars.data.id|default('000') }}</p>
+            </div>
         </div>
 
-        <div>
-            {{ form_label(form.location, 'Location:', { label_attr: {'class': 'font-semibold block mb-1'} }) }}
-            {{ form_widget(form.location, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet'}}) }}
-            {{ form_errors(form.location) }}
-        </div>
-    </div>
-
-    {# Row 2: Quantity and Cost Price (Two-column grid) #}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <div>
-            {{ form_label(form.quantity, 'Quantity:', { label_attr: {'class': 'font-semibold block mb-1'} }) }}
-            {{ form_widget(form.quantity, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet'}}) }}
-            {{ form_errors(form.quantity) }}
-        </div>
-        <div>
-            {{ form_label(form.status, 'Status:', { label_attr: {'class': 'font-semibold block mb-1'} }) }}
-            {{ form_widget(form.status, {'attr': {'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet'}}) }}
-            {{ form_errors(form.status) }}
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_stock_index') }}"
+               class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray border border-border-color bg-white hover:bg-row-hover hover:text-brand-dark rounded-xl transition-all cursor-pointer">
+                Discard
+            </a>
+            <button type="submit"
+                    class="px-8 py-3 bg-brand text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-md shadow-brand/20 hover:bg-brand-dark transition-all active:scale-95 cursor-pointer">
+                {{ button_label|default('Commit Record') }}
+            </button>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <div>
-            {{ form_label(form.addedBy, 'Added By',{ label_attr: {'class': 'font-semibold'} }) }}
-            {{ form_widget(form.addedBy, {'attr': {'class': 'w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet'}}) }}
-            {{ form_errors(form.addedBy) }}
+    {# --- MAIN FORM CARD --- #}
+    <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
+
+        <div class="p-8 md:p-10 border-b border-border-color">
+            <div class="mb-10 flex items-center gap-3">
+                <div class="p-2 bg-app-bg rounded-xl text-brand border border-border-color">
+                    {{ ux_icon('lucide:boxes', {class: 'w-5 h-5'}) }}
+                </div>
+                <h3 class="text-lg font-black text-brand-dark tracking-tighter uppercase">Inventory Specifications</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    {{ form_label(form.product, 'Associated Product', { label_attr: {'class': label_style} })}}
+                    {{ form_widget(form.product, {'attr': {'class': select_style}}) }}
+                    {{ form_errors(form.product) }}
+                </div>
+                <div>
+                    {{ form_label(form.location, 'Storage Location', { label_attr: {'class': label_style} }) }}
+                    {{ form_widget(form.location, {'attr': {'class': input_base, 'placeholder': 'e.g. Warehouse A, Shelf 3'}}) }}
+                    {{ form_errors(form.location) }}
+                </div>
+            </div>
         </div>
+
+        <div class="p-8 md:p-10 bg-app-bg border-b border-border-color">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    {{ form_label(form.quantity, 'Stock Quantity', { label_attr: {'class': label_style} }) }}
+                    <div class="relative">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray">{{ ux_icon('lucide:hash', {class: 'w-4 h-4'}) }}</div>
+                        {{ form_widget(form.quantity, {'attr': {'class': input_base ~ ' pl-10 bg-white font-mono', 'placeholder': '0'}}) }}
+                    </div>
+                    {{ form_errors(form.quantity) }}
+                </div>
+                <div>
+                    {{ form_label(form.status, 'Inventory Status', { label_attr: {'class': label_style} }) }}
+                    {{ form_widget(form.status, {'attr': {'class': select_style ~ ' bg-white'}}) }}
+                    {{ form_errors(form.status) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 md:p-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    {{ form_label(form.addedBy, 'Authorized By (Staff)',{ label_attr: {'class': label_style} }) }}
+                    {{ form_widget(form.addedBy, {'attr': {'class': select_style}}) }}
+                    {{ form_errors(form.addedBy) }}
+                    <p class="text-[9px] uppercase font-bold text-gray tracking-widest mt-2 ml-1 italic leading-none">Record of authorization</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    {# Add other fields like 'notes' or 'status' here if they exist in your StockType Form #}
-    {# Example for a notes field (textarea):
-    <div class="mt-4">
-        {{ form_label(form.notes, 'Notes:', { label_attr: {'class': 'font-semibold block mb-1'} }) }}
-        {{ form_widget(form.notes, {'attr': {'class': 'w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-violet', 'rows': 3}}) }}
-        {{ form_errors(form.notes) }}
-    </div>
-    #}
-</div>
-
-<div class="mt-6 flex justify-end gap-3">
-        {# Submit Button #}
-        <button type="submit" class="{{ button_class|default('px-4 py-2 text-sm bg-success text-white rounded-xl cursor-pointer hover:opacity-80 transition') }}">
-            {{ button_label|default('Save Stock Record') }}
-        </button>
-
-        {# Cancel/Back Button #}
-        {# This link assumes you'll go back to the Stock index page #}
-        <a href="{{ path('app_dashboard_stock_index') }}" class="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-200 transition">
-            Cancel
-        </a>
-    </div>
 {{ form_end(form) }}

@@ -1,4 +1,3 @@
-{# templates/dashboard/story/index.html.twig #}
 {% extends 'dashboard/dashboard.html.twig' %}
 
 {% block title %}Brand Narratives{% endblock %}
@@ -14,45 +13,44 @@
 
     {% block rows %}
         {% for story in stories %}
-            <tr class="hover:bg-dashboard-bg/50 transition-colors">
-                {# ID Column #}
-                <td class="border-y border-l border-gray-200 rounded-l-xl px-4 py-3 text-sm font-mono text-gray-500">
-                    {{ story.id }}
+            <tr class="hover:bg-row-hover transition-colors group">
+
+                <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">
+                    #{{ story.id }}
                 </td>
 
-                {# Title #}
-                <td class="border-y border-gray-200 px-4 py-3">
-                    <div class="font-bold text-dashboard-mocha text-sm tracking-tight">{{ story.title }}</div>
+                <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
+                    {{ story.title }}
                 </td>
 
-                {# Preview #}
-                <td class="border border-gray-300 px-4 py-2 text-sm">
-                    "{{ story.materialContent|slice(0, 15) ~ '...' }}"
+                <td class="border-y border-border-color px-4 py-3 text-xs font-medium text-gray italic">
+                    "{{ story.materialContent|length > 25 ? story.materialContent|slice(0, 25) ~ '...' : story.materialContent }}"
                 </td>
 
-                {# Preview #}
-                <td class="border border-gray-300 px-4 py-2 text-sm">
-                    "{{ story.artisanContent|slice(0, 15) ~ '...' }}"
+                <td class="border-y border-border-color px-4 py-3 text-xs font-medium text-gray italic">
+                    "{{ story.artisanContent|length > 25 ? story.artisanContent|slice(0, 25) ~ '...' : story.artisanContent }}"
                 </td>
 
-                {# Preview #}
-                <td class="border border-gray-300 px-4 py-2 text-sm">
-                    "{{ story.dyeingContent|slice(0, 15) ~ '...' }}"
+                <td class="border-y border-border-color px-4 py-3 text-xs font-medium text-gray italic">
+                    "{{ story.dyeingContent|length > 25 ? story.dyeingContent|slice(0, 25) ~ '...' : story.dyeingContent }}"
                 </td>
 
-                {# Actions #}
-                <td class="border-y border-r border-gray-200 rounded-r-xl px-4 py-3 text-center">
-                    <div class="flex justify-center items-center gap-3">
+                <td class="border-y border-border-color py-3 px-4 text-center">
+                    <div class="flex justify-center items-center gap-2">
                         <a href="{{ path('app_story_show', { id: story.id }) }}"
-                           class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}</a>
+                           class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                           {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
+                        </a>
 
                         <a href="{{ path('app_story_edit', { id: story.id }) }}"
-                           class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">{{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}</a>
+                           class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                           {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
+                        </a>
 
                         <button type="button"
                                 @click="$dispatch('open-delete-modal', { url: '{{ path('app_story_delete', {id: story.id}) }}', name: 'Story: {{ story.title|e('js') }}', token: '{{ csrf_token('delete' ~ story.id) }}' })"
-                                class="text-red-400 hover:text-red-600 transition-colors cursor-pointer">
-                            {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                                class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                            {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                         </button>
                     </div>
                 </td>

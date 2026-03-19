@@ -1,20 +1,32 @@
-{# templates/components/dashboard/modals.html.twig #}
-
 {# 1. DYNAMIC DELETE MODAL #}
 <div x-data="{ open: false, url: '', name: '', token: '' }"
      @open-delete-modal.window="open = true; url = $event.detail.url; name = $event.detail.name; token = $event.detail.token;"
-     class="fixed inset-0 z-[90] flex items-center justify-center p-4" x-show="open" x-cloak>
-    <div x-show="open" x-transition.opacity.duration.300ms class="absolute inset-0 bg-dashboard-mocha/40 backdrop-blur-sm"></div>
-    <div x-show="open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" @click.away="open = false" class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-cream-200">
+     class="fixed inset-0 z-[90] flex items-center justify-center p-4"
+     x-show="open"
+     x-cloak>
+
+    <div    x-show="open"
+            x-transition.opacity.duration.300ms
+            class="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm">
+    </div>
+
+    <div    x-show="open"
+            x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            @click.away="open = false"
+            class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-border-color">
         <div class="p-8 pt-10 text-center">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-50 mb-6 border border-red-100">{{ ux_icon('lucide:trash-2', {class: 'h-8 w-8 text-red-500'}) }}</div>
-            <h3 class="text-2xl font-black text-dashboard-mocha tracking-tight uppercase">Delete Item?</h3>
-            <p class="text-sm text-gray-500 mt-3 leading-relaxed font-medium">You are about to remove <span x-text="name" class="font-bold text-dashboard-mocha"></span>. This action is permanent and cannot be undone.</p>
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-danger/10 mb-6 border border-danger/20">
+                {{ ux_icon('lucide:trash-2', {class: 'h-8 w-8 text-danger'}) }}
+            </div>
+            <h3 class="text-2xl font-black text-brand-dark tracking-tight uppercase">Delete Item?</h3>
+            <p class="text-sm text-gray mt-3 leading-relaxed font-medium">You are about to remove <span x-text="name" class="font-bold text-brand-dark"></span>. This action is permanent and cannot be undone.</p>
         </div>
         <form :action="url" method="post" class="px-8 pb-10 flex gap-3">
             <input type="hidden" name="_token" :value="token">
-            <button type="button" @click="open = false" class="flex-1 px-6 py-3.5 bg-gray-50 text-gray-500 rounded-xl hover:bg-gray-100 font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer">Cancel</button>
-            <button type="submit" class="flex-1 px-6 py-3.5 bg-red-500 text-white rounded-xl hover:bg-red-600 font-bold text-xs uppercase tracking-widest shadow-lg shadow-red-200 transition-all cursor-pointer">Yes, Delete</button>
+            <button type="button" @click="open = false" class="flex-1 px-6 py-3.5 bg-app-bg text-gray rounded-xl hover:bg-row-hover hover:text-brand-dark font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer border border-transparent hover:border-border-color">Cancel</button>
+            <button type="submit" class="flex-1 px-6 py-3.5 bg-danger text-white rounded-xl hover:bg-danger/90 font-bold text-xs uppercase tracking-widest shadow-lg shadow-danger/20 transition-all cursor-pointer">Yes, Delete</button>
         </form>
     </div>
 </div>
@@ -22,21 +34,28 @@
 {# 2. DYNAMIC STATUS MODAL #}
 <div x-data="{ open: false, url: '', email: '', currentStatus: '', token: '' }"
      @open-status-modal.window="open = true; url = $event.detail.url; email = $event.detail.email; currentStatus = $event.detail.currentStatus; token = $event.detail.token;"
-     class="fixed inset-0 z-[90] flex items-center justify-center p-4" x-show="open" x-cloak>
-    <div x-show="open" x-transition.opacity.duration.300ms class="absolute inset-0 bg-dashboard-mocha/40 backdrop-blur-sm"></div>
-    <div x-show="open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" @click.away="open = false" class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-cream-200">
+     class="fixed inset-0 z-[90] flex items-center justify-center p-4"
+     x-show="open"
+     x-cloak>
+
+    <div x-show="open" x-transition.opacity.duration.300ms class="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm"></div>
+
+    <div x-show="open"
+        x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        @click.away="open = false"
+        class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-border-color">
         <div class="p-8 pt-10 text-center">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl mb-6 border" :class="currentStatus === 'Active' ? 'bg-red-50 border-red-100 text-red-500' : 'bg-green-50 border-green-100 text-green-600'">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl mb-6 border" :class="currentStatus === 'Active' ? 'bg-danger/10 border-danger/20 text-danger' : 'bg-success/10 border-success/20 text-success'">
                 <template x-if="currentStatus === 'Active'">{{ ux_icon('lucide:user-x', {class: 'h-8 w-8'}) }}</template>
                 <template x-if="currentStatus !== 'Active'">{{ ux_icon('lucide:user-check', {class: 'h-8 w-8'}) }}</template>
             </div>
-            <h3 class="text-2xl font-black text-dashboard-mocha tracking-tight uppercase" x-text="currentStatus === 'Active' ? 'Deactivate Account?' : 'Activate Account?'"></h3>
-            <p class="text-sm text-gray-500 mt-3 leading-relaxed font-medium">Are you sure you want to change the status for <span x-text="email" class="font-bold text-dashboard-mocha"></span>?</p>
+            <h3 class="text-2xl font-black text-brand-dark tracking-tight uppercase" x-text="currentStatus === 'Active' ? 'Deactivate Account?' : 'Activate Account?'"></h3>
+            <p class="text-sm text-gray mt-3 leading-relaxed font-medium">Are you sure you want to change the status for <span x-text="email" class="font-bold text-brand-dark"></span>?</p>
         </div>
         <form :action="url" method="post" class="px-8 pb-10 flex gap-3">
             <input type="hidden" name="_token" :value="token">
-            <button type="button" @click="open = false" class="flex-1 px-6 py-3.5 bg-gray-50 text-gray-500 rounded-xl hover:bg-gray-100 font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer">Cancel</button>
-            <button type="submit" class="flex-1 px-6 py-3.5 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all cursor-pointer" :class="currentStatus === 'Active' ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : 'bg-green-600 hover:bg-green-700 shadow-green-200'" x-text="currentStatus === 'Active' ? 'Deactivate' : 'Activate'"></button>
+            <button type="button" @click="open = false" class="flex-1 px-6 py-3.5 bg-app-bg text-gray rounded-xl hover:bg-row-hover hover:text-brand-dark font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer border border-transparent hover:border-border-color">Cancel</button>
+            <button type="submit" class="flex-1 px-6 py-3.5 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg transition-all cursor-pointer" :class="currentStatus === 'Active' ? 'bg-danger hover:bg-danger/90 shadow-danger/20' : 'bg-success hover:bg-success/90 shadow-success/20'" x-text="currentStatus === 'Active' ? 'Deactivate' : 'Activate'"></button>
         </form>
     </div>
 </div>
@@ -45,15 +64,27 @@
 <div x-data="{ open: false }"
      @open-logout-modal.window="open = true"
      class="fixed inset-0 z-[90] flex items-center justify-center p-4" x-show="open" x-cloak>
-    <div x-show="open" x-transition.opacity.duration.300ms class="absolute inset-0 bg-dashboard-mocha/40 backdrop-blur-sm"></div>
-    <div x-show="open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" @click.away="open = false" class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-cream-200">
+
+    <div x-show="open" x-transition.opacity.duration.300ms class="absolute inset-0 bg-brand-dark/40 backdrop-blur-sm"></div>
+
+    <div x-show="open"
+         x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+         @click.away="open = false"
+         class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-border-color">
         <div class="p-8 pt-10 text-center">
-            <div class="mx-auto w-16 h-16 bg-red-50 text-red-500 border border-red-100 rounded-2xl flex items-center justify-center mb-6">{{ ux_icon('lucide:log-out', {class: 'w-8 h-8'}) }}</div>
-            <h3 class="text-2xl font-black text-dashboard-mocha tracking-tight uppercase mb-2">Ready to Leave?</h3>
-            <p class="text-gray-500 text-sm mb-8 leading-relaxed font-medium">Select "Logout" below if you are ready to end your current session.</p>
+            <div class="mx-auto w-16 h-16 bg-danger/10 text-danger border border-danger/20 rounded-2xl flex items-center justify-center mb-6">
+                {{ ux_icon('lucide:log-out', {class: 'w-8 h-8'}) }}
+            </div>
+            <h3 class="text-2xl font-black text-brand-dark tracking-tight uppercase mb-2">Ready to Leave?</h3>
+            <p class="text-gray text-sm mb-8 leading-relaxed font-medium">Select "Logout" below if you are ready to end your current session.</p>
             <div class="flex flex-col gap-3">
-                <a href="{{ path('app_logout') }}" class="w-full py-3.5 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-200 uppercase tracking-widest text-xs text-center cursor-pointer">Logout</a>
-                <button @click="open = false" class="w-full py-3.5 rounded-xl bg-gray-50 text-gray-500 font-bold hover:bg-gray-100 transition-colors uppercase tracking-widest text-xs cursor-pointer">Stay Connected</button>
+                <a  href="{{ path('app_logout') }}"
+                    class="w-full py-3.5 rounded-xl bg-danger text-white font-bold hover:bg-danger/90 transition-colors shadow-md shadow-danger/20 uppercase tracking-widest text-xs text-center cursor-pointer"
+                    data-turbo="false"
+                    data-turbo-prefetch="false"
+                    >Logout</a>
+                <button @click="open = false" class="w-full py-3.5 rounded-xl bg-app-bg border border-transparent hover:border-border-color text-gray font-bold hover:bg-row-hover hover:text-brand-dark transition-colors uppercase tracking-widest text-xs cursor-pointer">Stay Connected</button>
             </div>
         </div>
     </div>

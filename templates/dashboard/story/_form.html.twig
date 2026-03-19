@@ -1,20 +1,19 @@
-{# templates/dashboard/story/_form.html.twig #}
 {% form_theme form 'form/error_theme.html.twig' %}
 
-{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-dashboard-mocha/50 ml-1 block mb-2' %}
-{% set input_base = 'w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-dashboard-olive focus:ring-0 text-sm font-bold text-dashboard-mocha transition-all' %}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-gray ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all shadow-inner placeholder:text-gray/50' %}
 
-{{ form_start(form, {'attr': {'class': 'relative', 'novalidate': 'novalidate'}}) }}
+{{ form_start(form, {'attr': {'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
 
     {# --- FIXED STICKY HEADER --- #}
-    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border border-cream-200 rounded-xl mb-8 p-6 shadow-xl shadow-dashboard-mocha/5 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="sticky top-4 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-            <div class="w-2 h-2 rounded-full bg-dashboard-olive animate-pulse"></div>
+            <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
             <div>
-                <h1 class="text-xl font-black text-dashboard-mocha tracking-tighter uppercase leading-none">
+                <h1 class="text-xl font-black text-brand-dark tracking-tighter uppercase leading-none">
                     {{ story.title|default('New Brand Narrative') }}
                 </h1>
-                <p class="text-[9px] text-dashboard-mocha/30 mt-1 uppercase font-black tracking-[0.3em]">
+                <p class="text-[9px] text-gray mt-1 uppercase font-black tracking-[0.3em]">
                     {% if story.id %}Narrative Ref #{{ story.id }}{% else %}Drafting Mode{% endif %}
                 </p>
             </div>
@@ -22,53 +21,53 @@
 
         <div class="flex items-center gap-3">
             <a href="{{ path('app_story_index') }}"
-               class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-dashboard-mocha/40 border border-dashboard-olive/20 hover:border-dashboard-olive/20 hover:bg-dashboard-olive/5 hover:text-dashboard-mocha rounded-xl transition-all">
+               class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray border border-border-color bg-white hover:bg-row-hover hover:text-brand-dark rounded-xl transition-all cursor-pointer">
                 Discard
             </a>
             <button type="submit"
-                    class="px-8 py-3 bg-dashboard-olive text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-dashboard-olive/20 hover:bg-dashboard-olive/90 transition-all active:scale-95 cursor-pointer">
+                    class="px-8 py-3 bg-brand text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-md shadow-brand/20 hover:bg-brand-dark transition-all active:scale-95 cursor-pointer">
                 {{ button_label|default('Save Narrative') }}
             </button>
         </div>
     </div>
 
     {# --- MAIN FORM CARD --- #}
-    <div class="bg-white rounded-xl shadow-[0_20px_50px_rgba(66,43,28,0.06)] border border-cream-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
 
         {# SECTION 1: Identity #}
-        <div class="p-8 md:p-10 border-b border-gray-50">
+        <div class="p-8 md:p-10 border-b border-border-color">
             {{ form_label(form.title, 'Story Headline', { label_attr: {'class': label_style} }) }}
             {{ form_widget(form.title, {'attr': {'class': input_base, 'placeholder': 'e.g., The Regenerative Hemp Journey'}}) }}
             {{ form_errors(form.title) }}
         </div>
 
         {# SECTION 2: The Three Pillars of Transparency #}
-        <div class="p-8 md:p-10 bg-dashboard-bg/10 grid grid-cols-1 gap-10">
+        <div class="p-8 md:p-10 bg-app-bg grid grid-cols-1 gap-10">
 
             <div>
                 <div class="flex items-center gap-2 mb-2 ml-1">
-                    {{ ux_icon('lucide:leaf', {class: 'w-4 h-4 text-dashboard-olive'}) }}
+                    {{ ux_icon('lucide:leaf', {class: 'w-4 h-4 text-brand'}) }}
                     {{ form_label(form.materialContent, 'Raw Materials Origin', { label_attr: {'class': label_style ~ ' !mb-0 !ml-0'} }) }}
                 </div>
-                {{ form_widget(form.materialContent, {'attr': {'class': input_base ~ ' min-h-[120px] italic leading-relaxed', 'placeholder': 'Describe where the fibers come from...'}}) }}
+                {{ form_widget(form.materialContent, {'attr': {'class': input_base ~ ' min-h-[120px] bg-white italic leading-relaxed', 'placeholder': 'Describe where the fibers come from...'}}) }}
                 {{ form_errors(form.materialContent) }}
             </div>
 
             <div>
                 <div class="flex items-center gap-2 mb-2 ml-1">
-                    {{ ux_icon('lucide:scissors', {class: 'w-4 h-4 text-dashboard-olive'}) }}
+                    {{ ux_icon('lucide:scissors', {class: 'w-4 h-4 text-brand'}) }}
                     {{ form_label(form.artisanContent, 'Ethical Craft & Artisans', { label_attr: {'class': label_style ~ ' !mb-0 !ml-0'} }) }}
                 </div>
-                {{ form_widget(form.artisanContent, {'attr': {'class': input_base ~ ' min-h-[120px] italic leading-relaxed', 'placeholder': 'Describe the people who made this...'}}) }}
+                {{ form_widget(form.artisanContent, {'attr': {'class': input_base ~ ' min-h-[120px] bg-white italic leading-relaxed', 'placeholder': 'Describe the people who made this...'}}) }}
                 {{ form_errors(form.artisanContent) }}
             </div>
 
             <div>
                 <div class="flex items-center gap-2 mb-2 ml-1">
-                    {{ ux_icon('lucide:droplet', {class: 'w-4 h-4 text-dashboard-olive'}) }}
+                    {{ ux_icon('lucide:droplet', {class: 'w-4 h-4 text-brand'}) }}
                     {{ form_label(form.dyeingContent, 'Eco-Dyeing Process', { label_attr: {'class': label_style ~ ' !mb-0 !ml-0'} }) }}
                 </div>
-                {{ form_widget(form.dyeingContent, {'attr': {'class': input_base ~ ' min-h-[120px] italic leading-relaxed', 'placeholder': 'Describe the natural dyeing process...'}}) }}
+                {{ form_widget(form.dyeingContent, {'attr': {'class': input_base ~ ' min-h-[120px] bg-white italic leading-relaxed', 'placeholder': 'Describe the natural dyeing process...'}}) }}
                 {{ form_errors(form.dyeingContent) }}
             </div>
 

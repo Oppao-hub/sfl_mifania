@@ -16,9 +16,17 @@
 
         {# Left: Logo #}
         <div class="flex flex-shrink-0 items-center">
-            <a href="{{ path('app_home') }}">
-                <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 lg:h-12" />
-            </a>
+
+            {% if is_granted('ROLE_CUSTOMER') %}
+                <a href="{{ path('app_shop') }}">
+                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 lg:h-12" />
+                </a>
+            {% else %}
+                <a href="{{ path('app_home') }}">
+                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 lg:h-12" />
+                </a>
+            {% endif %}
+
         </div>
 
         {# Center: Desktop Navigation Links (Hidden on Mobile) #}

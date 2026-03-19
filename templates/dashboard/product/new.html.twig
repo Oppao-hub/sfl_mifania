@@ -3,9 +3,10 @@
 {% block title %}Add Product{% endblock %}
 
 {% block main_content %}
-    {{ include('dashboard/product/_form.html.twig', {
-        form: form,
-        button_label: 'Add Product',
-        button_class: 'px-3 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover'
-    }) }}
+    <div class="max-w-5xl mx-auto">
+        {{ include('dashboard/product/_form.html.twig', {
+            form: form,
+            button_label: 'Create Product'
+        }) }}
+    </div>
 {% endblock %}

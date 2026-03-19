@@ -1,32 +1,36 @@
-<div class="bg-white rounded-2xl shadow-lg[0_20px_50px_rgba(66,43,28,0.05)] border border-cream-200 overflow-hidden">
+<div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden animate-fadeIn">
 
-    {# 1. Top Header Area (Title & Add Button) #}
-    <div class="p-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-3xl font-black text-dashboard-brand tracking-tighter">{{ title|default('Records') }}</h1>
-
-            <p class="text-xs text-dashboard-brand/40 mt-1 uppercase font-bold tracking-widest">Sustainable Inventory Management</p>
+    <div class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-app-bg border-b border-border-color">
+        <div class="flex items-center gap-4">
+            <div class="p-2.5 bg-white rounded-xl text-brand border border-border-color shadow-sm hidden sm:block">
+                {{ ux_icon('lucide:database', {class: 'w-5 h-5'}) }}
+            </div>
+            <div>
+                <h1 class="text-2xl md:text-3xl font-black text-brand-dark tracking-tighter uppercase leading-none">
+                    {{ title|default('Records') }}
+                </h1>
+                <p class="text-[10px] text-gray mt-1.5 uppercase font-black tracking-[0.3em]">System Data Overview</p>
+            </div>
         </div>
 
         {% if new_path is defined %}
             <a href="{{ path(new_path) }}"
-                class="px-8 py-3 rounded-2xl bg-dashboard-olive text-white text-xs font-black uppercase tracking-widest hover:bg-dashboard-olive/90 transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-dashboard-olive/10">
-                {{ ux_icon('lucide:plus', {class: 'w-4 h-4'}) }}
+                class="group px-6 py-3.5 rounded-xl bg-brand text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-dark transition-all flex items-center gap-2 active:scale-95 shadow-md shadow-brand/20 cursor-pointer">
+                {{ ux_icon('lucide:plus', {class: 'w-4 h-4 transition-transform group-hover:rotate-90'}) }}
                 Add New Record
             </a>
         {% endif %}
     </div>
 
-    {# 2. The Unified DataTable Container #}
     {# DataTables will inject search/length inside this wrapper via the 'dom' property #}
-    <div class="px-8 pb-8">
+    <div class="p-6 md:p-8">
         <div class="overflow-x-auto">
             <table id="{{ id|default('dashboard-table') }}"
-                class="js-datatable min-w-full border-separate border-spacing-y-3 text-sm">
+                class="js-datatable w-full border-separate border-spacing-y-2 text-sm text-left">
                 <thead>
-                    <tr class="text-dashboard-olive uppercase text-[10px] font-black tracking-[0.2em]">
+                    <tr class="text-gray uppercase text-[10px] font-black tracking-[0.2em]">
                         {% for header in headers %}
-                            <th class="pb-4 px-6 text-left whitespace-nowrap">{{ header }}</th>
+                            <th class="pb-4 px-4 whitespace-nowrap">{{ header }}</th>
                         {% endfor %}
                     </tr>
                 </thead>

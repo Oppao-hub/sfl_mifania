@@ -1,65 +1,72 @@
 {% form_theme form 'form/error_theme.html.twig' %}
 
-{{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+{% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-gray ml-1 block mb-2' %}
+{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all shadow-inner placeholder:text-gray/50' %}
+{% set select_style = 'boutique-select ' ~ input_base %}
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div>
-        {{ form_label(form.product, 'Related Product', {'label_attr': {'class': 'font-semibold block mb-1 text-brand'}}) }}
-        {{ form_widget(form.product, {
-            'attr': {
-                'placeholder': 'Select product',
-                'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'
-            }
-        }) }}
-        {{ form_errors(form.product) }}
+{{ form_start(form, {'attr': {'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
+
+    {# --- FIXED STICKY HEADER --- #}
+    <div class="sticky top-4 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
+            <div>
+                {% set qr_tag = form.vars.data %}
+                <h1 class="text-xl font-black text-brand-dark tracking-tighter uppercase leading-none">
+                    {{ qr_tag.id ? 'Edit QR: ' ~ qr_tag.product.name : 'New QR Tag' }}
+                </h1>
+                <p class="text-[9px] text-gray mt-1 uppercase font-black tracking-[0.3em]">Provenance Manifest #{{ qr_tag.id|default('000') }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_qrTag_index') }}"
+               class="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray border border-border-color bg-white hover:bg-row-hover hover:text-brand-dark rounded-xl transition-all cursor-pointer">
+                Discard
+            </a>
+            <button type="submit"
+                    class="px-8 py-3 bg-brand text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-md shadow-brand/20 hover:bg-brand-dark transition-all active:scale-95 cursor-pointer">
+                {{ button_label|default('Generate Tag') }}
+            </button>
+        </div>
     </div>
 
-    <div>
-        {{ form_label(form.qrCodeValue, 'QR Code Value', {'label_attr': {'class': 'font-semibold block mb-1 text-brand'}}) }}
-        {{ form_widget(form.qrCodeValue, {
-            'attr': {
-                'class': 'w-full h-10 p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'
-            }
-        }) }}
-        {{ form_errors(form.qrCodeValue) }}
+    {# --- MAIN FORM CARD --- #}
+    <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
+        <div class="p-8 md:p-10">
+            <div class="mb-10 flex items-center gap-3">
+                <div class="p-2 bg-app-bg rounded-xl text-brand border border-border-color">
+                    {{ ux_icon('lucide:qr-code', {class: 'w-5 h-5'}) }}
+                </div>
+                <h3 class="text-lg font-black text-brand-dark tracking-tighter uppercase">Tag Specifications</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    {{ form_label(form.product, 'Related Product', {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.product, {'attr': {'class': select_style, 'placeholder': 'Select product'}}) }}
+                    {{ form_errors(form.product) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.qrCodeValue, 'QR Code Value', {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.qrCodeValue, {'attr': {'class': input_base, 'placeholder': 'e.g. https://mifania.com/verify/...'}}) }}
+                    {{ form_errors(form.qrCodeValue) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.dateGenerated, 'Date Generated', {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.dateGenerated, {'attr': {'class': input_base, 'placeholder': 'Automatically set on creation'}}) }}
+                    {{ form_errors(form.dateGenerated) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.qrImagePath, 'QR Image Path', {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.qrImagePath, {'attr': {'class': input_base, 'placeholder': 'Generated after saving'}}) }}
+                    {{ form_errors(form.qrImagePath) }}
+                </div>
+            </div>
+        </div>
     </div>
-
-    {# Date Generated #}
-    <div>
-        {{ form_label(form.dateGenerated, 'Date Generated', {'label_attr': {'class': 'font-semibold block mb-1 text-brand'}}) }}
-        {{ form_widget(form.dateGenerated, {
-            'attr': {
-                'placeholder': 'Automatically set on creation',
-                'type': 'date',
-                'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'
-            }
-        }) }}
-        {{ form_errors(form.dateGenerated) }}
-    </div>
-
-    {# QR Image Path #}
-    <div>
-        {{ form_label(form.qrImagePath, 'QR Image Path', {'label_attr': {'class': 'font-semibold block mb-1 text-brand'}}) }}
-        {{ form_widget(form.qrImagePath, {
-            'attr': {
-                'placeholder': 'Generated after saving',
-                'class': 'w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green'
-            }
-        }) }}
-        {{ form_errors(form.qrImagePath) }}
-    </div>
-</div>
-
-<div class="mt-6 flex justify-end gap-3">
-    <button type="submit"
-            class="px-4 py-2 bg-success text-white rounded-xl hover:bg-success-hover transition">
-        {{ button_label|default('Save') }}
-    </button>
-
-    <a href="{{ path('app_qrTag_index') }}"
-        class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-brand hover:bg-gray-200 transition">
-        Cancel
-    </a>
-</div>
 
 {{ form_end(form) }}

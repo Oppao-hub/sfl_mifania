@@ -1,6 +1,6 @@
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}Staff{% endblock %}
+{% block title %}Staff Management{% endblock %}
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
@@ -12,58 +12,56 @@
 
         {% block rows %}
             {% for staff in staffs %}
-                <tr class="hover:bg-row-hover transition-colors">
-                    <td class="border border-gray-300 px-4 py-2 text-sm">{{ staff.id }}</td>
-                    <td class="border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900">{{ staff.firstName }}</td>
-                    <td class="border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900">{{ staff.lastName }}</td>
-                    <td class="border border-gray-300 px-4 py-2 text-sm">{{ staff.user.email }}</td>
-                    <td class="border border-gray-300 px-4 py-2 text-sm text-center">
+                <tr class="hover:bg-row-hover transition-colors group">
+                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">#{{ staff.id }}</td>
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ staff.firstName }}</td>
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ staff.lastName }}</td>
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-medium text-gray">{{ staff.user.email }}</td>
+
+                    <td class="border-y border-border-color px-4 py-3 text-sm text-center">
                         <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': staff.user.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ staff.user.id) }}">
 
                             <select name="status"
-                                    onchange="triggerConfirmation(this.form, this, '{{ staff.user.status.value }}', 'Update Account Status')"
-                                    class="text-xs font-semibold py-1 pl-2 pr-6 border-gray-300 rounded-lg focus:ring-mocha focus:border-mocha cursor-pointer w-full
+                                    @change="$dispatch('open-status-modal', {
+                                        url: '{{ path('app_admin_user_toggle_status', {id: staff.user.id}) }}',
+                                        email: '{{ staff.user.email|e('js') }}',
+                                        currentStatus: '{{ staff.user.status.value }}',
+                                        token: '{{ csrf_token('toggle' ~ staff.user.id) }}'
+                                    }); this.value = '{{ staff.user.status.value }}';"
+                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none transition-colors border
                                     {% if staff.user.status.value == 'Active' %}
-                                        text-green-800 bg-green-100 border-green-200
+                                        text-success bg-success/10 border-success/20 hover:bg-success/20
                                     {% else %}
-                                        text-red-700 bg-red-100 border-red-200
+                                        text-danger bg-danger/10 border-danger/20 hover:bg-danger/20
                                     {% endif %}">
 
-                                {# Option 1: Active #}
-                                <option value="Active" {% if staff.user.status.value == 'Active' %}selected{% endif %}>
-                                    Active
-                                </option>
-
-                                {# Option 2: Inactive (or Banned) #}
-                                <option value="Deactivated" {% if staff.user.status.value != 'Active' %}selected{% endif %}>
-                                    Deactivated
-                                </option>
+                                <option value="Active" {% if staff.user.status.value == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Deactivated" {% if staff.user.status.value != 'Active' %}selected{% endif %}>Deactivated</option>
                             </select>
                         </form>
                     </td>
-                    <td class="border border-gray-300 py-3 px-4 text-sm text-center">
-                        <div class="flex justify-center items-center gap-3">
+
+                    <td class="border-y border-border-color py-3 px-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
                             <a href="{{ path('app_staff_show', { id: staff.id }) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
-                                {{ ux_icon('lucide:eye', {class: 'w-5 h-5'}) }}
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                             </a>
 
-                            {# Edit #}
                             <a href="{{ path('app_staff_edit', { id: staff.id }) }}"
-                               class="text-dashboard-mocha hover:text-dashboard-olive transition-colors">
-                                {{ ux_icon('lucide:file-pen-line', {class: 'w-5 h-5'}) }}
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
 
-                            {# Delete (Using the Alpine Modal we built) #}
                             <button type="button"
                                 @click="$dispatch('open-delete-modal', {
                                     url: '{{ path('app_staff_delete', {id: staff.id}) }}',
                                     name: '{{ staff.firstName|e('js') }} {{ staff.lastName|e('js') }}',
                                     token: '{{ csrf_token('delete' ~ staff.id) }}'
                                 })"
-                                class="text-red-400 hover:text-[#B45239] transition-colors cursor-pointer">
-                                {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                                class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                             </button>
                         </div>
                     </td>

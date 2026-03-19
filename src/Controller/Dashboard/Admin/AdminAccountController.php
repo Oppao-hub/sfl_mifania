@@ -3,7 +3,7 @@
 namespace App\Controller\Dashboard\Admin;
 
 use App\Entity\User;
-use App\Form\EditProfileType;
+use App\Form\AdminProfileType;
 use App\Form\ChangePasswordType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +29,7 @@ class AdminAccountController extends AbstractController
     public function edit(Request $request, #[CurrentUser] User $user, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $admin = $user->getAdmin();
-        $form = $this->createForm(EditProfileType::class, $admin);
+        $form = $this->createForm(AdminProfileType::class, $admin);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

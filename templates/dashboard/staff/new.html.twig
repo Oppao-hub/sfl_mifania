@@ -3,9 +3,10 @@
 {% block title %}New Staff{% endblock %}
 
 {% block main_content %}
-    {{ include('dashboard/staff/_form.html.twig', {
-        form: form,
-        button_label: 'Create Staff',
-        button_class: 'px-3 py-2 bg-success text-white text-sm font-semibold rounded-xl hover:bg-success-hover'
-    }) }}
+    <div class="max-w-4xl mx-auto">
+        {{ include('dashboard/staff/_form.html.twig', {
+            form: form,
+            button_label: 'Create Staff'
+        }) }}
+    </div>
 {% endblock %}

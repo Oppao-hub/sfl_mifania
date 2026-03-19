@@ -1,0 +1,65 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}System Activity Logs{% endblock %}
+
+{% block main_content %}
+    {% embed 'components/table/table.html.twig' with {
+        title: 'Activity Logs',
+        headers: ['User / Actor', 'Privilege Role', 'Action Taken', 'Target Data', 'Timestamp', 'Actions'],
+        id: 'dashboard-table'
+    } %}
+        {% block rows %}
+            {% for log in logs %}
+                <tr class="hover:bg-row-hover transition-colors group">
+
+                    {# User Column #}
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
+                        {% if log.user %}
+                            {{ log.user.userIdentifier }}
+                        {% else %}
+                            <span class="text-gray italic font-medium">System / Anonymous</span>
+                        {% endif %}
+                    </td>
+
+                    {# Role Column #}
+                    <td class="border-y border-border-color px-4 py-3">
+                        <span class="inline-flex px-2.5 py-1 bg-app-bg text-gray rounded-md text-[9px] font-black uppercase tracking-widest border border-border-color">
+                            {{ log.role|default('N/A')|replace({'ROLE_': ''}) }}
+                        </span>
+                    </td>
+
+                    {# Action Column #}
+                    <td class="border-y border-border-color px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand">
+                        {{ log.action }}
+                    </td>
+
+                    {# Target Data / Description Column #}
+                    <td class="border-y border-border-color px-4 py-3 text-sm text-dark-gray truncate max-w-[250px]">
+                        {{ log.targetData|default('—') }}
+                    </td>
+
+                    {# Timestamp Column #}
+                    <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-gray">
+                        {{ log.createdAt|date('M d, Y / H:i') }}
+                    </td>
+
+                    {# Actions Column #}
+                    <td class="border-y border-border-color py-3 px-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            <a href="{{ path('app_activity_log_show', {'id': log.id}) }}"
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all" title="View Audit Details">
+                                {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="py-10 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray">
+                        No activity logs found.
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

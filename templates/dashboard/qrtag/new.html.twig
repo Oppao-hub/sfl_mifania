@@ -1,12 +1,12 @@
-{% extends 'dashboard/dashboard.html.twig' %} {% block title %}Add QRTag{% endblock
-%} {% block main_content %}
-<div class="mx-1 min-h-screen bg-white p-8 rounded-xl shadow-md">
-    <h1 class="text-2xl font-bold mb-6">Add New QR</h1>
+{% extends 'dashboard/dashboard.html.twig' %}
 
-    {{ include('dashboard/qrtag/_form.html.twig', {
-        form: form,
-        button_label: 'Add QR',
-        button_class: 'px-3 py-2 bg-success-color text-white rounded-xl'
-    }) }}
-</div>
+{% block title %}Add QR Tag{% endblock %}
+
+{% block main_content %}
+    <div class="max-w-4xl mx-auto">
+        {{ include('dashboard/qrtag/_form.html.twig', {
+            form: form,
+            button_label: 'Create QR Tag'
+        }) }}
+    </div>
 {% endblock %}

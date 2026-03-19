@@ -3,21 +3,20 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block account_content %}
-<div class="lg:w-full bg-gray-50 p-8 rounded-lg shadow-lg h-full">
+<div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-border-color h-full animate-fadeIn">
 
     {# Header #}
-    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
-        <div>
-            <h2 class="text-2xl font-bold text-brand">Edit Profile</h2>
-            <p class="text-sm text-gray-500 mt-1">Update your personal information.</p>
-        </div>
+    <div class="mb-8 border-b border-border-color pb-6">
+        <h2 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">Edit Profile</h2>
+        <p class="text-sm font-bold text-gray uppercase tracking-widest mt-1">Update your personal information.</p>
     </div>
 
     {% form_theme form 'form/error_theme.html.twig' %}
 
-    {{ form_start(form, {'attr': {'class': 'space-y-6', 'novalidate': 'novalidate'}}) }}
+    {{ form_start(form, {'attr': {'class': 'space-y-8', 'novalidate': 'novalidate'}}) }}
+
         {# --- AVATAR UPLOAD SECTION --- #}
-        <div class="flex items-center space-x-6">
+        <div class="flex items-center gap-6 p-6 bg-app-bg border border-border-color rounded-2xl">
             <div class="shrink-0 relative">
                 {% set avatarPath = 'images/default/default_avatar.jpg' %}
 
@@ -31,54 +30,52 @@
                 {% endif %}
 
                 <img
-                    class="h-20 w-20 object-cover rounded-full border-4 border-gray-100 shadow-sm"
+                    class="h-20 w-20 object-cover rounded-xl border border-border-color shadow-sm"
                     src="{{ asset(avatarPath) }}"
                     alt="Current profile photo"
                 />
             </div>
 
             <div class="w-full">
-                {{ form_label(form.avatar, 'Profile Photo', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_label(form.avatar, 'Profile Photo', {'label_attr': {'class': 'block text-[10px] font-black text-gray uppercase tracking-widest mb-2'}}) }}
 
-                <div class="mt-1 flex items-center">
+                <div class="flex items-center">
                     {{ form_widget(form.avatar, {'attr': {
-                        'class': 'block w-full text-sm text-gray-500
-                                  file:mr-4 file:py-2.5 file:px-4
-                                  file:rounded-full file:border-0
-                                  file:text-sm file:font-semibold
-                                  file:bg-mocha file:text-white
-                                  hover:file:bg-mocha/90
+                        'class': 'block w-full text-sm text-gray font-medium
+                                  file:mr-4 file:py-2.5 file:px-6
+                                  file:rounded-xl file:border-0
+                                  file:text-[10px] file:font-black file:uppercase file:tracking-widest
+                                  file:bg-brand file:text-white
+                                  hover:file:bg-brand-dark file:transition-colors file:shadow-sm
                                   cursor-pointer'
                     }}) }}
                 </div>
-                {{ form_errors(form.avatar, {'attr': {'class': 'text-red-500 text-xs mt-1'}}) }}
-                <p class="mt-1 text-xs text-gray-500">JPG or PNG. Max size of 5MB.</p>
+                {{ form_errors(form.avatar, {'attr': {'class': 'text-red-500 text-xs mt-1 font-bold'}}) }}
+                <p class="mt-2 text-[10px] font-bold text-gray uppercase tracking-widest">JPG or PNG. Max size of 5MB.</p>
             </div>
         </div>
 
-        <div class="border-t border-gray-100 my-6"></div>
-
         {# --- NAME FIELDS --- #}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                {{ form_label(form.firstName, 'First Name', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-                {{ form_widget(form.firstName, {'attr': {'class': 'mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-mocha focus:border-mocha sm:text-sm'}}) }}
-                {{ form_errors(form.firstName, {'attr': {'class': 'text-red-500 text-xs mt-1'}}) }}
+            <div class="space-y-1">
+                {{ form_label(form.firstName, 'First Name', {'label_attr': {'class': 'block text-[10px] font-black text-gray uppercase tracking-widest ml-1'}}) }}
+                {{ form_widget(form.firstName, {'attr': {'class': 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl text-brand-dark font-bold text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all shadow-inner'}}) }}
+                {{ form_errors(form.firstName, {'attr': {'class': 'text-red-500 text-xs mt-1 font-bold'}}) }}
             </div>
 
-            <div>
-                {{ form_label(form.lastName, 'Last Name', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-                {{ form_widget(form.lastName, {'attr': {'class': 'mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-mocha focus:border-mocha sm:text-sm'}}) }}
-                {{ form_errors(form.lastName, {'attr': {'class': 'text-red-500 text-xs mt-1'}}) }}
+            <div class="space-y-1">
+                {{ form_label(form.lastName, 'Last Name', {'label_attr': {'class': 'block text-[10px] font-black text-gray uppercase tracking-widest ml-1'}}) }}
+                {{ form_widget(form.lastName, {'attr': {'class': 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl text-brand-dark font-bold text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all shadow-inner'}}) }}
+                {{ form_errors(form.lastName, {'attr': {'class': 'text-red-500 text-xs mt-1 font-bold'}}) }}
             </div>
         </div>
 
         {# --- SUBMIT BUTTON --- #}
-        <div class="pt-6 flex justify-end border-t border-gray-100 mt-6">
-            <a href="{{ path('app_account') }}" class="mr-3 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition">
+        <div class="pt-8 flex justify-end gap-3 border-t border-border-color">
+            <a href="{{ path('app_account') }}" class="px-6 py-3.5 bg-app-bg text-dark-gray border border-border-color rounded-xl hover:bg-row-hover hover:text-brand-dark font-bold text-[10px] uppercase tracking-widest transition-all cursor-pointer">
                 Cancel
             </a>
-            <button type="submit" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-mocha hover:bg-mocha/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mocha transition">
+            <button type="submit" class="px-6 py-3.5 bg-brand text-white rounded-xl hover:bg-brand-dark font-bold text-[10px] uppercase tracking-widest shadow-md shadow-brand/20 transition-all cursor-pointer">
                 Save Changes
             </button>
         </div>
