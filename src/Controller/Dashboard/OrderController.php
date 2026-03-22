@@ -13,7 +13,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/dashboard/orders')]
 final class OrderController extends AbstractController
@@ -22,11 +21,11 @@ final class OrderController extends AbstractController
     public function index(Request $request, OrderRepository $orderRepository): Response
     {
         $orderStatus = $request->query->get('orderStatus');
+        $orders = $orderRepository->findAll();
 
-        if ($orderStatus) {
-            $orders = $orderRepository->findBy(['orderStatus' => $orderStatus]);
-        } else {
-            $orders = $orderRepository->findAll();
+        if (empty($staffs)) {
+            $this->addFlash('warning', 'No Orders found. Please create one first.');
+            return $this->redirectToRoute('app_order_new', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/order/index.html.twig', [

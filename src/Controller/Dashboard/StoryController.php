@@ -3,7 +3,7 @@
 namespace App\Controller\Dashboard;
 
 use App\Entity\Story;
-use App\Form\Story1Type;
+use App\Form\StoryType;
 use App\Repository\StoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +17,13 @@ final class StoryController extends AbstractController
     #[Route(name: 'app_story_index', methods: ['GET'])]
     public function index(StoryRepository $storyRepository): Response
     {
+        $story = $storyRepository->findAll();
+
+        if (empty($story)) {
+            $this->addFlash('warning', 'No Story found. Please create one first.');
+            return $this->redirectToRoute('app_story_new', [], Response::HTTP_SEE_OTHER);
+        }
+
         return $this->render('/dashboard/story/index.html.twig', [
             'stories' => $storyRepository->findAll(),
         ]);
@@ -26,7 +33,7 @@ final class StoryController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $story = new Story();
-        $form = $this->createForm(Story1Type::class, $story);
+        $form = $this->createForm(StoryType::class, $story);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -53,7 +60,7 @@ final class StoryController extends AbstractController
     #[Route('/{id}/edit', name: 'app_story_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Story $story, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(Story1Type::class, $story);
+        $form = $this->createForm(StoryType::class, $story);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

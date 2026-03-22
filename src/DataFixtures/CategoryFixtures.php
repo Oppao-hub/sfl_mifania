@@ -25,8 +25,7 @@ class CategoryFixtures extends Fixture
             $category = new Category();
             $category->setName($name);
             $category->setDescription($description);
-            $category->setCreatedAt(new \DateTimeImmutable());
-            $category->setUpdatedAt(new \DateTimeImmutable());
+
             $manager->persist($category);
 
             switch ($name) {

@@ -64,14 +64,14 @@ final class ShopController extends AbstractController
         $selectedColors = $request->query->all('colors');
 
         $queryBuilder = $productRepository->createQueryBuilder('p')
-            ->leftJoin('p.category', 'c') // Join the category table
+            ->leftJoin('p.subCategory', 'sc')
+            ->leftJoin('sc.category', 'c')
             ->where('p.price <= :maxPrice')
             ->setParameter('maxPrice', $maxPrice);
 
         if (\in_array(strtolower($collectionName), ['men', 'women'])) {
             $queryBuilder->andWhere('p.gender = :gender')
-                         // Assuming your enum values are capitalized like 'Men' or 'Women'
-                         ->setParameter('gender', ucfirst($collectionName));
+                        ->setParameter('gender', ucfirst($collectionName));
         }else {
             $queryBuilder->andWhere('c.name = :categoryName')
                          ->setParameter('categoryName', ucfirst($collectionName));

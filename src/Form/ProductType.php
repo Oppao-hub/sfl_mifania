@@ -25,7 +25,6 @@ class ProductType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Product Name'
             ])
-            // DELETED Category field to enforce database normalization.
             ->add('subCategory', EntityType::class, [
                 'class' => SubCategory::class,
                 'choice_label' => 'name',
@@ -64,7 +63,6 @@ class ProductType extends AbstractType
             ->add('description', null, [
                 'label' => 'Narrative Description'
             ])
-            // REPURPOSED ecoInfo to be strictly for short stats
             ->add('ecoInfo', TextType::class, [
                 'label' => 'Quick Impact Stats',
                 'required' => false,
@@ -84,6 +82,7 @@ class ProductType extends AbstractType
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
+                    // File constraints MUST remain here as the file itself is not mapped to the DB.
                     new File([
                         'maxSize' => '5M',
                         'mimeTypes' => [

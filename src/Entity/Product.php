@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiFilter;
-use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Enum\Size;
@@ -15,10 +14,12 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[UniqueEntity(fields: ['slug'], message: 'This product slug is already in use. Please choose a different name.')]
 #[ApiResource(
     normalizationContext: ['groups' => ['product:read']],
     denormalizationContext: ['groups' => ['product:write']]
@@ -32,42 +33,48 @@ class Product
     #[Groups(['product:read'])]
     private ?int $id = null;
 
-    #[Assert\NotBlank(message: "Product name cannot be empty.")]
-    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Product name cannot be empty.')]
+    #[Assert\Length(max: 100, maxMessage: 'Product name cannot exceed 100 characters.')]
     #[Groups(['product:read'])]
     private ?string $name = null;
 
-    #[Assert\NotBlank(message: "Material cannot be empty.")]
-    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Material cannot be empty.')]
+    #[Assert\Length(max: 100, maxMessage: 'Material cannot exceed 100 characters.')]
     #[Groups(['product:read'])]
     private ?string $material = null;
 
     #[ORM\Column(length: 20, enumType: Size::class)]
+    #[Assert\NotNull(message: 'Please select a size.')]
     #[Groups(['product:read'])]
     private ?Size $size = null;
 
     #[ORM\Column(length: 50, nullable: false, enumType: Color::class)]
+    #[Assert\NotNull(message: 'Please select a color palette.')]
     #[Groups(['product:read'])]
     private ?Color $color = null;
 
     #[ORM\Column(length: 20, enumType: Gender::class, nullable: false)]
+    #[Assert\NotNull(message: 'Please select a gender/fit.')]
     #[Groups(['product:read'])]
     private ?Gender $gender = null;
 
-    #[Assert\PositiveOrZero(message: "Price must be positive or zero.")]
-    #[Assert\Type(type: 'numeric', message: "Price must be a number.")]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Assert\NotBlank(message: 'Price is required.')]
+    #[Assert\PositiveOrZero(message: 'Price must be positive or zero.')]
+    #[Assert\Type(type: 'numeric', message: 'Price must be a valid number.')]
     #[Groups(['product:read'])]
     private ?string $price = null;
 
-    #[Assert\PositiveOrZero(message: "Cost must be positive or zero.")]
-    #[Assert\Type(type: 'numeric', message: "Cost must be a number.")]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Assert\NotBlank(message: 'Archival cost is required.')]
+    #[Assert\PositiveOrZero(message: 'Cost must be positive or zero.')]
+    #[Assert\Type(type: 'numeric', message: 'Cost must be a valid number.')]
     private ?string $cost = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 2000, maxMessage: 'Description cannot exceed 2000 characters.')]
     #[Groups(['product:read'])]
     private ?string $description = null;
 
@@ -75,15 +82,16 @@ class Product
     #[Groups(['product:read'])]
     private ?string $slug = null;
 
-    #[Groups(['product:read'])]
     #[ORM\OneToOne(mappedBy: 'product', cascade: ['persist', 'remove'])]
+    #[Groups(['product:read'])]
     private ?QRTag $qrTag = null;
 
-    #[Groups(['product:read'])]
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['product:read'])]
     private ?string $image = 'default.png';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 255, maxMessage: 'Quick Impact Stats should be short and concise.')]
     #[Groups(['product:read'])]
     private ?string $ecoInfo = null;
 
@@ -114,12 +122,11 @@ class Product
 
     #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'You must assign this product to a sub-category.')]
     #[Groups(['product:read'])]
     private ?SubCategory $subCategory = null;
 
-    #[ORM\ManyToOne(inversedBy: 'products')]
-    #[Groups(['product:read'])]
-    private ?Category $category = null;
+    // NOTE: The redundant Category relationship has been completely removed!
 
     /**
      * @var Collection<int, Customer>
@@ -167,6 +174,8 @@ class Product
         return $text;
     }
 
+    // --- GETTERS & SETTERS ---
+
     public function getId(): ?int { return $this->id; }
     public function getName(): ?string { return $this->name; }
     public function setName(string $name): static { $this->name = $name; return $this; }
@@ -187,6 +196,7 @@ class Product
     public function getSlug(): ?string { return $this->slug; }
     public function setSlug(string $slug): static { $this->slug = $slug; return $this; }
     public function getQrTag(): ?QRTag { return $this->qrTag; }
+
     public function setQrTag(?QRTag $qrTag): static
     {
         if ($this->qrTag !== null && $this->qrTag->getProduct() === $this) { $this->qrTag->setProduct(null); }
@@ -194,12 +204,14 @@ class Product
         $this->qrTag = $qrTag;
         return $this;
     }
+
     public function getImage(): ?string { return $this->image; }
     public function setImage(string $image): self { $this->image = $image; return $this; }
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static { $this->updatedAt = $updatedAt; return $this; }
+
     public function getOrderItems(): Collection { return $this->orderItems; }
     public function addOrderItem(OrderItem $orderItem): static
     {
@@ -211,8 +223,10 @@ class Product
         if ($this->orderItems->removeElement($orderItem)) { if ($orderItem->getProduct() === $this) { $orderItem->setProduct(null); } }
         return $this;
     }
+
     public function getEcoInfo(): ?string { return $this->ecoInfo; }
     public function setEcoInfo(?string $ecoInfo): static { $this->ecoInfo = $ecoInfo; return $this; }
+
     public function getStocks(): Collection { return $this->stocks; }
     public function addStock(Stock $stock): static
     {
@@ -224,18 +238,21 @@ class Product
         if ($this->stocks->removeElement($stock)) { if ($stock->getProduct() === $this) { $stock->setProduct(null); } }
         return $this;
     }
+
     public function getTotalStockQuantity(): int
     {
         $total = 0;
         foreach ($this->stocks as $stock) { $total += $stock->getQuantity(); }
         return $total;
     }
+
     public function setTotalStockQuantity(int $newTotal): void
     {
         $currentTotal = array_sum(array_map(fn($s) => $s->getQuantity(), $this->getStocks()->toArray()));
         $difference = $newTotal - $currentTotal;
         if ($difference < 0) { $this->deductStockQuantity(abs($difference)); } elseif ($difference > 0) { $this->increaseStockQuantity($difference); }
     }
+
     public function increaseStockQuantity(int $quantityToAdd): void
     {
         $stocks = $this->getStocks()->toArray();
@@ -243,6 +260,7 @@ class Product
         if (!empty($stocks)) { $latestStock = $stocks[0]; $latestStock->setQuantity($latestStock->getQuantity() + $quantityToAdd); }
         else { throw new \Exception('No stock record found.'); }
     }
+
     public function deductStockQuantity(int $quantityToDeduct): void
     {
         $remainingToDeduct = $quantityToDeduct;
@@ -255,6 +273,7 @@ class Product
         }
         if ($remainingToDeduct > 0) throw new \Exception('Not enough stock.');
     }
+
     public function getStockStatus(): string
     {
         $quantity = $this->getTotalStockQuantity();
@@ -262,6 +281,7 @@ class Product
         if ($quantity >= 1) return 'Low Stock';
         return 'Out of Stock';
     }
+
     public function getCartItems(): Collection { return $this->cartItems; }
     public function addCartItem(CartItem $cartItem): static
     {
@@ -273,16 +293,16 @@ class Product
         if ($this->cartItems->removeElement($cartItem)) { if ($cartItem->getProduct() === $this) { $cartItem->setProduct(null); } }
         return $this;
     }
+
     public function getProfitPercentage(): float
     {
         $cost = floatval($this->cost); $price = floatval($this->price);
         if ($cost <= 0) return 0.0;
         return round((($price - $cost) / $cost) * 100, 2);
     }
+
     public function getSubCategory(): ?SubCategory { return $this->subCategory; }
     public function setSubCategory(?SubCategory $subCategory): static { $this->subCategory = $subCategory; return $this; }
-    public function getCategory(): ?Category { return $this->category; }
-    public function setCategory(?Category $category): static { $this->category = $category; return $this; }
 
     /**
      * @return Collection<int, Customer>
@@ -291,35 +311,22 @@ class Product
     {
         return $this->wishlisted;
     }
-
     public function addWishlisted(Customer $wishlisted): static
     {
         if (!$this->wishlisted->contains($wishlisted)) {
             $this->wishlisted->add($wishlisted);
             $wishlisted->addWishlist($this);
         }
-
         return $this;
     }
-
     public function removeWishlisted(Customer $wishlisted): static
     {
         if ($this->wishlisted->removeElement($wishlisted)) {
             $wishlisted->removeWishlist($this);
         }
-
         return $this;
     }
 
-    public function getStory(): ?Story
-    {
-        return $this->story;
-    }
-
-    public function setStory(?Story $story): static
-    {
-        $this->story = $story;
-
-        return $this;
-    }
+    public function getStory(): ?Story { return $this->story; }
+    public function setStory(?Story $story): static { $this->story = $story; return $this; }
 }

@@ -23,15 +23,14 @@ class Notification
     #[ORM\Column]
     private ?bool $isRead = null;
 
-    #[ORM\ManyToOne(targetEntity: Admin::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Admin $admin = null;
-
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'notifications')]
     private ?User $recipient = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $targetUrl = null;
 
     public function __construct()
     {
@@ -79,18 +78,6 @@ class Notification
         return $this;
     }
 
-    public function getAdmin(): ?Admin
-    {
-        return $this->admin;
-    }
-
-    public function setAdmin(?Admin $admin): static
-    {
-        $this->admin = $admin;
-
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -111,6 +98,18 @@ class Notification
     public function setRecipient(?User $recipient): static
     {
         $this->recipient = $recipient;
+
+        return $this;
+    }
+
+    public function getTargetUrl(): ?string
+    {
+        return $this->targetUrl;
+    }
+
+    public function setTargetUrl(string $targetUrl): static
+    {
+        $this->targetUrl = $targetUrl;
 
         return $this;
     }

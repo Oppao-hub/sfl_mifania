@@ -65,6 +65,18 @@ class Wallet
         return $this;
     }
 
+    public function getCustomer(): ?Customer
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(?Customer $customer): static
+    {
+        $this->customer = $customer;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, WalletTransaction>
      */
@@ -72,6 +84,7 @@ class Wallet
     {
         return $this->walletTransactions;
     }
+
 
     public function addWalletTransaction(WalletTransaction $walletTransaction): static
     {
@@ -97,11 +110,12 @@ class Wallet
 
     public function deposit(float $amount, string $description = 'Deposit'): WalletTransaction
     {
-        $this->balance = (string) ($this->balance + $amount);
+        // Safely cast to float for math, then back to string for the database
+        $this->balance = (string) ((float)$this->balance + $amount);
 
         $transaction = new WalletTransaction();
         $transaction->setWallet($this);
-        $transaction->setAmount($amount);
+        $transaction->setAmount((string) $amount); // Explicit cast to string
         $transaction->setType('deposit');
         $transaction->setDescription($description);
         $transaction->setCreatedAt(new \DateTimeImmutable());
@@ -111,15 +125,15 @@ class Wallet
 
     public function withdraw(float $amount, string $description = 'Withdrawal'): ?WalletTransaction
     {
-        if ($this->balance < $amount) {
+        if ((float)$this->balance < $amount) {
             throw new \InvalidArgumentException('Insufficient balance for withdrawal.');
         }
 
-        $this->balance = (string) ($this->balance - $amount);
+        $this->balance = (string) ((float)$this->balance - $amount);
 
         $transaction = new WalletTransaction();
         $transaction->setWallet($this);
-        $transaction->setAmount(-$amount);
+        $transaction->setAmount((string) -$amount); // Explicit cast to string
         $transaction->setType('withdrawal');
         $transaction->setDescription($description);
         $transaction->setCreatedAt(new \DateTimeImmutable());
@@ -127,29 +141,17 @@ class Wallet
         return $transaction;
     }
 
-    public function addRewardPoints(int $points, string $description = 'Reward Earnd'): WalletTransaction
+    public function addRewardPoints(int $points, string $description = 'Reward Earned'): WalletTransaction
     {
         $this->rewardPoints += $points;
 
         $transaction = new WalletTransaction();
         $transaction->setWallet($this);
-        $transaction->setAmount(0);
+        $transaction->setAmount('0.00'); // Explicit cast
         $transaction->setType('reward');
         $transaction->setDescription($description . " ({$points} points)");
         $transaction->setCreatedAt(new \DateTimeImmutable());
 
         return $transaction;
-    }
-
-    public function getCustomer(): ?Customer
-    {
-        return $this->customer;
-    }
-
-    public function setCustomer(?Customer $customer): static
-    {
-        $this->customer = $customer;
-
-        return $this;
     }
 }

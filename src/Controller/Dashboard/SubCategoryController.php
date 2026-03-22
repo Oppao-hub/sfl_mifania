@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/dashboard/subcategory')]
 final class SubCategoryController extends AbstractController
 {
-    #[Route(name: 'app_dashboard_sub_category_index', methods: ['GET'])]
+    #[Route(name: 'app_sub_category_index', methods: ['GET'])]
     public function index(SubCategoryRepository $subCategoryRepository): Response
     {
         return $this->render('dashboard/sub_category/index.html.twig', [
@@ -22,7 +22,7 @@ final class SubCategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_dashboard_sub_category_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_sub_category_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $subCategory = new SubCategory();
@@ -34,7 +34,7 @@ final class SubCategoryController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Sub-category created successfully.');
-            return $this->redirectToRoute('app_dashboard_sub_category_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_sub_category_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/sub_category/new.html.twig', [
@@ -43,7 +43,7 @@ final class SubCategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_sub_category_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_sub_category_show', methods: ['GET'])]
     public function show(SubCategory $subCategory): Response
     {
         return $this->render('dashboard/sub_category/show.html.twig', [
@@ -51,7 +51,7 @@ final class SubCategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_dashboard_sub_category_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_sub_category_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, SubCategory $subCategory, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(SubCategoryType::class, $subCategory);
@@ -61,7 +61,7 @@ final class SubCategoryController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Sub-category updated successfully.');
-            return $this->redirectToRoute('app_dashboard_sub_category_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_sub_category_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/sub_category/edit.html.twig', [
@@ -70,7 +70,7 @@ final class SubCategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_dashboard_sub_category_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_sub_category_delete', methods: ['POST'])]
     public function delete(Request $request, SubCategory $subCategory, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $subCategory->getId(), $request->getPayload()->getString('_token'))) {
@@ -78,6 +78,6 @@ final class SubCategoryController extends AbstractController
             $entityManager->flush();
         }
         $this->addFlash('success', 'Sub-category deleted successfully.');
-        return $this->redirectToRoute('app_dashboard_sub_category_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_sub_category_index', [], Response::HTTP_SEE_OTHER);
     }
 }

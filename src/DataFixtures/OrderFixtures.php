@@ -41,12 +41,10 @@ class OrderFixtures extends Fixture implements DependentFixtureInterface
         // Create Order
         $order = new Order();
         $order->setCustomer($customer);
-        $order->setOrderDate(new \DateTime());
         $order->setTotalAmount($orderItem1->getSubtotal() + $orderItem2->getSubtotal());
         $order->setPaymentMethod(PaymentMethod::CASH);
         $order->setPaymentStatus(PaymentStatus::PAID);
         $order->setOrderStatus(OrderStatus::PENDING);
-        $order->setRewardPointsEarned(10);
         $order->setCreatedAt(new \DateTimeImmutable());
         $order->setUpdatedAt(new \DateTimeImmutable());
         $order->addOrderItem($orderItem1);

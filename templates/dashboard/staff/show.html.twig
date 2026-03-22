@@ -44,28 +44,38 @@
 
     {# 2. QUICK STATS SUMMARY #}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {% macro quickStat(label, value, icon) %}
+        {% macro quickStat(label, value, icon, colorClass = 'text-brand') %}
             <div class="bg-white p-6 rounded-2xl border border-border-color shadow-sm flex items-start gap-4">
-                <div class="p-3 bg-app-bg rounded-xl text-brand border border-border-color">
+                <div class="p-3 bg-app-bg rounded-xl {{ colorClass }} border border-border-color">
                     {{ ux_icon(icon, {class: 'w-5 h-5'}) }}
                 </div>
                 <div>
                     <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray mb-1.5 leading-none">{{ label }}</p>
-                    <p class="text-sm font-bold text-brand-dark leading-tight">{{ value|default('N/A') }}</p>
+                    <div class="text-sm font-bold text-brand-dark leading-tight">{{ value|raw }}</div>
                 </div>
             </div>
         {% endmacro %}
 
         {{ _self.quickStat('Access Email', staff.user.email, 'lucide:mail') }}
+
+        {# Dynamic Operational Status #}
+        {% set statusLabel = staff.user.status.value|default('Unknown') %}
+        {% set statusColor = staff.user.status.value == 'Active' ? 'text-emerald-500' : 'text-rose-500' %}
+        {{ _self.quickStat('Operational Status',
+            '<span class="flex items-center gap-1.5 ' ~ statusColor ~ '">' ~
+            '<span class="w-1.5 h-1.5 rounded-full bg-current ' ~ (staff.user.status.value == 'Active' ? 'animate-pulse' : '') ~ '"></span>' ~
+            statusLabel ~ '</span>',
+            'lucide:activity', statusColor)
+        }}
+
         {{ _self.quickStat('Operating Since', staff.createdAt|date('M d, Y'), 'lucide:calendar') }}
-        {{ _self.quickStat('Security Status', 'Encrypted', 'lucide:shield-check') }}
     </div>
 
     {# 3. MAIN CONTENT GRID #}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {# Left Column: Identity Card #}
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden h-fit">
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden">
             <div class="p-8 border-b border-border-color flex items-center gap-3">
                 <div class="p-2 bg-app-bg rounded-lg text-brand border border-border-color">
                     {{ ux_icon('lucide:fingerprint', {class: 'w-5 h-5'}) }}
@@ -104,14 +114,33 @@
                 </div>
             </div>
 
-            {# Audit Trail #}
+            {# Audit Trail Section #}
             <div class="bg-white p-8 rounded-2xl border border-border-color shadow-sm">
                 <h3 class="text-xs font-black uppercase tracking-[0.3em] text-gray mb-6 border-b border-border-color pb-4">Audit Record</h3>
                 <div class="space-y-6">
+                    {# Onboarding Date #}
                     <div>
                         <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Onboarding Date</p>
                         <p class="text-sm font-bold text-brand-dark">{{ staff.createdAt|date('F d, Y') }}</p>
                     </div>
+
+                    {# Verification Status #}
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Identity Verification</p>
+                        {% if staff.user.isVerified %}
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                                {{ ux_icon('lucide:badge-check', {class: 'w-4 h-4'}) }}
+                                Cleared / Verified
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-100 rounded-md text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                                {{ ux_icon('lucide:shield-alert', {class: 'w-4 h-4'}) }}
+                                Pending Review
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {# Account Role #}
                     <div>
                         <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Account Role</p>
                         <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-md text-[10px] font-black text-brand uppercase tracking-widest">

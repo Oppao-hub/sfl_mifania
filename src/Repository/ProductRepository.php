@@ -99,4 +99,19 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countByCategoryName(string $categoryName): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            // Join the Product to its SubCategory
+            ->join('p.subCategory', 'sc')
+            // Join the SubCategory to its Parent Category
+            ->join('sc.category', 'c')
+            // Filter by the Parent Category's name
+            ->andWhere('c.name = :categoryName')
+            ->setParameter('categoryName', $categoryName)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

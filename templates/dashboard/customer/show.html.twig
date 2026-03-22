@@ -1,6 +1,7 @@
+{# templates/dashboard/customer/show.html.twig #}
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}Manifest: {{ customer.firstName }} {{ customer.lastName }}{% endblock %}
+{% block title %}Customer: {{ customer.firstName }} {{ customer.lastName }}{% endblock %}
 
 {% block main_content %}
 <div class="p-6 md:p-10 animate-fadeIn max-w-7xl mx-auto">
@@ -17,8 +18,8 @@
                     {{ customer.firstName }} <span class="text-brand">{{ customer.lastName }}</span>
                 </h1>
                 <div class="flex items-center gap-2 mt-2">
-                    <span class="text-[10px] text-gray uppercase font-black tracking-widest italic font-mono">Registry Manifest #{{ customer.id }}</span>
-                    <span class="px-2 py-0.5 bg-app-bg text-gray rounded-md text-[10px] font-bold uppercase tracking-tighter border border-border-color">Verified Profile</span>
+                    <span class="text-[10px] text-gray uppercase font-black tracking-widest italic font-mono">Manifest #{{ customer.id }}</span>
+                    <span class="px-2 py-0.5 bg-app-bg text-gray rounded-md text-[10px] font-bold uppercase tracking-tighter border border-border-color italic">Client Registry</span>
                 </div>
             </div>
         </div>
@@ -26,7 +27,7 @@
         <div class="flex items-center gap-3">
              <a href="{{ path('app_customer_edit', { id: customer.id }) }}"
                class="px-6 py-3.5 bg-brand/10 text-brand border border-brand/20 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand/20 transition-all shadow-sm flex items-center gap-2">
-                {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
+                {{ ux_icon('lucide:user-cog', {class: 'w-4 h-4'}) }}
                 Modify Profile
             </a>
             <button type="button"
@@ -42,77 +43,132 @@
         </div>
     </div>
 
-    {# 2. SUMMARY DASHBOARD GRID #}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {% macro quickStat(label, value, icon, color='text-brand-dark') %}
+    {# 2. QUICK STATS SUMMARY #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {% macro quickStat(label, value, icon, colorClass = 'text-brand') %}
             <div class="bg-white p-6 rounded-2xl border border-border-color shadow-sm flex items-start gap-4">
-                <div class="p-3 bg-app-bg rounded-xl text-brand border border-border-color">
+                <div class="p-3 bg-app-bg rounded-xl {{ colorClass }} border border-border-color">
                     {{ ux_icon(icon, {class: 'w-5 h-5'}) }}
                 </div>
                 <div>
-                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-gray mb-1.5 leading-none">{{ label }}</p>
-                    <p class="text-sm font-bold {{ color }} leading-tight">{{ value|default('N/A') }}</p>
+                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray mb-1.5 leading-none">{{ label }}</p>
+                    <div class="text-sm font-bold text-brand-dark leading-tight">{{ value|raw }}</div>
                 </div>
             </div>
         {% endmacro %}
 
-        {{ _self.quickStat('Loyalty Balance', customer.wallet.rewardPoints|number_format(0) ~ ' pts', 'lucide:sparkles', 'text-terracotta') }}
-        {{ _self.quickStat('Contact Line', customer.contactNumber, 'lucide:phone') }}
-        {{ _self.quickStat('Nation', customer.country, 'lucide:globe') }}
-        {{ _self.quickStat('Onboarded', customer.createdAt|date('M d, Y'), 'lucide:calendar') }}
+        {{ _self.quickStat('Electronic Mail', customer.user.email, 'lucide:mail') }}
+
+        {# Dynamic Status Stat - Exact copy of Admin logic #}
+        {% set statusValue = customer.user.status.value|default('Active') %}
+        {% set isStatusActive = statusValue|lower == 'active' %}
+        {% set statusColor = isStatusActive ? 'text-emerald-500' : 'text-rose-500' %}
+
+        {{ _self.quickStat('Operational Status',
+            '<span class="flex items-center gap-1.5 ' ~ statusColor ~ '">' ~
+            '<span class="w-1.5 h-1.5 rounded-full bg-current ' ~ (isStatusActive ? 'animate-pulse' : '') ~ '"></span>' ~
+            statusValue ~ '</span>',
+            'lucide:activity', statusColor)
+        }}
+
+        {{ _self.quickStat('Wallet Balance', '₱' ~ customer.wallet.balance|number_format(2), 'lucide:wallet', 'text-terracotta') }}
     </div>
 
-    {# 3. IDENTITY DETAILS #}
+    {# 3. MAIN CONTENT GRID #}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden">
-            <div class="p-8 border-b border-border-color flex items-center gap-3">
-                <div class="p-2 bg-app-bg rounded-lg text-brand border border-border-color">
-                    {{ ux_icon('lucide:user', {class: 'w-5 h-5'}) }}
+
+        {# Left Column: Identity & Logistics #}
+        <div class="lg:col-span-8 space-y-8">
+            <div class="bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden">
+                <div class="p-8 border-b border-border-color flex items-center gap-3">
+                    <div class="p-2 bg-app-bg rounded-lg text-brand border border-border-color">
+                        {{ ux_icon('lucide:fingerprint', {class: 'w-5 h-5'}) }}
+                    </div>
+                    <h2 class="text-lg font-black text-brand-dark tracking-tighter uppercase">Identity Specifications</h2>
                 </div>
-                <h2 class="text-lg font-black text-brand-dark tracking-tighter uppercase">Identity Specifications</h2>
+
+                <div class="p-8 md:p-10">
+                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                        {% macro manifestRow(label, value) %}
+                            <div>
+                                <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">{{ label }}</dt>
+                                <dd class="text-base font-bold text-brand-dark">{{ value|default('—') }}</dd>
+                            </div>
+                        {% endmacro %}
+
+                        {{ _self.manifestRow('Given Name', customer.firstName) }}
+                        {{ _self.manifestRow('Family Name', customer.lastName) }}
+                        {{ _self.manifestRow('Contact Line', customer.contactNumber) }}
+                        {{ _self.manifestRow('Communication Channel', customer.user.email) }}
+                    </dl>
+                </div>
             </div>
 
-            <div class="p-8 md:p-10">
-                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                    {% macro manifestRow(label, value) %}
-                        <div>
-                            <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">{{ label }}</dt>
-                            <dd class="text-base font-bold text-brand-dark">{{ value|default('—') }}</dd>
-                        </div>
-                    {% endmacro %}
-
-                    {{ _self.manifestRow('Given Name', customer.firstName) }}
-                    {{ _self.manifestRow('Family Name', customer.lastName) }}
-                    {{ _self.manifestRow('Electronic Mail', customer.user.email) }}
-                    {{ _self.manifestRow('City / District', customer.city) }}
-
-                    <div class="md:col-span-2">
-                        {{ _self.manifestRow('Logistics Destination (Full Address)', customer.address) }}
+            <div class="bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden">
+                <div class="p-8 border-b border-border-color flex items-center gap-3">
+                    <div class="p-2 bg-app-bg rounded-lg text-brand border border-border-color">
+                        {{ ux_icon('lucide:map-pin', {class: 'w-5 h-5'}) }}
                     </div>
-                </dl>
+                    <h2 class="text-lg font-black text-brand-dark tracking-tighter uppercase">Logistics Destination</h2>
+                </div>
+                <div class="p-8 md:p-10">
+                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                        {{ _self.manifestRow('City / District', customer.city) }}
+                        {{ _self.manifestRow('State / Province', customer.state) }}
+                        <div class="md:col-span-2">
+                            {{ _self.manifestRow('Physical Address', customer.address) }}
+                        </div>
+                    </dl>
+                </div>
             </div>
         </div>
 
+        {# Right Column: Visual Reference & Audit #}
         <div class="lg:col-span-4 space-y-8">
+
+            {# Visual Profile Reference #}
             <div class="bg-white p-8 rounded-2xl border border-border-color shadow-sm">
-                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray mb-6 text-center">Visual Profile Reference</p>
-                <div class="p-1 border border-border-color rounded-2xl mx-auto w-44 bg-app-bg">
+                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray mb-6 text-center">Visual ID Reference</p>
+                <div class="p-1 border border-border-color rounded-2xl mx-auto w-44 bg-app-bg shadow-inner">
                     <img class="w-full aspect-square rounded-xl object-cover hover:scale-[1.02] transition-transform duration-500"
                          src="{{ customer.avatar ? asset('uploads/customer/avatars/' ~ customer.avatar) : asset('uploads/default/default-avatar.jpg') }}"
-                         alt="Visual ID">
+                         alt="Customer Visual">
                 </div>
             </div>
 
+            {# Audit Trail Section #}
             <div class="bg-white p-8 rounded-2xl border border-border-color shadow-sm">
-                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-gray mb-6 border-b border-border-color pb-4">Audit Trail</h3>
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] text-gray mb-6 border-b border-border-color pb-4">Audit Record</h3>
                 <div class="space-y-6">
+                    {# Onboarding Date #}
                     <div>
-                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Postal Code</p>
-                        <p class="text-sm font-bold text-brand-dark font-mono">{{ customer.postalCode|default('0000') }}</p>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Onboarding Date</p>
+                        <p class="text-sm font-bold text-brand-dark">{{ customer.createdAt|date('F d, Y') }}</p>
                     </div>
+
+                    {# Verification Status #}
                     <div>
-                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">State / Province</p>
-                        <p class="text-sm font-bold text-brand-dark">{{ customer.state|default('—') }}</p>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Identity Verification</p>
+                        {% if customer.user.isVerified %}
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                                {{ ux_icon('lucide:badge-check', {class: 'w-4 h-4'}) }}
+                                Cleared / Verified
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-100 rounded-md text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                                {{ ux_icon('lucide:shield-alert', {class: 'w-4 h-4'}) }}
+                                Pending Review
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {# Account Type #}
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Account Tier</p>
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-md text-[10px] font-black text-brand uppercase tracking-widest">
+                            <span class="w-1.5 h-1.5 bg-brand rounded-full"></span>
+                            Registered Customer
+                        </span>
                     </div>
                 </div>
             </div>

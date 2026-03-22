@@ -31,11 +31,18 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/', name: 'app_product_index')]
-    public function index(ProductRepository $repo): Response
+    public function index(ProductRepository $productRepository): Response
     {
+        $products = $productRepository->findAll();
+
+        if (empty($products)) {
+            $this->addFlash('warning', 'No Products found. Please create one first.');
+            return $this->redirectToRoute('app_product_new', [], Response::HTTP_SEE_OTHER);
+        }
+
         return $this->render('dashboard/product/index.html.twig', [
-            'products' => $repo->findAll(),
-            'total_products' => $repo->count([]),
+            'products' => $products,
+            'total_products' => $productRepository->count([]),
         ]);
     }
 

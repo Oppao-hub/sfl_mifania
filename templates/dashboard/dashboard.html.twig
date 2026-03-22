@@ -24,15 +24,16 @@
     {# Sidebar #}
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
            class="fixed inset-y-0 left-0 w-72 bg-white border-r border-border-color flex flex-col z-50 p-6 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:h-screen lg:shadow-sm">
-
-        <div class="mb-10 flex items-center justify-center">
+        {# 1. ADD shrink-0 to prevent the logo from squishing #}
+        <div class="mb-8 flex items-center justify-center shrink-0">
             <img src="{{ asset('uploads/logo/logo.svg') }}" alt="MIFANIA" class="h-12 w-auto">
             <button @click="sidebarOpen = false" class="lg:hidden p-2 text-gray hover:bg-row-hover rounded-xl transition-colors">
                 {{ ux_icon('lucide:x', {class: 'w-5 h-5'}) }}
             </button>
         </div>
 
-        <nav class="flex-grow space-y-2">
+        {# 2. ADD overflow-y-auto and min-h-0 to make this scrollable! #}
+        <nav class="border-t border-border-color flex-grow space-y-2 overflow-y-auto min-h-0 pr-2 pb-4 custom-scrollbar">
             <a href="{{ path('app_dashboard') }}"
                class="flex items-center space-x-3 p-3.5 rounded-xl transition-all
                {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'bg-brand/10 text-brand shadow-sm' : 'text-gray hover:bg-row-hover hover:text-brand-dark' }}">
@@ -50,12 +51,19 @@
                     'Narratives': {'icon': 'lucide:book-open', 'route_prefix': 'app_story_'},
                     'QR Tags': {'icon': 'lucide:qr-code', 'route_prefix': 'app_qrTag_'},
                     'Inventory': {'icon': 'lucide:boxes', 'route_prefix': 'app_stock_'},
+                    'Category': {'icon': 'tabler:category', 'route_prefix': 'app_category_'},
+                    'Sub-Category': {'icon': 'material-symbols-light:category-outline-rounded', 'route_prefix': 'app_sub_category_'},
                 } %}
             {% else %}
                 {% set menu_items = {
                     'Products': {'icon': 'lucide:package', 'route_prefix': 'app_product_'},
                     'Orders': {'icon': 'lucide:shopping-bag', 'route_prefix': 'app_order_'},
                     'Customers': {'icon': 'lucide:users', 'route_prefix': 'app_customer_'},
+                    'Narratives': {'icon': 'lucide:book-open', 'route_prefix': 'app_story_'},
+                    'QR Tags': {'icon': 'lucide:qr-code', 'route_prefix': 'app_qrTag_'},
+                    'Inventory': {'icon': 'lucide:boxes', 'route_prefix': 'app_stock_'},
+                    'Category': {'icon': 'tabler:category', 'route_prefix': 'app_category_'},
+                    'Sub-Category': {'icon': 'material-symbols-light:category-outline-rounded', 'route_prefix': 'app_sub_category_'},
                 } %}
             {% endif %}
 
@@ -69,7 +77,8 @@
             {% endfor %}
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-border-color space-y-2">
+        {# 3. ADD shrink-0 to prevent the footer from squishing #}
+        <div class="mt-auto pt-6 border-t border-border-color space-y-2 shrink-0">
             <a href="#" class="flex items-center space-x-3 p-3.5 rounded-xl text-gray hover:bg-row-hover hover:text-brand-dark transition-all">
                 {{ ux_icon('lucide:settings', {class: 'w-4 h-4'}) }}
                 <span class="font-bold text-xs uppercase tracking-widest">Settings</span>
@@ -83,7 +92,7 @@
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-        <header class="bg-white/80 backdrop-blur-md sticky top-0 z-30 p-4 px-6 lg:px-10 flex justify-between items-center border-b border-border-color gap-4">
+        <header class="bg-white/80 backdrop-blur-md sticky top-0 z-60 p-4 px-6 lg:px-10 flex justify-between items-center border-b border-border-color gap-4">
             <div class="flex items-center gap-4 flex-1">
                 <button @click="sidebarOpen = true" class="lg:hidden p-2 text-brand bg-brand/10 rounded-xl hover:opacity-80 transition-opacity shrink-0">
                     {{ ux_icon('lucide:menu', {class: 'w-5 h-5'}) }}
@@ -98,8 +107,147 @@
                 </form>
             </div>
 
+            {# --- 🔔 THE NOTIFICATION COMPONENT --- #}
+            <div x-data="{
+                    notifOpen: false,
+                    unreadCount: {{ unreadCount|default(0) }},
+                    notifications: [],
+
+                    dismiss(id, url) {
+                        fetch(url, { method: 'POST' })
+                            .then(response => {
+                                if (response.ok) {
+                                    {# Find the element in the DOM and remove it #}
+                                    const el = document.getElementById('notif-' + id);
+                                    if (el) {
+                                        el.style.transition = 'all 0.3s ease';
+                                        el.style.opacity = '0';
+                                        el.style.transform = 'translateX(20px)';
+                                        setTimeout(() => el.remove(), 300);
+                                    }
+                                }
+                            });
+                    },
+
+                    markAsRead() {
+                        this.unreadCount = 0;
+                        fetch('{{ path('app_notifications_mark_read') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token('mark_notifications_read') }}',
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            }
+                        }).then(response => {
+                            if (!response.ok) console.error('Failed to mark read');
+                        });
+                    }
+                }"
+                @notify.window="unreadCount++"
+                class="relative flex items-center">
+
+                {# 1. The Bell Button (What you actually click) #}
+                <button type="button"
+                        @click="notifOpen = !notifOpen"
+                        class="relative p-2.5 text-gray hover:text-brand-dark bg-white hover:bg-row-hover border border-transparent hover:border-border-color rounded-xl transition-all cursor-pointer shadow-sm">
+
+                    {{ ux_icon('lucide:bell', {class: 'w-5 h-5'}) }}
+
+                    <template x-if="unreadCount > 0">
+                        <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-[20px] px-1 text-[10px] font-black text-white bg-danger border-2 border-white rounded-full shadow-sm animate-fadeIn"
+                            x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
+                    </template>
+                </button>
+
+                {# 2. The Hidden Dropdown Panel (This fixes the spilling issue!) #}
+                <div x-show="notifOpen"
+                    @click.away="notifOpen = false"
+                    x-transition:enter="transition ease-out duration-200 transform"
+                    x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-150 transform"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                    class="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-border-color overflow-hidden z-[100]"
+                    x-cloak>
+
+                    {# Dropdown Header #}
+                    <div class="px-5 py-4 border-b border-border-color bg-app-bg flex items-center justify-between">
+                        <h3 class="text-xs font-black text-brand-dark uppercase tracking-widest">Notifications</h3>
+                        <template x-if="unreadCount > 0">
+                            <button @click="markAsRead()" class="text-[9px] font-bold text-brand hover:text-brand-dark uppercase tracking-widest cursor-pointer transition-colors">
+                                Mark Read
+                            </button>
+                        </template>
+                    </div>
+
+                    {# Dropdown Body / List #}
+                    <div class="max-h-[350px] overflow-y-auto divide-y divide-border-color">
+                        <div class="max-h-[350px] overflow-y-auto divide-y divide-border-color">
+                            {% for notif in recentNotifications|default([]) %}
+                                {# 1. Each notification needs 'relative' and 'group' for the X button to work #}
+                                <div id="notif-{{ notif.id }}" class="relative group transition-all duration-300">
+
+                                    {# 2. The Actual Link #}
+                                    <a href="{{ path('app_notification_read_and_redirect', { id: notif.id }) }}"
+                                    class="block p-5 hover:bg-row-hover transition-colors {% if not notif.isRead %}bg-brand/5{% else %}bg-white{% endif %}">
+
+                                        <div class="flex gap-4">
+                                            <div class="mt-0.5 shrink-0">
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300
+                                                    {% if not notif.isRead %} bg-brand text-white border-brand shadow-md shadow-brand/20
+                                                    {% else %} bg-app-bg text-gray border-border-color group-hover:border-brand/30 {% endif %}">
+                                                    {{ ux_icon('lucide:bell', {class: 'w-4 h-4'}) }}
+                                                </div>
+                                            </div>
+
+                                            <div class="flex-1 min-w-0 pr-6">
+                                                <div class="flex justify-between items-start mb-1">
+                                                    <p class="text-xs font-black truncate pr-2 transition-colors {% if not notif.isRead %}text-brand-dark{% else %}text-gray group-hover:text-brand-dark{% endif %}">
+                                                        {{ notif.title }}
+                                                    </p>
+                                                    {% if not notif.isRead %}
+                                                        <span class="w-2 h-2 rounded-full bg-danger shrink-0 mt-1 shadow-sm"></span>
+                                                    {% endif %}
+                                                </div>
+
+                                                <p class="text-[11px] font-medium text-dark-gray leading-snug line-clamp-2 mb-2">
+                                                    {{ notif.message }}
+                                                </p>
+
+                                                <p class="text-[9px] font-black uppercase tracking-widest text-gray/50">
+                                                    {{ notif.createdAt|date('M d, Y • g:i A') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+
+                                    {# 3. The Dismiss Button (Visible only on hover) #}
+                                    <button
+                                        type="button"
+                                        @click.stop.prevent="dismiss({{ notif.id }}, '{{ path('app_notification_dismiss', {id: notif.id}) }}')"
+                                        class="absolute top-4 right-4 z-30 p-2 rounded-xl text-gray hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+                                        title="Remove">
+                                        {{ ux_icon('lucide:x', {class: 'w-3.5 h-3.5'}) }}
+                                    </button>
+                                </div>
+                            {% else %}
+                                {# 4. The Empty State (The 'else' we missed!) #}
+                                <div class="px-5 py-10 text-center">
+                                    <div class="mx-auto w-12 h-12 bg-app-bg rounded-full flex items-center justify-center text-gray/30 mb-4 border border-border-color">
+                                        {{ ux_icon('lucide:bell-off', {class: 'w-5 h-5'}) }}
+                                    </div>
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray">All Caught Up</p>
+                                    <p class="text-xs font-medium text-gray/60 mt-1">You have no new notifications.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {# User Profile #}
-            <a href="{{ is_granted('ROLE_ADMIN') ? path('app_admin_account') : path('app_staff_account') }}" class="relative flex items-center gap-3 cursor-pointer group hover:bg-app-bg p-2 pr-4 rounded-xl transition-all shrink-0 border border-transparent hover:border-border-color">
+            <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin') : path('app_staff_account') }}" class="relative flex items-center gap-3 cursor-pointer group hover:bg-app-bg p-2 pr-4 rounded-xl transition-all shrink-0 border border-transparent hover:border-border-color">
                 <div class="text-right hidden md:block">
                     <p class="text-xs font-black text-brand-dark group-hover:text-brand transition-colors uppercase tracking-widest">
                         {% if app.user.admin %}
@@ -115,7 +263,7 @@
                     </p>
                 </div>
                 <div class="relative">
-                    {% set avatarPath = 'images/default/default_avatar.jpg' %}
+                    {% set avatarPath = 'uploads/default/default-avatar.jpg' %}
                     {% if app.user.admin and app.user.admin.avatar %}
                         {% set avatarPath = 'uploads/admin/avatars/' ~ app.user.admin.avatar %}
                     {% elseif app.user.staff and app.user.staff.avatar %}
@@ -134,5 +282,28 @@
 
     {{ include('components/dashboard/flash/flash_messages.html.twig') }}
     {{ include('components/dashboard/modal/global_confirm.html.twig') }}
+
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Connect to the specific Admin channel
+                const url = new URL('{{ mercure('/notifications/user/' ~ app.user.id)|escape('js') }}');
+                const eventSource = new EventSource(url);
+
+                // When a live message arrives from PHP...
+                eventSource.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+
+                    // Fire the event that makes the Bell badge tick up +1
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: {
+                            type: data.type || 'success',
+                            message: data.message
+                        }
+                    }));
+                };
+            });
+        </script>
+    {% endif %}
 </body>
 </html>

@@ -4,11 +4,11 @@ namespace App\DataFixtures;
 
 use App\Entity\Product;
 use App\Entity\Enum\Size;
+use App\Entity\Enum\Gender;
 use App\Entity\SubCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use App\DataFixtures\SubCategoryFixtures; // Added missing import for SubCategoryFixtures
 use App\Entity\Enum\Color;
 
 class ProductFixtures extends Fixture implements DependentFixtureInterface
@@ -17,9 +17,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        // Get the subcategory reference
         /** @var SubCategory $subCategory */
-        // FIX 1: Corrected getReference call (removed second argument)
         $subCategory = $this->getReference(SubCategoryFixtures::BAGS_CATEGORY_REFERENCE, SubCategory::class);
 
         $productsData = [
@@ -28,6 +26,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'material' => 'Bamboo Fiber',
                 'size' => 'Large',
                 'color' => 'Beige',
+                'gender' => 'Unisex',
                 'price' => '599.99',
                 'cost' => '300.00',
                 'description' => 'A durable, eco-friendly tote bag made from bamboo fiber.',
@@ -40,6 +39,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'material' => 'Recycled PET',
                 'size' => 'Medium',
                 'color' => 'Blue',
+                'gender' => 'Women',
                 'price' => '499.99',
                 'cost' => '250.00',
                 'description' => 'Stylish everyday bag made from recycled plastic bottles.',
@@ -52,6 +52,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'material' => 'Organic Cotton',
                 'size' => 'Small',
                 'color' => 'White',
+                'gender' => 'Men',
                 'price' => '199.99',
                 'cost' => '80.00',
                 'description' => 'Soft and reusable cotton pouch, perfect for accessories.',
@@ -64,6 +65,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'material' => 'Hemp',
                 'size' => 'Large',
                 'color' => 'Green',
+                'gender' => 'Women',
                 'price' => '699.99',
                 'cost' => '350.00',
                 'description' => 'Strong and stylish hemp shopping bag.',
@@ -76,6 +78,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'material' => 'Nylon',
                 'size' => 'Medium',
                 'color' => 'Green',
+                'gender' => 'Men',
                 'price' => '299.99',
                 'cost' => '120.00',
                 'description' => 'Compact foldable bag ideal for groceries.',
@@ -92,15 +95,16 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 ->setMaterial($data['material'])
                 ->setSize(Size::from($data['size']))
                 ->setColor(Color::from($data['color']))
+                ->setGender(Gender::from($data['gender']))
                 ->setPrice($data['price'])
                 ->setCost($data['cost'])
                 ->setDescription($data['description'])
-                ->setPoints($data['points'])
                 ->setEcoInfo($data['ecoInfo'])
                 ->setImage($data['image']);
-            // Removed explicit timestamp setting as Product entity handles it via PrePersist/PreUpdate
 
             $manager->persist($product);
+
+            // This reference is used by OrderFixtures and StockFixtures
             $this->addReference(self::PRODUCT_REFERENCE . '-' . $i, $product);
         }
 
@@ -110,8 +114,6 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
-                // SubCategoryFixtures is needed to load the BAGS_CATEGORY_REFERENCE
-            CategoryFixtures::class,
             SubCategoryFixtures::class,
         ];
     }

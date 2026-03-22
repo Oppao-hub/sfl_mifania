@@ -1,11 +1,11 @@
 <?php
 namespace App\Repository;
 
-use App\Entity\Notification;
+use App\Entity\Admin;
 use App\Entity\User;
+use App\Entity\Notification;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @extends ServiceEntityRepository<Notification>
@@ -39,23 +39,19 @@ class NotificationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Count unread notifications for a user.
-     *
-     * @param User|null $user
-     * @return int
-     */
-    public function countUnread(?User $user): int
+    public function countUnread(object $user): int
     {
-        if (!$user) {
-            return 0;
+        $qb = $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.isRead = false');
+
+        if ($user instanceof Admin) {
+            $qb->andWhere('n.admin = :user');
+        } else {
+            $qb->andWhere('n.recipient = :user');
         }
 
-        return (int) $this->createQueryBuilder('n')
-            ->select('COUNT(n.id)')
-            ->andWhere('n.recipient = :user')
-            ->andWhere('n.isRead = false')
-            ->setParameter('user', $user)
+        return (int) $qb->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
     }

@@ -14,61 +14,65 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use App\Entity\Enum\AccountStatus;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 
 class AdminType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        if(!$options['is_edit']){
-            $builder
-            ->add('password', PasswordType::class, [
-                'label' => 'Password',
-                'mapped' => false,
-                'constraints' => [
-                    new NotBlank(['message' => 'Password cannot be blank.']),
-                    new Length(['min' => 8, 'minMessage' => 'Password must be at least 8 characters.',
-                    'max' => 255, 'maxMessage' => 'Password cannot be longer than {{ limit }} characters.'
-                    ]),
-                ],
-            ]);
-        }
-
         $builder
-            ->add('email', EmailType::class, [
-            'label' => 'Email',
-            'mapped' => false,
-            'constraints' => [
-                new NotBlank(['message' => 'Email cannot be blank.']),
-                // ADD THIS:
-                new Email([
-                    'message' => 'The email "{{ value }}" is not a valid email.',
-                    'mode' => 'strict',
-                    ]),
-            ],
-            ])
-            ->add('firstName', TextType::class, [
-                'label' => 'First Name',
-
-            ])
-            ->add('lastName', TextType::class, [
-                'label' => 'Last Name',
-            ])
+            ->add('firstName', TextType::class, ['label' => 'First Name'])
+            ->add('lastName', TextType::class, ['label' => 'Last Name'])
             ->add('avatar', FileType::class, [
-                'label' => 'Avatar (JPEG or PNG file)',
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
                     new File([
                         'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                        ],
+                        'mimeTypes' => ['image/jpeg', 'image/png'],
                         'mimeTypesMessage' => 'Please upload a valid JPEG or PNG image.',
                     ]),
                 ],
-            ])
-        ;
+            ]);
+
+        if (!$options['is_edit']) {
+            $builder->add('password', PasswordType::class, [
+                'mapped' => false,
+                'constraints' => [
+                    new NotBlank(['message' => 'Password required']),
+                    new Length(['min' => 8]),
+                ],
+            ]);
+        }
+
+        // Listener to handle the User entity fields
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            $admin = $event->getData();
+            $form = $event->getForm();
+            $user = ($admin && $admin->getUser()) ? $admin->getUser() : null;
+
+            $form->add('email', EmailType::class, [
+                'mapped' => false,
+                'data' => $user ? $user->getEmail() : null,
+                'constraints' => [new NotBlank(), new Email()],
+            ]);
+
+            $form->add('status', EnumType::class, [
+                'class' => AccountStatus::class,
+                'mapped' => false,
+                'data' => $user ? $user->getStatus() : AccountStatus::Active,
+            ]);
+
+            $form->add('isVerified', CheckboxType::class, [
+                'mapped' => false,
+                'required' => false,
+                'data' => $user ? $user->getIsVerified() : false,
+            ]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

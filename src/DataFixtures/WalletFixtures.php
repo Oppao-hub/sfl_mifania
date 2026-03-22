@@ -17,9 +17,10 @@ class WalletFixtures extends Fixture implements DependentFixtureInterface
         /** @var Customer $customer */
         $customer = $this->getReference(UserFixtures::CUSTOMER_REFERENCE, Customer::class);
 
-        // Create and link wallet
+        // Create and link wallet starting at ZERO
         $wallet = new Wallet();
-        $wallet->setBalance('1000.00');
+        $wallet->setBalance('0.00');
+        $wallet->setRewardPoints(0);
         $wallet->setCustomer($customer);
         $customer->setWallet($wallet);
 

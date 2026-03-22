@@ -2,6 +2,7 @@
 
 namespace App\Controller\Authentication;
 
+use App\Entity\Admin;
 use App\Entity\Cart;
 use App\Entity\Customer;
 use App\Entity\User;
@@ -9,6 +10,7 @@ use App\Entity\Wallet;
 use App\Form\RegistrationFormType;
 use App\Service\EmailVerificationService;
 use App\Service\RegisterNotifier;
+use App\Service\NotificationPublisher;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,6 +27,7 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher,
         EntityManagerInterface $entityManager,
         RegisterNotifier $registerNotifier,
+        NotificationPublisher $notifier,
         EmailVerificationService $emailVerificationService,
     ): Response
     {
@@ -48,7 +51,6 @@ class RegistrationController extends AbstractController
             $verificationToken = $emailVerificationService->generateVerificationToken();
             $user->setVerificationToken($verificationToken);
             $user->setIsVerified(false);
-
 
             // Generate verification URL
             $verificationUrl = $this->generateUrl(
@@ -78,6 +80,21 @@ class RegistrationController extends AbstractController
             // Send verification email
             $registerNotifier->sendNewUserNotification($user);
             $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+
+            // 1. Fetch the main Admin from the database (Gets the first admin account)
+        $adminUser = $entityManager->getRepository(Admin::class)->findOneBy([]);
+
+        // 2. If an admin exists, send them the live notification
+        if ($adminUser) {
+            $notifier->send(
+                $adminUser,
+                'New User Joined!',
+                // Note: We changed $newUser to $user here because your variable is just called $user
+                "User {$user->getEmail()} has just created an account.",
+                'app_customer_index', // Make sure this route actually exists in your app!
+                []
+            );
+        }
 
             $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
 

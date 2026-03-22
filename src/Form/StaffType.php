@@ -3,17 +3,19 @@
 namespace App\Form;
 
 use App\Entity\Staff;
+use App\Entity\Enum\AccountStatus; // Ensure this path is correct
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\TextType; // Added this
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-// Import Events
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
@@ -21,7 +23,24 @@ class StaffType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        // 1. Password (Only if NOT editing)
+        // 1. Static Fields
+        $builder
+            ->add('firstName', TextType::class, ['label' => 'First Name'])
+            ->add('lastName', TextType::class, ['label' => 'Last Name'])
+            ->add('avatar', FileType::class, [
+                'label' => 'Avatar',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => ['image/jpeg', 'image/png'],
+                        'mimeTypesMessage' => 'Please upload a valid JPEG or PNG image.',
+                    ]),
+                ],
+            ]);
+
+        // 2. Conditional Password
         if (!$options['is_edit']) {
             $builder->add('password', PasswordType::class, [
                 'label' => 'Password',
@@ -33,40 +52,36 @@ class StaffType extends AbstractType
             ]);
         }
 
-        // 2. Email (Use Listener to pre-fill from User entity)
+        // 3. Dynamic Fields (Email, Status, isVerified) from the User Entity
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $staff = $event->getData();
             $form = $event->getForm();
+            $user = ($staff && $staff->getUser()) ? $staff->getUser() : null;
 
-            // Check if staff exists and has a user
-            $currentEmail = null;
-            if ($staff && $staff->getUser()) {
-                $currentEmail = $staff->getUser()->getEmail();
-            }
-
+            // Email
             $form->add('email', EmailType::class, [
-                'label' => 'Email',
                 'mapped' => false,
-                'data' => $currentEmail, // <--- Pre-fills the field
-                'constraints' => [new NotBlank(['message' => 'Email cannot be blank.'])],
+                'data' => $user ? $user->getEmail() : null,
+                'constraints' => [new NotBlank(['message' => 'Email is required'])],
             ]);
-        });
 
-        $builder
-            ->add('firstName', TextType::class, ['label' => 'First Name'])
-            ->add('lastName', TextType::class, ['label' => 'Last Name'])
-            ->add('avatar', FileType::class, [
-                'label' => 'Avatar (JPEG or PNG file)',
+            // Status (Using your existing Enum)
+            $form->add('status', EnumType::class, [
+                'class' => AccountStatus::class,
+                'mapped' => false,
+                'data' => $user ? $user->getStatus() : AccountStatus::Active,
+                'label' => 'Account Status',
+            ]);
+
+            // isVerified
+            $form->add('isVerified', CheckboxType::class, [
                 'mapped' => false,
                 'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => ['image/jpeg', 'image/png'],
-                        'mimeTypesMessage' => 'Please upload a valid JPEG or PNG image.',
-                    ]),
-                ],
+                'data' => $user ? $user->getIsVerified() : false,
+                'label' => 'Verified Account',
+                'attr' => ['class' => 'w-4 h-4 text-brand bg-gray-100 border-gray-300 rounded focus:ring-brand']
             ]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

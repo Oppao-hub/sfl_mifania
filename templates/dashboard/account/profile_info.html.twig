@@ -18,7 +18,7 @@
         </div>
 
         {# Edit Button #}
-        <a href="{{ is_granted('ROLE_ADMIN') ? path('app_admin_account_edit') : path('app_staff_account_edit') }}"
+        <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin_edit') : path('app_staff_account_edit') }}"
            class="inline-flex items-center justify-center px-6 py-3.5 bg-brand/10 text-brand border border-brand/20 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-brand/20 transition-all shadow-sm cursor-pointer">
             {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4 mr-2'}) }}
             Edit Details

@@ -30,26 +30,28 @@ services:
 
     ###> symfony/mercure-bundle ###
     mercure:
-    image: dunglas/mercure
-    restart: unless-stopped
-    environment:
-        SERVER_NAME: ":80" # disable HTTPS for dev
-        MERCURE_PUBLISHER_JWT_KEY: "!ChangeThisMercureHubJWTSecretKey!"
-        MERCURE_SUBSCRIBER_JWT_KEY: "!ChangeThisMercureHubJWTSecretKey!"
-        MERCURE_EXTRA_DIRECTIVES: |
-            cors_origins http://127.0.0.1:8000
-    command: /usr/bin/caddy run --config /etc/caddy/dev.Caddyfile
-    healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost/.well-known/mercure"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-        start_period: 20s
-    volumes:
-        - mercure_data:/data
-        - mercure_config:/config
-    networks:
-        - mifania_network
+        image: dunglas/mercure
+        restart: unless-stopped
+        ports:
+            - "3000:80" # Maps port 3000 on your Mac to port 80 inside the container!
+        environment:
+            SERVER_NAME: ":80" # disable HTTPS for dev inside the container
+            MERCURE_PUBLISHER_JWT_KEY: "!ChangeThisMercureHubJWTSecretKey!"
+            MERCURE_SUBSCRIBER_JWT_KEY: "!ChangeThisMercureHubJWTSecretKey!"
+            MERCURE_EXTRA_DIRECTIVES: |
+                cors_origins http://127.0.0.1:8000
+        command: /usr/bin/caddy run --config /etc/caddy/dev.Caddyfile
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost/.well-known/mercure"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 20s
+        volumes:
+            - mercure_data:/data
+            - mercure_config:/config
+        networks:
+            - mifania_network
 
 volumes:
     ###> symfony/mercure-bundle ###

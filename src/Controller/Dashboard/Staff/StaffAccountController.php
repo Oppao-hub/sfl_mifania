@@ -3,7 +3,7 @@
 namespace App\Controller\Dashboard\Staff;
 
 use App\Entity\User;
-use App\Form\EditProfileType;
+use App\Form\StaffProfileType;
 use App\Form\ChangePasswordType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +29,7 @@ class StaffAccountController extends AbstractController
     public function edit(Request $request, #[CurrentUser] User $user, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $staff = $user->getStaff();
-        $form = $this->createForm(EditProfileType::class, $staff);
+        $form = $this->createForm(StaffProfileType::class, $staff);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -54,15 +54,10 @@ class StaffAccountController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em
     ): Response {
-        $form = $this->createForm(ChangePasswordType::class);
+        $form = $this->createForm(ChangePasswordType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $current = $form->get('currentPassword')->getData();
-
-            if (!$passwordHasher->isPasswordValid($user, $current)) {
-                $this->addFlash('error', 'Current password is incorrect.');
-            } else {
                 $newPlain = $form->get('plainPassword')->getData();
                 $hashed = $passwordHasher->hashPassword($user, $newPlain);
                 $user->setPassword($hashed);
@@ -70,11 +65,10 @@ class StaffAccountController extends AbstractController
 
                 $this->addFlash('success', 'Your password has been changed.');
                 return $this->redirectToRoute('app_staff_account_password');
-            }
         }
 
         return $this->render('dashboard/account/password.html.twig', [
             'form' => $form->createView(),
-        ]);
+        ], new Response(null, $form->isSubmitted() && !$form->isValid() ? 422 : 200) );
     }
 }

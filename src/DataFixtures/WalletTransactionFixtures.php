@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Wallet;
-use App\Entity\WalletTransaction;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -15,25 +14,19 @@ class WalletTransactionFixtures extends Fixture implements DependentFixtureInter
         /** @var Wallet $wallet */
         $wallet = $this->getReference(WalletFixtures::WALLET_REFERENCE, Wallet::class);
 
-        // Create transactions
-        $transaction1 = new WalletTransaction();
-        $transaction1->setWallet($wallet);
-        $transaction1->setAmount('1000.00');
-        $transaction1->setType('deposit');
-        $transaction1->setDescription('Initial deposit');
+        // 1. Use your actual Entity methods to trigger the math!
+        $transaction1 = $wallet->deposit(1000.00, 'Initial deposit');
         $transaction1->setCreatedAt(new \DateTimeImmutable('-2 days'));
-        $manager->persist($transaction1);
 
-        $transaction2 = new WalletTransaction();
-        $transaction2->setWallet($wallet);
-        $transaction2->setAmount('-150.00');
-        $transaction2->setType('withdrawal');
-        $transaction2->setDescription('Purchase of Eco Bag');
+        $transaction2 = $wallet->withdraw(150.00, 'Purchase of Eco Bag');
         $transaction2->setCreatedAt(new \DateTimeImmutable('-1 day'));
+
+        // Persist the generated transactions
+        $manager->persist($transaction1);
         $manager->persist($transaction2);
 
+        // Flushing will save the transactions AND the updated Wallet balance (850.00)
         $manager->flush();
-
     }
 
     public function getDependencies(): array

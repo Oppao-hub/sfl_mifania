@@ -17,7 +17,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/admin/account')]
 class AdminAccountController extends AbstractController
 {
-    #[Route('', name: 'app_admin_account')]
+    #[Route('', name: 'app_account_admin')]
     public function index(#[CurrentUser] User $user): Response
     {
         return $this->render('dashboard/account/profile_info.html.twig', [
@@ -25,7 +25,7 @@ class AdminAccountController extends AbstractController
         ]);
     }
 
-    #[Route('/edit', name: 'app_admin_account_edit')]
+    #[Route('/edit', name: 'app_account_admin_edit')]
     public function edit(Request $request, #[CurrentUser] User $user, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $admin = $user->getAdmin();
@@ -41,40 +41,34 @@ class AdminAccountController extends AbstractController
             }
             $em->flush();
             $this->addFlash('success', 'Admin profile updated.');
-            return $this->redirectToRoute('app_admin_account');
+            return $this->redirectToRoute('app_account_admin');
         }
 
         return $this->render('dashboard/account/edit_profile.html.twig', ['form' => $form]);
     }
 
-    #[Route('/password', name: 'app_admin_account_password', methods: ['GET', 'POST'])]
+    #[Route('/password', name: 'app_account_admin_password', methods: ['GET', 'POST'])]
     public function changePassword(
         Request $request,
         #[CurrentUser] User $user,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em
     ): Response {
-        $form = $this->createForm(ChangePasswordType::class);
+        $form = $this->createForm(ChangePasswordType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $current = $form->get('currentPassword')->getData();
+            $newPlain = $form->get('plainPassword')->getData();
+            $hashed = $passwordHasher->hashPassword($user, $newPlain);
+            $user->setPassword($hashed);
+            $em->flush();
 
-            if (!$passwordHasher->isPasswordValid($user, $current)) {
-                $this->addFlash('error', 'Current password is incorrect.');
-            } else {
-                $newPlain = $form->get('plainPassword')->getData();
-                $hashed = $passwordHasher->hashPassword($user, $newPlain);
-                $user->setPassword($hashed);
-                $em->flush();
-
-                $this->addFlash('success', 'Your password has been changed.');
-                return $this->redirectToRoute('app_admin_account_password');
-            }
+            $this->addFlash('success', 'Your password has been changed.');
+            return $this->redirectToRoute('app_account_admin_password');
         }
 
         return $this->render('dashboard/account/password.html.twig', [
             'form' => $form->createView(),
-        ]);
+        ], new Response(null, $form->isSubmitted() && !$form->isValid() ? 422 : 200));
     }
 }

@@ -18,7 +18,7 @@
                 </h1>
                 <div class="flex items-center gap-2 mt-2">
                     <span class="text-[10px] text-gray uppercase font-black tracking-widest italic font-mono">Taxonomy Manifest #{{ category.id }}</span>
-                    <span class="px-2 py-0.5 bg-app-bg text-gray rounded-md text-[10px] font-bold uppercase tracking-tighter border border-border-color">Product Category</span>
+                    <span class="px-2 py-0.5 bg-brand/10 text-brand rounded-md text-[10px] font-bold uppercase tracking-widest border border-brand/20">Product Category</span>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
             </a>
             <button type="button"
                 @click="$dispatch('open-delete-modal', {
-                    url: '{{ path('app_category_delete', {id: category.id}) }}',
+                    url: '{{ path('app_dashboard_category_delete', {id: category.id}) }}',
                     name: '{{ category.name|e('js') }}',
                     token: '{{ csrf_token('delete' ~ category.id) }}'
                 })"
@@ -46,7 +46,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {# Main Details Card #}
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden">
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-border-color shadow-sm overflow-hidden h-fit">
             <div class="p-8 border-b border-border-color flex items-center gap-3">
                 <div class="p-2 bg-app-bg rounded-lg text-brand border border-border-color">
                     {{ ux_icon('lucide:folder-tree', {class: 'w-5 h-5'}) }}
@@ -66,7 +66,9 @@
                     </div>
                     <div class="md:col-span-2">
                         <dt class="text-[9px] uppercase font-black tracking-[0.3em] text-gray mb-2">Description</dt>
-                        <dd class="text-sm font-medium text-brand-dark leading-relaxed">{{ category.description|default('No description provided.') }}</dd>
+                        <dd class="text-sm font-medium text-dark-gray leading-relaxed p-5 bg-app-bg rounded-xl border border-border-color">
+                            {{ category.description|default('No description provided for this category.') }}
+                        </dd>
                     </div>
                 </dl>
             </div>
@@ -78,16 +80,25 @@
                 <h3 class="text-xs font-black uppercase tracking-[0.3em] text-gray mb-6 border-b border-border-color pb-4">Audit Record</h3>
                 <div class="space-y-6">
                     <div>
-                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Creation Date</p>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5 flex items-center gap-2">
+                            {{ ux_icon('lucide:calendar-plus', {class: 'w-3.5 h-3.5'}) }}
+                            Creation Date
+                        </p>
                         <p class="text-sm font-bold text-brand-dark">{{ category.createdAt ? category.createdAt|date('F d, Y / H:i') : 'Unknown' }}</p>
                     </div>
+
+                    {# Ensure you have a getUpdatedAt method in your entity, otherwise remove this block #}
                     <div>
-                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5">Last Modification</p>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray mb-1.5 flex items-center gap-2">
+                            {{ ux_icon('lucide:history', {class: 'w-3.5 h-3.5'}) }}
+                            Last Modification
+                        </p>
                         <p class="text-sm font-bold text-brand-dark">{{ category.updatedAt ? category.updatedAt|date('F d, Y / H:i') : 'Never modified' }}</p>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}

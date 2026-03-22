@@ -20,11 +20,11 @@ class HomeController extends AbstractController
         $products = $productRepo->findByGender($currentGender);
         // Fetch the 3 newest products
         $topProducts = $productRepo->findBy([], ['createdAt' => 'DESC'], 3);
-        // 3. Send to your Template
+        // 3. Send to your Template`
         return $this->render('frontend/home/index.html.twig', [
             'women_count' => $productRepo->count(['gender' => 'Women']),
             'men_count'   => $productRepo->count(['gender' => 'Men']),
-            'acc_count'   => $productRepo->count(['category' => 'Accessories']),
+            'acc_count' => $productRepo->countByCategoryName('Accessories'),
             'active_gender' => $currentGender,
             'products' => $products,
             'topProducts' => $topProducts,

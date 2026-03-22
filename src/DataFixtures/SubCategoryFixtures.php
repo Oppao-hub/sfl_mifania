@@ -5,12 +5,15 @@ namespace App\DataFixtures;
 use App\Entity\SubCategory;
 use App\Entity\Category;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface; // 👈 1. Add this use statement
 use Doctrine\Persistence\ObjectManager;
 
-class SubCategoryFixtures extends Fixture
+// 👈 2. Implement the interface here
+class SubCategoryFixtures extends Fixture implements DependentFixtureInterface
 {
     public const BAGS_CATEGORY_REFERENCE = 'category-bags';
     public const CASUAL_DRESSES_REFERENCE = 'subcategory-casual-dresses';
+
     public function load(ObjectManager $manager): void
     {
 
@@ -66,14 +69,18 @@ class SubCategoryFixtures extends Fixture
                 $this->addReference(self::BAGS_CATEGORY_REFERENCE, $subCategory);
             }
 
-            if ($name === 'Casual Dresses') { // 👈 Added this reference
+            if ($name === 'Casual Dresses') {
                 $this->addReference(self::CASUAL_DRESSES_REFERENCE, $subCategory);
             }
         }
 
-        // $product = new Product();
-        // $manager->persist($product);
-
         $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            CategoryFixtures::class,
+        ];
     }
 }

@@ -35,38 +35,25 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $user = new User();
-            $email = $form->get('email')->getData();
-            $plainPassword = $form->get('password')->getData();
 
-            $user->setEmail($email);
+            // 1. Set credentials and unmapped fields
+            $user->setEmail($form->get('email')->getData());
             $user->setRoles(['ROLE_ADMIN']);
+            $user->setStatus($form->get('status')->getData());
+            $user->setIsVerified($form->get('isVerified')->getData());
             $user->setAdmin($admin);
-            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-            $user->setPassword($hashedPassword);
 
+            $plainPassword = $form->get('password')->getData();
+            $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+
+            // 2. Handle Avatar Upload
             $imageFile = $form->get('avatar')->getData();
-
             if ($imageFile) {
-                $originalFileName = pathinfo(
-                    $imageFile->getClientOriginalName(),
-                    PATHINFO_FILENAME
-                );
-                $safeFileName = $slugger->slug($originalFileName);
-                $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('admin_images_directory'),
-                        $newFileName
-                    );
-                } catch (FileException $e) {
-
-                }
+                $newFileName = $this->handleFileUpload($imageFile, $slugger);
                 $admin->setAvatar($newFileName);
             } else {
-                $admin->setAvatar('No Avatar Yet');
+                $admin->setAvatar('sample_avatar.jpeg'); // Default avatar
             }
 
             $entityManager->persist($user);
@@ -92,12 +79,26 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_admin_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Admin $admin, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Admin $admin, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(AdminType::class, $admin, ['is_edit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $user = $admin->getUser();
+
+            // 1. Sync unmapped fields back to User entity
+            $user->setEmail($form->get('email')->getData());
+            $user->setStatus($form->get('status')->getData());
+            $user->setIsVerified($form->get('isVerified')->getData());
+
+            // 2. Handle Image update
+            $imageFile = $form->get('avatar')->getData();
+            if ($imageFile) {
+                $newFileName = $this->handleFileUpload($imageFile, $slugger);
+                $admin->setAvatar($newFileName);
+            }
+
             $entityManager->flush();
 
             $this->addFlash('success', 'Admin updated successfully!');
@@ -110,13 +111,36 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_admin_delete', methods: ['POST'])]
+    /**
+     * Helper method to reduce code duplication for file uploads
+     */
+    private function handleFileUpload($imageFile, SluggerInterface $slugger): string
+    {
+        $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFileName = $slugger->slug($originalFileName);
+        $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+        try {
+            $imageFile->move(
+                $this->getParameter('admin_images_directory'),
+                $newFileName
+            );
+        } catch (FileException $e) {
+            // Handle error if needed
+        }
+
+        return $newFileName;
+    }
+
+    #[Route('/{id}/delete', name: 'app_admin_delete', methods: ['POST'])]
     public function delete(Request $request, Admin $admin, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$admin->getId(), $request->getPayload()->getString('_token'))) {
-            $this->addFlash('success', 'Admin deleted successfully!');
+        if ($this->isCsrfTokenValid('delete'.$admin->getId(), $request->request->get('_token'))) {
+            // Removing the admin will remove the User if orphanRemoval is true,
+            // otherwise remove $admin->getUser() manually if needed.
             $entityManager->remove($admin);
             $entityManager->flush();
+            $this->addFlash('success', 'Admin deleted successfully!');
         }
 
         return $this->redirectToRoute('app_admin_index', [], Response::HTTP_SEE_OTHER);
@@ -125,10 +149,7 @@ final class AdminController extends AbstractController
     #[Route('/{id}/toggle-status', name: 'app_admin_user_toggle_status', methods: ['POST'])]
     public function toggleStatus(User $user, EntityManagerInterface $em, Request $request): Response
     {
-        // CSRF Security Check
         if ($this->isCsrfTokenValid('toggle' . $user->getId(), $request->request->get('_token'))) {
-
-            // 1. Check current status and switch to the opposite Enum case
             if ($user->getStatus() === AccountStatus::Active) {
                 $user->setStatus(AccountStatus::Deactivated);
                 $message = 'Deactivated';
@@ -138,44 +159,24 @@ final class AdminController extends AbstractController
             }
 
             $em->flush();
-
             $this->addFlash('success', "User has been $message successfully.");
         }
 
-        if($user->getAdmin()) {
-            return $this->redirectToRoute('app_admin_index');
-        } else if($user->getStaff()){
-            return $this->redirectToRoute('app_staff_index');
-        }else{
-            return $this->redirectToRoute('app_dashboard_customer_index');
-        }
+        if($user->getAdmin()) return $this->redirectToRoute('app_admin_index');
+        if($user->getStaff()) return $this->redirectToRoute('app_staff_index');
+
+        return $this->redirectToRoute('app_dashboard_customer_index');
     }
 
     #[Route('/user/{id}/reset-password', name: 'app_admin_reset_password')]
-    public function resetPassword(
-        User $user,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager,
-    ): Response
+    public function resetPassword(User $user, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
-        // 1. Create a generic temporary password
-        // You can change this to anything you want
         $tempPassword = 'password123';
-
-        // 2. Hash the password
-        $hashedPassword = $passwordHasher->hashPassword(
-            $user,
-            $tempPassword
-        );
-
-        // 3. Update the user
-        $user->setPassword($hashedPassword);
+        $user->setPassword($passwordHasher->hashPassword($user, $tempPassword));
         $entityManager->flush();
 
-        // 4. Show success message
         $this->addFlash('success', 'Password reset to: ' . $tempPassword);
 
-        // 5. Redirect back to the Edit page (so they can see the message)
         if ($user->getAdmin()) {
             return $this->redirectToRoute('app_admin_edit', ['id' => $user->getAdmin()->getId()]);
         }

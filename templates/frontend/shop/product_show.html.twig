@@ -11,7 +11,7 @@
                 items: [
                     { name: 'Home', url: path('app_home') },
                     { name: 'Shop', url: path('app_shop') },
-                    { name: product.category.name, url: path('app_shop', { id: product.category.id }) },
+                    { name: product.subCategory.category.name, url: path('app_shop', { id: product.subCategory.category.id }) },
                     { name: product.name }
                 ]
             }
@@ -43,7 +43,7 @@
             {# Right: Product Information #}
             <div class="lg:w-1/2 w-full space-y-8">
                 <div>
-                    <p class="text-xs uppercase tracking-[0.3em] text-light-brown font-bold mb-2">{{ product.category.name|default('Sustainable') }}</p>
+                    <p class="text-xs uppercase tracking-[0.3em] text-light-brown font-bold mb-2">{{ product.subCategory.category.name|default('Sustainable') }}</p>
                     <h2 class="text-4xl lg:text-5xl text-brand leading-tight mb-4 font-bold uppercase">{{ product.name }}</h2>
 
                     <div class="flex items-center gap-3">
