@@ -276,6 +276,8 @@ Step 8: Test
 * Google login should appear, and upon success, the user is logged in.
 
 BREVO SMTP
+composer require symfony/brevo-mailer
+
 1. Add email (string), isVerified(boolean), and verificationToken (string) in your User entity
 symfony console make:entity User
 
