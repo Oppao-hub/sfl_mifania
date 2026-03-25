@@ -15,7 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 #[Route('/dashboard/admin')]
 final class AdminController extends AbstractController
 {
@@ -37,9 +39,12 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $user = new User();
 
-            // 1. Set credentials and unmapped fields
             $user->setEmail($form->get('email')->getData());
-            $user->setRoles(['ROLE_ADMIN']);
+
+            // --- PRIVILEGE UPDATE: Grab the roles dynamically from the form checkboxes! ---
+            $user->setRoles($form->get('roles')->getData());
+            // ------------------------------------------------------------------------------
+
             $user->setStatus($form->get('status')->getData());
             $user->setIsVerified($form->get('isVerified')->getData());
             $user->setAdmin($admin);
@@ -47,7 +52,6 @@ final class AdminController extends AbstractController
             $plainPassword = $form->get('password')->getData();
             $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
 
-            // 2. Handle Avatar Upload
             $imageFile = $form->get('avatar')->getData();
             if ($imageFile) {
                 $newFileName = $this->handleFileUpload($imageFile, $slugger);
@@ -87,16 +91,30 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $admin->getUser();
 
-            // 1. Sync unmapped fields back to User entity
             $user->setEmail($form->get('email')->getData());
+
+            // --- PRIVILEGE UPDATE: Allow updating roles from the form checkboxes! ---
+            $user->setRoles($form->get('roles')->getData());
+            // ------------------------------------------------------------------------
+
             $user->setStatus($form->get('status')->getData());
             $user->setIsVerified($form->get('isVerified')->getData());
 
-            // 2. Handle Image update
             $imageFile = $form->get('avatar')->getData();
             if ($imageFile) {
+                // 2. BUG FIX: Store old filename before overwrite
+                $oldAvatar = $admin->getAvatar();
+
                 $newFileName = $this->handleFileUpload($imageFile, $slugger);
                 $admin->setAvatar($newFileName);
+
+                // 3. BUG FIX: Delete old image, but protect the default image from being deleted!
+                if ($oldAvatar && $oldAvatar !== 'sample_avatar.jpeg' && $oldAvatar !== 'default-avatar.jpg') {
+                    $oldAvatarPath = $this->getParameter('admin_images_directory') . '/' . $oldAvatar;
+                    if (file_exists($oldAvatarPath)) {
+                        unlink($oldAvatarPath);
+                    }
+                }
             }
 
             $entityManager->flush();
@@ -111,9 +129,6 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    /**
-     * Helper method to reduce code duplication for file uploads
-     */
     private function handleFileUpload($imageFile, SluggerInterface $slugger): string
     {
         $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
@@ -126,7 +141,7 @@ final class AdminController extends AbstractController
                 $newFileName
             );
         } catch (FileException $e) {
-            // Handle error if needed
+            $this->addFlash('error', 'Failed to upload image.');
         }
 
         return $newFileName;
@@ -136,8 +151,16 @@ final class AdminController extends AbstractController
     public function delete(Request $request, Admin $admin, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$admin->getId(), $request->request->get('_token'))) {
-            // Removing the admin will remove the User if orphanRemoval is true,
-            // otherwise remove $admin->getUser() manually if needed.
+
+            // 4. BUG FIX: Delete the physical image when the Admin account is destroyed
+            $avatar = $admin->getAvatar();
+            if ($avatar && $avatar !== 'sample_avatar.jpeg' && $avatar !== 'default-avatar.jpg') {
+                $avatarPath = $this->getParameter('admin_images_directory') . '/' . $avatar;
+                if (file_exists($avatarPath)) {
+                    unlink($avatarPath);
+                }
+            }
+
             $entityManager->remove($admin);
             $entityManager->flush();
             $this->addFlash('success', 'Admin deleted successfully!');

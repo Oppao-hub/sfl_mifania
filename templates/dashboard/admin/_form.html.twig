@@ -1,4 +1,3 @@
-{# templates/dashboard/admin/_form.html.twig #}
 {% form_theme form 'form/error_theme.html.twig' %}
 
 {# 1. Centralized Boutique Styles #}
@@ -80,6 +79,18 @@
                     <div class="flex items-center h-full">
                         {{ form_widget(form.isVerified, {'attr': {'class': 'w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand'}}) }}
                         <span class="ml-3 text-[10px] font-black uppercase text-brand-dark">Verified Account</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 pt-4 mt-4 border-t border-border-color">
+                    {{ form_label(form.roles, 'Administrative Privileges', {'label_attr': {'class': label_style}}) }}
+                    <div class="flex flex-col gap-3 mt-3">
+                        {% for role in form.roles %}
+                            <label class="flex items-center gap-3 p-4 border border-border-color rounded-xl bg-white hover:border-brand/30 transition-all cursor-pointer shadow-sm">
+                                {{ form_widget(role, {'attr': {'class': 'w-5 h-5 text-brand rounded border-gray-300 focus:ring-brand'}}) }}
+                                <span class="text-xs font-bold text-brand-dark uppercase tracking-widest">{{ role.vars.label }}</span>
+                            </label>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

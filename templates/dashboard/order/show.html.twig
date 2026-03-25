@@ -29,17 +29,19 @@
                 {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
                 Modify Manifest
             </a>
-            <button type="button"
-                @click="$dispatch('open-delete-modal', {
-                    url: '{{ path('app_order_delete', {id: order.id}) }}',
-                    name: 'Order #{{ order.id }}',
-                    token: '{{ csrf_token('delete' ~ order.id) }}'
-                })"
-                class="px-6 py-3.5 bg-white border border-danger/20 text-danger text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-danger/10 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
-                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
-                Void Record
-            </button>
-        </div>
+            {% if is_granted('ROLE_ADMIN') %}
+                <button type="button"
+                    @click="$dispatch('open-delete-modal', {
+                        url: '{{ path('app_order_delete', {id: order.id}) }}',
+                        name: 'Order #{{ order.id }}',
+                        token: '{{ csrf_token('delete' ~ order.id) }}'
+                    })"
+                    class="px-6 py-3.5 bg-white border border-danger/20 text-danger text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-danger/10 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+                    {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                    Void Record
+                </button>
+            {% endif %}
+        </div> {# End of flex items-center gap-3 #}
     </div>
 
     {# 2. SUMMARY DASHBOARD GRID #}
@@ -149,9 +151,9 @@
                     </div>
                     <div>
                         <label class="text-[9px] font-black uppercase tracking-widest text-white/50 block mb-1">Status</label>
-                        <span class="px-3 py-1 bg-white/10 rounded-md text-[10px] font-black uppercase tracking-widest text-white border border-white/20 inline-block mt-1">
+                        <div class="flex items-center gap-2">
                             {{ order.paymentStatus.value|default('Unpaid') }}
-                        </span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\SubCategoryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -52,7 +54,18 @@ class SubCategory
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    /**
+     * @var Collection<int, Product>
+     */
+    #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'subCategory')]
+    private Collection $products;
+
     // --- LIFECYCLE CALLBACKS ---
+
+    public function __construct()
+    {
+        $this->products = new ArrayCollection();
+    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
@@ -119,6 +132,14 @@ class SubCategory
         $this->category = $category;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Product>
+     */
+    public function getProducts(): Collection
+    {
+        return $this->products;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable

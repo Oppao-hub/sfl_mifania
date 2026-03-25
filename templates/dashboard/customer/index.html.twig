@@ -69,15 +69,17 @@
                                class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
                                 {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
-                            <button type="button"
-                                @click="$dispatch('open-delete-modal', {
-                                    url: '{{ path('app_customer_delete', {id: customer.id}) }}',
-                                    name: '{{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}',
-                                    token: '{{ csrf_token('delete' ~ customer.id) }}'
-                                })"
-                                class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
-                                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
-                            </button>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <button type="button"
+                                    @click="$dispatch('open-delete-modal', {
+                                        url: '{{ path('app_customer_delete', {id: customer.id}) }}',
+                                        name: '{{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}',
+                                        token: '{{ csrf_token('delete' ~ customer.id) }}'
+                                    })"
+                                    class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                    {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                                </button>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

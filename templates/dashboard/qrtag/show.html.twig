@@ -29,16 +29,18 @@
                 {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
                 Modify Tag
             </a>
-            <button type="button"
-                @click="$dispatch('open-delete-modal', {
-                    url: '{{ path('app_qrTag_delete', {id: qrTag.id}) }}',
-                    name: 'QR for {{ qrTag.product.name|e('js') }}',
-                    token: '{{ csrf_token('delete' ~ qrTag.id) }}'
-                })"
-                class="px-6 py-3.5 bg-white border border-danger/20 text-danger text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-danger/10 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
-                {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
-                Void Tag
-            </button>
+            {% if is_granted('ROLE_ADMIN') %}
+                <button type="button"
+                    @click="$dispatch('open-delete-modal', {
+                        url: '{{ path('app_qrTag_delete', {id: qrTag.id}) }}',
+                        name: 'QR for {{ qrTag.product.name|e('js') }}',
+                        token: '{{ csrf_token('delete' ~ qrTag.id) }}'
+                    })"
+                    class="px-6 py-3.5 bg-white border border-danger/20 text-danger text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-danger/10 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+                    {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                    Void Tag
+                </button>
+            {% endif %}
         </div>
     </div>
 

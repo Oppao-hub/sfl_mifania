@@ -259,7 +259,13 @@
                         {% endif %}
                     </p>
                     <p class="text-[9px] text-gray uppercase tracking-[0.2em] font-bold mt-0.5">
-                        {% if is_granted('ROLE_ADMIN') %}Administrator{% elseif is_granted('ROLE_STAFF') %}Staff Member{% endif %}
+                        {% if is_granted('ROLE_SUPER_ADMIN') %}
+                            Super Administrator
+                        {% elseif is_granted('ROLE_ADMIN') %}
+                            Administrator
+                        {% elseif is_granted('ROLE_STAFF') %}
+                            Staff Member
+                        {% endif %}
                     </p>
                 </div>
                 <div class="relative">

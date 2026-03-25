@@ -38,9 +38,18 @@
                                     <p class="text-[10px] text-gray font-bold uppercase tracking-widest mt-1">Ref #{{ product.id }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ path('app_product_show', { id: product.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}</a>
-                                    <a href="{{ path('app_product_edit', { id: product.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}</a>
-                                    <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_product_delete', {id: product.id}) }}', name: 'Product: {{ product.name|e('js') }}', token: '{{ csrf_token('delete' ~ product.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}</button>
+                                    <a href="{{ path('app_product_show', { id: product.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">
+                                        {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
+                                    </a>
+
+                                    <a href="{{ path('app_product_edit', { id: product.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">
+                                        {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
+                                    </a>
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_product_delete', {id: product.id}) }}', name: 'Product: {{ product.name|e('js') }}', token: '{{ csrf_token('delete' ~ product.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">
+                                            {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                                        </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -68,9 +77,18 @@
                                     <p class="text-[10px] text-gray font-bold uppercase tracking-widest mt-1">{{ order.customer.firstName }} {{ order.customer.lastName }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ path('app_order_show', { id: order.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}</a>
-                                    <a href="{{ path('app_order_edit', { id: order.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}</a>
-                                    <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_order_delete', {id: order.id}) }}', name: 'Order #{{ order.id }}', token: '{{ csrf_token('delete' ~ order.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}</button>
+                                    <a href="{{ path('app_order_show', { id: order.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">
+                                        {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
+                                    </a>
+
+                                    <a href="{{ path('app_order_edit', { id: order.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">
+                                        {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
+                                    </a>
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_order_delete', {id: order.id}) }}', name: 'Order #{{ order.id }}', token: '{{ csrf_token('delete' ~ order.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">
+                                            {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                                        </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -98,9 +116,18 @@
                                     <p class="text-[10px] text-gray font-bold uppercase tracking-widest mt-1">{{ customer.user.email }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ path('app_customer_show', { id: customer.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}</a>
-                                    <a href="{{ path('app_customer_edit', { id: customer.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">{{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}</a>
-                                    <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_customer_delete', {id: customer.id}) }}', name: 'Customer: {{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}', token: '{{ csrf_token('delete' ~ customer.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">{{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}</button>
+                                    <a href="{{ path('app_customer_show', { id: customer.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">
+                                        {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
+                                    </a>
+
+                                    <a href="{{ path('app_customer_edit', { id: customer.id }) }}" class="p-2 text-gray hover:text-brand transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm">
+                                        {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
+                                    </a>
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ path('app_customer_delete', {id: customer.id}) }}', name: 'Customer: {{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}', token: '{{ csrf_token('delete' ~ customer.id) }}' })" class="p-2 text-red-500 hover:text-red-700 transition-colors bg-white border border-border-color rounded-lg hover:shadow-sm cursor-pointer">
+                                            {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
+                                        </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}

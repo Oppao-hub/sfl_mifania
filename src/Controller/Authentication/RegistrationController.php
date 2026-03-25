@@ -85,9 +85,9 @@ class RegistrationController extends AbstractController
         $adminUser = $entityManager->getRepository(Admin::class)->findOneBy([]);
 
         // 2. If an admin exists, send them the live notification
-        if ($adminUser) {
+        if ($adminUser->getUser()) {
             $notifier->send(
-                $adminUser,
+                $adminUser->getUser(),
                 'New User Joined!',
                 // Note: We changed $newUser to $user here because your variable is just called $user
                 "User {$user->getEmail()} has just created an account.",

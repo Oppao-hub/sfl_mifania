@@ -117,6 +117,7 @@ class Product
     #[Groups(['product:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[Groups(['product:read'])]
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -301,8 +302,15 @@ class Product
         return round((($price - $cost) / $cost) * 100, 2);
     }
 
-    public function getSubCategory(): ?SubCategory { return $this->subCategory; }
-    public function setSubCategory(?SubCategory $subCategory): static { $this->subCategory = $subCategory; return $this; }
+    public function getSubCategory(): ?SubCategory
+    {
+        return $this->subCategory;
+    }
+
+    public function setSubCategory(?SubCategory $subCategory): static
+    {
+        $this->subCategory = $subCategory; return $this;
+    }
 
     /**
      * @return Collection<int, Customer>

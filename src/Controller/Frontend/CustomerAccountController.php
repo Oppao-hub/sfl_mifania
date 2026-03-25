@@ -7,13 +7,17 @@ use App\Form\CustomerProfileType;
 use App\Form\ChangePasswordType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException; // <-- Added FileException
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Security\Http\Attribute\IsGranted; // <-- Added Security import
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
+// 1. RBAC FIX: Ensure only logged-in Customers can access the account area
+#[IsGranted('ROLE_CUSTOMER')]
 #[Route('/account')]
 class CustomerAccountController extends AbstractController
 {
@@ -36,7 +40,7 @@ class CustomerAccountController extends AbstractController
     #[Route('/orders/{id}', name: 'app_account_order_view', methods: ['GET'])]
     public function viewOrder(\App\Entity\Order $order, #[CurrentUser] User $user): Response
     {
-        // SECURITY: Ensure the logged-in user actually owns this order!
+        // SECURITY: Ensure the logged-in user actually owns this order! (Great job having this already!)
         if ($order->getCustomer() !== $user->getCustomer()) {
             throw $this->createAccessDeniedException('You do not have permission to view this order.');
         }
@@ -66,11 +70,32 @@ class CustomerAccountController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('avatar')->getData();
+
             if ($imageFile) {
+                // 2. BUG FIX: Save old avatar filename
+                $oldAvatar = $customer->getAvatar();
+
                 $newFileName = $slugger->slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME)).'-'.uniqid().'.'.$imageFile->guessExtension();
-                $imageFile->move($this->getParameter('customer_images_directory'), $newFileName);
-                $customer->setAvatar($newFileName);
+
+                try {
+                    $imageFile->move($this->getParameter('customer_images_directory'), $newFileName);
+
+                    // 3. BUG FIX: Delete old orphaned image from the customer uploads folder
+                    if ($oldAvatar && $oldAvatar !== 'No Avatar Yet') {
+                        $oldAvatarPath = $this->getParameter('customer_images_directory') . '/' . $oldAvatar;
+                        if (file_exists($oldAvatarPath)) {
+                            unlink($oldAvatarPath);
+                        }
+                    }
+
+                    $customer->setAvatar($newFileName);
+                } catch (FileException $e) {
+                    // 4. BUG FIX: Prevent crash on upload failure
+                    $this->addFlash('error', 'There was an error uploading your profile picture.');
+                    return $this->redirectToRoute('app_account_edit');
+                }
             }
+
             $em->flush();
             $this->addFlash('success', 'Customer profile updated.');
             return $this->redirectToRoute('app_account');

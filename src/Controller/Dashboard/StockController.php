@@ -10,15 +10,26 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted; // <-- 1. Added Security Import
 
+// 2. RBAC FIX: Lock the inventory management to Staff members
+#[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/stocks')]
 final class StockController extends AbstractController
 {
     #[Route(path: '', name:'app_stock_index', methods: ['GET'])]
     public function index(StockRepository $stockRepository): Response
     {
+        $stocks = $stockRepository->findAll();
+
+        // 3. UX FIX: Added empty state handling so the page doesn't look broken when empty
+        if (empty($stocks)) {
+            $this->addFlash('warning', 'No Stocks found. Please create one first.');
+            return $this->redirectToRoute('app_stock_new', [], Response::HTTP_SEE_OTHER);
+        }
+
         return $this->render('dashboard/stock/index.html.twig', [
-            'stocks' => $stockRepository->findAll(),
+            'stocks' => $stocks,
         ]);
     }
 
@@ -70,7 +81,9 @@ final class StockController extends AbstractController
         ]);
     }
 
+    // 4. RBAC FIX: Only Admins can permanently delete a stock record!
     #[Route('/{id}', name: 'app_stock_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Stock $stock, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $stock->getId(), $request->getPayload()->getString('_token'))) {

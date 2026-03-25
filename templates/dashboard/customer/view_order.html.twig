@@ -8,7 +8,7 @@
     {# Header #}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 border-b border-border-color pb-6">
         <div class="flex items-center gap-5">
-            <a href="{{ path('app_dashboard_customer_history', { id: order.customer.id }) }}"
+            <a href="{{ path('app_customer_history', { id: order.customer.id }) }}"
                class="p-3 bg-white rounded-xl border border-border-color text-gray hover:text-brand-dark transition-all shadow-sm active:scale-95">
                 {{ ux_icon('lucide:arrow-left', {class: 'w-5 h-5'}) }}
             </a>
@@ -21,14 +21,14 @@
         </div>
 
         <div class="flex gap-3">
-            <a href="{{ path('app_dashboard_order_edit', { id: order.id }) }}"
+            <a href="{{ path('app_order_edit', { id: order.id }) }}"
                 class="px-6 py-3.5 bg-brand/10 text-brand border border-brand/20 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand/20 transition-all shadow-sm flex items-center gap-2">
                 {{ ux_icon('lucide:edit-3', {class: 'w-4 h-4'}) }}
                 Edit Order
             </a>
             <button type="button"
                 @click="$dispatch('open-delete-modal', {
-                    url: '{{ path('app_dashboard_order_delete', {id: order.id}) }}',
+                    url: '{{ path('app_order_delete', {id: order.id}) }}',
                     name: 'Order #{{ order.id }}',
                     token: '{{ csrf_token('delete' ~ order.id) }}'
                 })"

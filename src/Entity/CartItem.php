@@ -88,6 +88,11 @@ class CartItem
 
     public function getSubtotal(): ?string
     {
+        // --- THE FIX ---
+        // Dynamically calculate the subtotal every time it's requested
+        if ($this->product !== null && $this->quantity !== null) {
+            return number_format((float)$this->product->getPrice() * $this->quantity, 2, '.', '');
+        }
         return $this->subtotal;
     }
 

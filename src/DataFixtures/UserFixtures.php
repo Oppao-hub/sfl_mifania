@@ -28,7 +28,7 @@ class UserFixtures extends Fixture
         $adminUser = new User();
         $adminUser->setEmail('mifaniapaolo0012@gmail.com');
         $adminUser->setPassword($this->passwordHasher->hashPassword($adminUser, 'password'));
-        $adminUser->setRoles(['ROLE_ADMIN']);
+        $adminUser->setRoles(['ROLE_SUPER_ADMIN']);
         $adminUser->setIsVerified(true); // 👈 Bypasses email verification for local testing
         $manager->persist($adminUser);
         $this->addReference(self::ADMIN_USER_REFERENCE, $adminUser);

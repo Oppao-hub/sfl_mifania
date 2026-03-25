@@ -99,7 +99,13 @@ class Cart
 
     public function getTotalQuantity(): ?int
     {
-        return $this->totalQuantity;
+        // --- THE FIX ---
+        // Always calculate the true sum of all item quantities
+        $total = 0;
+        foreach ($this->cartItems as $item) {
+            $total += $item->getQuantity();
+        }
+        return $total;
     }
 
     public function setTotalQuantity(int $totalQuantity): static
@@ -111,7 +117,13 @@ class Cart
 
     public function getTotalPrice(): ?string
     {
-        return $this->totalPrice;
+        // --- THE FIX ---
+        // Always sum the actual, dynamic subtotals of all items in the cart
+        $total = 0.0;
+        foreach ($this->cartItems as $item) {
+            $total += (float) $item->getSubtotal();
+        }
+        return number_format($total, 2, '.', '');
     }
 
     public function setTotalPrice(string $totalPrice): static

@@ -7,13 +7,16 @@ use App\Form\StaffProfileType;
 use App\Form\ChangePasswordType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+#[IsGranted('ROLE_STAFF')]
 #[Route('/staff/account')]
 class StaffAccountController extends AbstractController
 {
@@ -34,11 +37,31 @@ class StaffAccountController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('avatar')->getData();
+
             if ($imageFile) {
+                // 1. Save the old avatar filename so we can delete it
+                $oldAvatar = $staff->getAvatar();
+
                 $newFileName = $slugger->slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME)).'-'.uniqid().'.'.$imageFile->guessExtension();
-                $imageFile->move($this->getParameter('staff_images_directory'), $newFileName);
-                $staff->setAvatar($newFileName);
+
+                try {
+                    $imageFile->move($this->getParameter('staff_images_directory'), $newFileName);
+
+                    // 2. BUG FIX: Delete the old orphaned image from the server, BUT protect the default image!
+                    if ($oldAvatar && $oldAvatar !== 'default-avatar.jpg' && $oldAvatar !== 'sample_avatar.jpeg') {
+                        $oldAvatarPath = $this->getParameter('staff_images_directory') . '/' . $oldAvatar;
+                        if (file_exists($oldAvatarPath)) {
+                            unlink($oldAvatarPath);
+                        }
+                    }
+
+                    $staff->setAvatar($newFileName);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'There was an error uploading your profile picture.');
+                    return $this->redirectToRoute('app_staff_account_edit');
+                }
             }
+
             $em->flush();
             $this->addFlash('success', 'Staff profile updated.');
             return $this->redirectToRoute('app_staff_account');

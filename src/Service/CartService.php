@@ -73,22 +73,12 @@ class CartService
         return $cart;
     }
 
-    /**
-     * Add item to cart or increase quantity when same product+size+color exists.
-     *
-     * @param Product $product
-     * @param int $quantity
-     * @param Size|null $size
-     * @param Color|null $color
-     * @return void
-     */
     public function addItem(Product $product, int $quantity = 1): void
     {
         $cart = $this->getCart();
         $isExistingItem = false;
         $cartItem = null;
 
-        // Try to find an existing matching cart item
         foreach ($cart->getCartItems() as $item) {
             if ($item->getProduct() === $product) {
                 $isExistingItem = true;
@@ -103,45 +93,33 @@ class CartService
             // Update existing item
             $newQuantity = $cartItem->getQuantity() + $quantity;
             $cartItem->setQuantity($newQuantity);
-
-            $newSubtotal = $productPrice * $newQuantity;
-            $cartItem->setSubtotal(number_format($newSubtotal, 2, '.', ''));
-
-            // CartItem is managed by Doctrine, so no need to persist explicitly
+            // Math handled automatically now by the dynamic getter
         } else {
             // Create new cart item
             $cartItem = new CartItem();
-            $subtotal = $productPrice * $quantity;
-
             $cartItem->setCart($cart);
             $cartItem->setProduct($product);
             $cartItem->setQuantity($quantity);
             $cartItem->setPrice($product->getPrice());
-            $cartItem->setSubtotal(number_format($subtotal, 2, '.', ''));
 
             $this->em->persist($cartItem);
-            // also add to the cart collection if necessary (helps in-memory)
+
             if (method_exists($cart, 'addCartItem')) {
                 $cart->addCartItem($cartItem);
             } else {
-                // fallback: if it's a Collection, add directly
                 $cart->getCartItems()->add($cartItem);
             }
         }
 
-        // Recalculate totals after modifications and persist cart state
         $this->recalculateCartTotals($cart);
-
-        // Persist cart (in case totals or relationship changed) and flush once
         $this->em->persist($cart);
         $this->em->flush();
     }
 
     public function removeItem(CartItem $cartItem): void
     {
-        $cart = $cartItem->getCart(); // Get the cart before removing the item
+        $cart = $cartItem->getCart();
 
-        // Ensure the item is removed both from DB and from the cart collection
         if ($cart) {
             if (method_exists($cart, 'removeCartItem')) {
                 $cart->removeCartItem($cartItem);
@@ -152,7 +130,6 @@ class CartService
 
         $this->em->remove($cartItem);
 
-        // Recalculate and flush
         if ($cart) {
             $this->recalculateCartTotals($cart);
             $this->em->persist($cart);
@@ -172,27 +149,21 @@ class CartService
         $cart = $this->getCart();
 
         if (!$cart) {
-            // Nothing to clear
             return;
         }
 
-        // Remove each cart item
         foreach ($cart->getCartItems() as $item) {
             $this->em->remove($item);
         }
 
-        // Clear the collection to reflect changes in memory
         $cart->getCartItems()->clear();
 
-        // Reset totals
         $cart->setTotalQuantity(0);
         $cart->setTotalPrice(number_format(0, 2, '.', ''));
 
-        // Persist changes and flush once
         $this->em->persist($cart);
         $this->em->flush();
 
-        // Remove cart id from session to force creation of a fresh cart next time
         $this->session->remove('cartId');
     }
 
@@ -202,14 +173,18 @@ class CartService
         $totalPrice = 0.00;
 
         foreach ($cart->getCartItems() as $item) {
+            // --- THE FIX ---
+            // Force the database subtotal column to sync with the dynamic math
+            if ($item->getProduct()) {
+                $subtotal = (float)$item->getProduct()->getPrice() * $item->getQuantity();
+                $item->setSubtotal(number_format($subtotal, 2, '.', ''));
+            }
+
             $totalQuantity += $item->getQuantity();
-            // Ensure subtotal is treated as a float for summation
             $totalPrice += (float) $item->getSubtotal();
         }
 
         $cart->setTotalQuantity($totalQuantity);
-        // Store the total price back as a formatted string to match the entity's decimal type
         $cart->setTotalPrice(number_format($totalPrice, 2, '.', ''));
-        // Do NOT flush here; caller is responsible for persisting/flushing
     }
 }

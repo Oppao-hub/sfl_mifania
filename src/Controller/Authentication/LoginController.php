@@ -13,7 +13,7 @@ class LoginController extends AbstractController
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) { // If user is already logged in
-            if (\in_array('ROLE_ADMIN', $this->getUser()->getRoles()) || \in_array('ROLE_STAFF', $this->getUser()->getRoles())) { // If user is an admin or staff
+            if (\in_array('ROLE_SUPER_ADMIN', $this->getUser()->getRoles()) || \in_array('ROLE_ADMIN', $this->getUser()->getRoles()) || \in_array('ROLE_STAFF', $this->getUser()->getRoles())) { // If user is an admin or staff
                 $this->addFlash('success', 'You are already logged in!');
                 return $this->redirectToRoute('app_dashboard'); // Redirect to admin dashboard
             } else { // If user is a regular user, redirect to home page

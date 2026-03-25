@@ -14,7 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 #[Route('dashboard/staff')]
 final class StaffController extends AbstractController
 {
@@ -59,6 +61,8 @@ final class StaffController extends AbstractController
             if ($imageFile) {
                 $newFileName = $this->handleFileUpload($imageFile, $slugger);
                 $staff->setAvatar($newFileName);
+            } else {
+                $staff->setAvatar('default-avatar.jpg'); // Fallback default image
             }
 
             $entityManager->persist($staff);
@@ -91,11 +95,22 @@ final class StaffController extends AbstractController
                 $user->setIsVerified($form->get('isVerified')->getData());
             }
 
-            // 2. Handle Avatar Update
+            // 2. Handle Avatar Update & Cleanup
             $imageFile = $form->get('avatar')->getData();
             if ($imageFile) {
+                // BUG FIX: Save the old avatar filename before replacing it
+                $oldAvatar = $staff->getAvatar();
+
                 $newFileName = $this->handleFileUpload($imageFile, $slugger);
                 $staff->setAvatar($newFileName);
+
+                // BUG FIX: Physically delete the old image file (protecting the default image)
+                if ($oldAvatar && $oldAvatar !== 'default-avatar.jpg') {
+                    $oldAvatarPath = $this->getParameter('staff_images_directory') . '/' . $oldAvatar;
+                    if (file_exists($oldAvatarPath)) {
+                        unlink($oldAvatarPath);
+                    }
+                }
             }
 
             $entityManager->flush();
@@ -125,7 +140,7 @@ final class StaffController extends AbstractController
                 $newFileName
             );
         } catch (FileException $e) {
-            // Log or handle error
+            $this->addFlash('error', 'There was an error uploading the staff profile picture.');
         }
 
         return $newFileName;
@@ -143,6 +158,14 @@ final class StaffController extends AbstractController
     public function delete(Request $request, Staff $staff, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$staff->getId(), $request->request->get('_token'))) {
+            $avatar = $staff->getAvatar();
+            if ($avatar && $avatar !== 'default-avatar.jpg') {
+                $avatarPath = $this->getParameter('staff_images_directory') . '/' . $avatar;
+                if (file_exists($avatarPath)) {
+                    unlink($avatarPath);
+                }
+            }
+
             $entityManager->remove($staff);
             $entityManager->flush();
             $this->addFlash('success', 'Staff record deleted successfully!');

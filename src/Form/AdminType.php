@@ -3,25 +3,32 @@
 namespace App\Form;
 
 use App\Entity\Admin;
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use App\Entity\Enum\AccountStatus;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class AdminType extends AbstractType
 {
+    // Inject Symfony Security to know who is loading this form
+    public function __construct(private Security $security)
+    {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -49,7 +56,6 @@ class AdminType extends AbstractType
             ]);
         }
 
-        // Listener to handle the User entity fields
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $admin = $event->getData();
             $form = $event->getForm();
@@ -71,6 +77,26 @@ class AdminType extends AbstractType
                 'mapped' => false,
                 'required' => false,
                 'data' => $user ? $user->getIsVerified() : false,
+            ]);
+
+            // --- THE PRIVILEGE ESCALATION GUARDRAIL ---
+
+            //Everyone creating an admin can assign the standard ROLE_ADMIN
+            $roleChoices = [
+                'Standard Administrator' => 'ROLE_ADMIN',
+            ];
+
+            //ONLY show the Super Admin checkbox if the person viewing the form is a Super Admin!
+            if ($this->security->isGranted('ROLE_SUPER_ADMIN')) {
+                $roleChoices['System Super Admin (Master Access)'] = 'ROLE_SUPER_ADMIN';
+            }
+
+            $form->add('roles', ChoiceType::class, [
+                'mapped' => false,
+                'choices' => $roleChoices,
+                'multiple' => true,
+                'expanded' => true, // This forces Symfony to render Checkboxes instead of a select dropdown!
+                'data' => $user ? $user->getRoles() : ['ROLE_ADMIN'], // Default to standard admin
             ]);
         });
     }

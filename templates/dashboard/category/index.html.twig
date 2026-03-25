@@ -30,6 +30,7 @@
                                title="Edit Category">
                                 {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
+                        {% if is_granted('ROLE_ADMIN') %}
                             <button type="button"
                                 @click="$dispatch('open-delete-modal', {
                                     url: '{{ path('app_category_delete', {id: category.id}) }}',
@@ -40,6 +41,7 @@
                                 title="Delete Category">
                                 {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                             </button>
+                        {% endif %}
                         </div>
                     </td>
                 </tr>

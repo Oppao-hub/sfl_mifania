@@ -64,6 +64,24 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Retrieves the top-selling products based on actual completed orders.
+     */
+    public function findTopSellers(int $limit = 3): array
+    {
+        return $this->createQueryBuilder('p')
+            // We select the product, and create a hidden sum of all quantities sold
+            ->select('p, SUM(oi.quantity) AS HIDDEN totalSales')
+            // Join the OrderItems (Assuming your Product entity has a OneToMany relationship mapped to 'orderItems')
+            // If the property is named differently in your Product entity, change 'oi' to match it.
+            ->leftJoin('p.orderItems', 'oi')
+            ->groupBy('p.id')
+            ->orderBy('totalSales', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByGender(string $gender)
     {
         return $this->createQueryBuilder('p')

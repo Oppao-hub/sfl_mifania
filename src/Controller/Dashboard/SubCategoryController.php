@@ -10,15 +10,25 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/subcategory')]
 final class SubCategoryController extends AbstractController
 {
     #[Route(name: 'app_sub_category_index', methods: ['GET'])]
     public function index(SubCategoryRepository $subCategoryRepository): Response
     {
+        $subCategories = $subCategoryRepository->findAll();
+
+        // 2. UX FIX: Added empty state handling
+        if (empty($subCategories)) {
+            $this->addFlash('warning', 'No Sub-categories found. Please create one first.');
+            return $this->redirectToRoute('app_sub_category_new', [], Response::HTTP_SEE_OTHER);
+        }
+
         return $this->render('dashboard/sub_category/index.html.twig', [
-            'sub_categories' => $subCategoryRepository->findAll(),
+            'sub_categories' => $subCategories,
         ]);
     }
 
@@ -70,14 +80,18 @@ final class SubCategoryController extends AbstractController
         ]);
     }
 
+    // 3. RBAC FIX: Only Admins can delete
     #[Route('/{id}', name: 'app_sub_category_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, SubCategory $subCategory, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $subCategory->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($subCategory);
             $entityManager->flush();
+
+            $this->addFlash('success', 'Sub-category deleted successfully.');
         }
-        $this->addFlash('success', 'Sub-category deleted successfully.');
+
         return $this->redirectToRoute('app_sub_category_index', [], Response::HTTP_SEE_OTHER);
     }
 }

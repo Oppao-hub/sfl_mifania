@@ -13,7 +13,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/orders')]
 final class OrderController extends AbstractController
 {
@@ -23,7 +25,8 @@ final class OrderController extends AbstractController
         $orderStatus = $request->query->get('orderStatus');
         $orders = $orderRepository->findAll();
 
-        if (empty($staffs)) {
+        // 2. BUG FIX: Changed $staffs to $orders to prevent a crash!
+        if (empty($orders)) {
             $this->addFlash('warning', 'No Orders found. Please create one first.');
             return $this->redirectToRoute('app_order_new', [], Response::HTTP_SEE_OTHER);
         }
@@ -86,6 +89,7 @@ final class OrderController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_order_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Order $order, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $order->getId(), $request->getPayload()->getString('_token'))) {
@@ -97,8 +101,8 @@ final class OrderController extends AbstractController
         return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
     }
 
-   // Add this to handle Payment Method changes
-    #[Route('/{id}/change-payment-method', 'app_order_change_payment_method', methods: ['POST'])]
+    // 4. ROUTE FIX: Added the 'name:' key to ensure the router doesn't get confused
+    #[Route('/{id}/change-payment-method', name: 'app_order_change_payment_method', methods: ['POST'])]
     public function changePaymentMethod(Order $order, EntityManagerInterface $entityManager, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('change_payment_method' . $order->getId(), $request->request->get('_token'))) {
@@ -118,8 +122,7 @@ final class OrderController extends AbstractController
         return $this->redirectToRoute('app_order_index');
     }
 
-    // Update your existing Change Payment Status to include CSRF check
-    #[Route('/{id}/change-order-payment-status', 'app_order_change_payment_status', methods: ['POST'])]
+    #[Route('/{id}/change-order-payment-status', name: 'app_order_change_payment_status', methods: ['POST'])]
     public function changePaymentStatus(Order $order, EntityManagerInterface $entityManager, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('change_payment_status' . $order->getId(), $request->request->get('_token'))) {
@@ -139,8 +142,7 @@ final class OrderController extends AbstractController
         return $this->redirectToRoute('app_order_index');
     }
 
-    // Update your existing Change Order Status to include CSRF check
-    #[Route('/{id}/change-order-status', 'app_order_change_status', methods: ['POST'])]
+    #[Route('/{id}/change-order-status', name: 'app_order_change_status', methods: ['POST'])]
     public function changeOrderStatus(Order $order, EntityManagerInterface $entityManager, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('change_status' . $order->getId(), $request->request->get('_token'))) {

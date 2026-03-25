@@ -180,6 +180,56 @@
         </div>
     </section>
 
-    {% include 'components/frontend/home/home_faq.html.twig' %}
-    {% include 'components/frontend/home/newsletter.html.twig' %}
+    <section id="faq" class="bg-light-gray py-24 px-6" x-data="{ active: null }">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-brand mb-4">Frequently Asked Questions</h2>
+                <p class="text-gray-500">Transparency is our policy. Here is everything you need to know about our materials and process.</p>
+            </div>
+
+            <div class="space-y-3">
+                <template x-for="(item, index) in [
+                    { q: 'How do you source your materials?', a: 'We source directly from GOTS certified farms in India and Turkey.' },
+                    { q: 'Is your packaging plastic-free?', a: 'Yes! Every order ships in 100% compostable mailers made from cornstarch, and we use soy-based inks for all our tags.' },
+                    { q: 'What is your return policy?', a: 'We offer a 30-day window for circular exchanges.' },
+                    { q: 'Do you ship international?', a: 'Currently we ship to 15 countries with carbon-neutral carriers.' },
+                    { q: 'How should I care for my organic garments?', a: 'Wash cold, hang dry.' },
+                    { q: 'Are your workers paid fair wages?', a: 'Yes, we are SA8000 certified.' },
+                    { q: 'Do you have a recycling program for old clothes?', a: 'Yes, check our Circle program.' }
+                ]">
+                    <div class="bg-white rounded shadow-sm overflow-hidden transition-all duration-300 border border-gray-100"
+                        :class="{ 'bg-brand text-white border-brand': active === index, 'bg-white text-gray-700': active !== index }">
+                        <button @click="active = active === index ? null : index"
+                                class="flex justify-between items-center w-full px-6 py-4 text-left font-bold text-sm hover:opacity-90 transition-colors cursor-pointer">
+                            <span x-text="item.q"></span>
+                            <span class="text-xl font-normal" x-text="active === index ? '-' : '+'"></span>
+                        </button>
+                        <div x-show="active === index" x-collapse class="px-6 pb-4 text-xs opacity-90 leading-relaxed">
+                            <p x-text="item.a"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-light-gray pb-24 px-6 text-center">
+        <div class="max-w-2xl mx-auto">
+            <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Our Newsletter</p>
+            <h2 class="text-3xl font-bold text-brand mb-4">Join Our Sustainable Community</h2>
+            <p class="text-sm text-gray-500 mb-8">Receive exclusive offers, eco-tips, and new arrival updates directly to your inbox.</p>
+
+            <form action="{{ path('app_newsletter_subscribe') }}" method="POST" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                {# Add CSRF token for security #}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('newsletter_submit') }}">
+
+                {# ADDED name="email" AND required HERE 👇 #}
+                <input type="email" name="email" required placeholder="Enter your email address" class="flex-1 px-6 py-3 border border-gray-200 focus:outline-none focus:border-brand text-sm rounded-md sm:rounded-r-none transition-colors">
+
+                <button type="submit" class="bg-brand hover:bg-brand-dark text-white px-8 py-3 text-sm font-bold transition-colors rounded-md sm:rounded-l-none uppercase tracking-widest cursor-pointer">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+    </section>
 {% endblock %}

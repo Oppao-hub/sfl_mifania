@@ -15,10 +15,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-
+#[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/customer')]
 final class CustomerController extends AbstractController
 {
@@ -74,10 +74,12 @@ final class CustomerController extends AbstractController
                         $this->getParameter('customer_images_directory'),
                         $newFileName
                     );
+                    $customer->setAvatar($newFileName);
                 } catch (FileException $e) {
-
+                    // UX FIX: Actually tell the user if the upload fails!
+                    $this->addFlash('error', 'There was an error uploading the profile picture.');
+                    $customer->setAvatar('No Avatar Yet');
                 }
-                $customer->setAvatar($newFileName);
             } else {
                 $customer->setAvatar('No Avatar Yet');
             }
@@ -100,16 +102,13 @@ final class CustomerController extends AbstractController
     #[Route('/profile/search', name: 'app_customer_search', methods: ['GET'])]
     public function profileSearch(Request $request): Response
     {
-        // 1. Handle search form submission (e.g., if a customer ID or email is posted)
         $query = $request->query->get('q');
         $customer = null;
 
         if ($query) {
-            // 2. Fetch the customer entity based on the search query
             $customer = $this->customerRepository->findOneBySearch($query);
         }
 
-        // 3. Render the search/profile template
         return $this->render('dashboard/customer/profile_search.html.twig', [
             'customer' => $customer,
             'query' => $query,
@@ -134,6 +133,9 @@ final class CustomerController extends AbstractController
             $imageFile = $form->get('avatar')->getData();
 
             if ($imageFile) {
+                // BUG FIX: Save the old avatar filename before replacing it
+                $oldAvatar = $customer->getAvatar();
+
                 $originalFileName = pathinfo(
                     $imageFile->getClientOriginalName(),
                     PATHINFO_FILENAME
@@ -146,10 +148,19 @@ final class CustomerController extends AbstractController
                         $this->getParameter('customer_images_directory'),
                         $newFileName
                     );
-                } catch (FileException $e) {
 
+                    // BUG FIX: Physically delete the old image file (protecting the default fallback)
+                    if ($oldAvatar && $oldAvatar !== 'No Avatar Yet' && $oldAvatar !== 'default-avatar.jpg') {
+                        $oldAvatarPath = $this->getParameter('customer_images_directory') . '/' . $oldAvatar;
+                        if (file_exists($oldAvatarPath)) {
+                            unlink($oldAvatarPath);
+                        }
+                    }
+
+                    $customer->setAvatar($newFileName);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'There was an error uploading the profile picture.');
                 }
-                $customer->setAvatar($newFileName);
             }
 
             $entityManager->persist($customer);
@@ -170,6 +181,16 @@ final class CustomerController extends AbstractController
     public function delete(Request $request, Customer $customer, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $customer->getId(), $request->getPayload()->getString('_token'))) {
+
+            // BUG FIX: Delete the physical image when the Customer record is destroyed
+            $avatar = $customer->getAvatar();
+            if ($avatar && $avatar !== 'No Avatar Yet' && $avatar !== 'default-avatar.jpg') {
+                $avatarPath = $this->getParameter('customer_images_directory') . '/' . $avatar;
+                if (file_exists($avatarPath)) {
+                    unlink($avatarPath);
+                }
+            }
+
             $entityManager->remove($customer);
             $entityManager->flush();
         }
@@ -193,30 +214,25 @@ final class CustomerController extends AbstractController
     }
 
     #[Route('/user/{id}/reset-password', name: 'app_customer_reset_password')]
+    #[IsGranted('ROLE_ADMIN')]
     public function resetPassword(
         User $user,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
     ): Response
     {
-        // 1. Create a generic temporary password
-        // You can change this to anything you want
         $tempPassword = 'password123';
 
-        // 2. Hash the password
         $hashedPassword = $passwordHasher->hashPassword(
             $user,
             $tempPassword
         );
 
-        // 3. Update the user
         $user->setPassword($hashedPassword);
         $entityManager->flush();
 
-        // 4. Show success message
         $this->addFlash('success', message: 'Password reset to: ' . $tempPassword);
 
-        // 5. Redirect back to the Edit page (so they can see the message)
         return $this->redirectToRoute('app_customer_edit', ['id' => $user->getCustomer()->getId()]);
     }
 }

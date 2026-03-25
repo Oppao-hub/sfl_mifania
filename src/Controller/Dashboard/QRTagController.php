@@ -19,7 +19,10 @@ use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode as QrCodeQrCode;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted; // <-- Added the security import!
 
+// 1. RBAC FIX: Lock the QR Tag manager to Staff members
+#[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/qrTag')]
 final class QRTagController extends AbstractController
 {
@@ -125,7 +128,9 @@ final class QRTagController extends AbstractController
         ]);
     }
 
+    // 2. RBAC FIX: Only Admins can permanently delete a QR tag!
     #[Route('/{id}', name: 'app_qrTag_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, QRTag $qRTag, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete' . $qRTag->getId(), $request->getPayload()->getString('_token'))) {
