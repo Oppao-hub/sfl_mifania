@@ -1,0 +1,700 @@
+GOOGLE OAUTH
+Step 1: Install required packages
+
+composer require knpuniversity/oauth2-client-bundle league/oauth2-google
+* knpuniversity/oauth2-client-bundle → Symfony bundle to handle OAuth flows.
+* league/oauth2-google → Google OAuth provider.
+
+Step 2: Configure the bundle
+In config/packages/knpu_oauth2_client.yaml:
+
+knpu_oauth2_client:
+    clients:
+        google:
+            type: google
+            client_id: '%env(GOOGLE_CLIENT_ID)%'
+            client_secret: '%env(GOOGLE_CLIENT_SECRET)%'
+            redirect_route: connect_google_check
+            redirect_params: {}
+            scopes: ['email', 'profile']
+* redirect_route → Symfony route where Google redirects after login.
+* scopes → Data you want to access (email, profile, etc.).
+* Make sure you set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env:
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+Step 3: Create the Controller
+
+// src/Controller/GoogleController.php
+namespace App\Controller;
+
+use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use App\Security\AppAuthenticator;
+
+class GoogleController extends AbstractController
+{
+    #[Route('/connect/google', name: 'connect_google')]
+    public function connect(ClientRegistry $clientRegistry): RedirectResponse
+    {
+        // Redirect to Google for authentication
+        return $clientRegistry
+            ->getClient('google')
+            ->redirect(['email', 'profile']);
+    }
+
+    #[Route('/connect/google/check', name: 'connect_google_check')]
+    public function connectCheck(Request $request)
+    {
+        // Symfony will intercept this route
+        // The user will be automatically logged in if using the security authenticator
+        throw new \Exception('This should be intercepted by the firewall.');
+    }
+}
+
+Step 4: Configure Security
+In config/packages/security.yaml:
+
+security:
+    firewalls:
+        main:
+            anonymous: lazy
+            provider: app_user_provider
+            custom_authenticator: App\Security\GoogleAuthenticator
+            logout:
+                path: app_logout
+                target: homepage
+* You will need a custom authenticator to handle Google users.
+
+Step 5: Create a Google Authenticator
+
+// src/Security/GoogleAuthenticator.php
+namespace App\Security;
+
+use KnpU\OAuth2ClientBundle\Security\Authenticator\SocialAuthenticator;
+use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Routing\RouterInterface;
+use League\OAuth2\Client\Provider\GoogleUser;
+use App\Entity\User;
+
+class GoogleAuthenticator extends SocialAuthenticator
+{
+    private $clientRegistry;
+    private $router;
+
+    public function __construct(ClientRegistry $clientRegistry, RouterInterface $router)
+    {
+        $this->clientRegistry = $clientRegistry;
+        $this->router = $router;
+    }
+
+    public function supports(Request $request)
+    {
+        return $request->attributes->get('_route') === 'connect_google_check';
+    }
+
+    public function getCredentials(Request $request)
+    {
+        return $this->fetchAccessToken($this->clientRegistry->getClient('google'));
+    }
+
+    public function getUser($credentials, UserProviderInterface $userProvider)
+    {
+        $client = $this->clientRegistry->getClient('google');
+        $googleUser = $client->fetchUserFromToken($credentials);
+
+        $email = $googleUser->getEmail();
+
+        $user = $userProvider->loadUserByUsername($email);
+
+        if (!$user) {
+            // Optional: create a new user if not exists
+            $user = new User();
+            $user->setEmail($email);
+            $user->setName($googleUser->getName());
+            // save user...
+        }
+
+        return $user;
+    }
+
+    public function onAuthenticationSuccess(Request $request, $token, $providerKey)
+    {
+        return new RedirectResponse($this->router->generate('homepage'));
+    }
+
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
+    {
+        return new RedirectResponse($this->router->generate('app_login'));
+    }
+}
+
+Step 6: Update Routes
+* /connect/google → Start OAuth
+* /connect/google/check → Callback from Google
+
+Step 8: Update Login Template
+<a href="{{ path('connect_google') }}"
+    class="w-full flex items-center justify-center gap-3 py-3.5 rounded-sm bg-white border border-gray-200 text-gray-700 font-bold text-xs uppercase tracking-widest hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm">
+    <img src="{{ asset('icons/icons8-google.svg') }}" class="h-4 w-4" alt="Google">
+    <span>Continue with Google</span>
+</a>
+
+Step 8: Test
+* Run your Symfony app (symfony serve)
+* Visit /connect/google
+* Google login should appear, and upon success, the user is logged in.
+
+BREVO SMTP
+1. Add email (string), isVerified(boolean), and verificationToken (string) in your User entity
+symfony console make:entity User
+
+2. Create email verification service
+
+<?php
+
+namespace App\Service;
+
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
+
+class EmailVerificationService
+{
+public function __construct(
+private EntityManagerInterface $entityManager,
+private MailerInterface $mailer
+) {}
+
+/**
+* Generate a unique verification token
+*/
+public function generateVerificationToken(): string
+{
+return bin2hex(random_bytes(32));
+
+}
+
+/**
+* Send verification email to user
+*/
+public function sendVerificationEmail(User $user, string $verificationUrl): void
+{
+$email = (new TemplatedEmail())
+->from(new Address('arielbensing22@gmail.com', 'Symfony Project Test')) // Change this to
+verified sender
+->to(new Address($user->getEmail()))
+->subject('Please verify your email address')
+->htmlTemplate('emails/verification.html.twig')
+->context([
+'user' => $user,
+'verificationUrl' => $verificationUrl,
+]);
+
+$this->mailer->send($email);
+}
+
+/**
+* Verify a token and mark user as verified
+*/
+public function verifyToken(string $token): ?User
+{
+$user = $this->entityManager
+->getRepository(User::class)
+->findOneBy(['verificationToken' => $token]);
+
+if (!$user) {
+return null;
+}
+
+// Mark user as verified
+$user->setIsVerified(true);
+$user->setVerificationToken(null); // Clear the token
+
+$this->entityManager->flush();
+
+return $user;
+}
+
+/**
+* Check if a user needs verification
+*/
+public function needsVerification(User $user): bool
+{
+return !$user->isVerified();
+}
+}
+
+3. Add email field in our registration form
+<?php
+    ->add('email', EmailType::class, [
+    'attr' => ['autocomplete' => 'email'],
+    'constraints' => [
+        new NotBlank([
+        'message' => 'Please enter an email',
+        ]),
+    ],
+])
+
+4. Modify the Registration Controller
+
+use App\Service\EmailVerificationService; // NEW - Inject email service
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface; // NEW - For generating absolute
+URLs
+
+public function register(
+    Request $request,
+    UserPasswordHasherInterface $userPasswordHasher,
+    EntityManagerInterface $entityManager,
+    EmailVerificationService $emailVerificationService // ADDED
+): Response {
+
+    // Generate verification token
+    $verificationToken = $emailVerificationService->generateVerificationToken();
+    $user->setVerificationToken($verificationToken);
+    $user->setIsVerified(false);
+
+    // Generate verification URL
+    $verificationUrl = $this->generateUrl(
+        'app_verify_email',
+        ['token' => $verificationToken],
+        UrlGeneratorInterface::ABSOLUTE_URL
+    );
+
+        // Send verification email
+        $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+
+        $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
+
+        return $this->redirectToRoute('app_login');
+    }
+
+5. Create EmailVerificationController
+<?php
+
+namespace App\Controller;
+
+use App\Service\EmailVerificationService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+class EmailVerificationController extends AbstractController
+{
+    #[Route('/verify-email', name: 'app_verify_email')]
+        public function verifyUserEmail(
+        Request $request,
+        EmailVerificationService $emailVerificationService
+    ): Response {
+        $token = $request->query->get('token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Verification token is missing.');
+            return $this->redirectToRoute('app_register');
+        }
+
+        $user = $emailVerificationService->verifyToken($token);
+
+        if (!$user) {
+            $this->addFlash('error', 'Invalid or expired verification token.');
+            return $this->redirectToRoute('app_register');
+        }
+
+        $this->addFlash('success', 'Your email has been verified! You can now log in.');
+
+        return $this->redirectToRoute('app_login');
+    }
+}
+
+6. Create an Email Template
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Verify Your Email</title>
+</head>
+<body>
+<h1>Welcome {{ user.username }}!</h1>
+
+<p>Thank you for registering. Please verify your email address by clicking the link below:</p>
+
+<p>
+<a href="{{ verificationUrl }}" style="display: inline-block; padding: 10px 20px; background-color:
+#007bff; color: white; text-decoration: none; border-radius: 5px;">
+Verify Email Address
+</a>
+</p>
+
+<p>Or copy and paste this link into your browser:</p>
+<p>{{ verificationUrl }}</p>
+
+<p>If you did not create an account, please ignore this email.</p>
+
+<p>Thanks,<br>Your App Team</p>
+</body>
+</html>
+
+7. Add public access for verification endpoint
+- { path: ^/verify-email, roles: PUBLIC_ACCESS }
+
+8. Update messenger.yaml Changed email routing from async to sync and uncomment the sync: 'sync"://'
+
+Symfony\Component\Mailer\Messenger\SendEmailMessage: sync
+
+9. Add Brevo SMTP configuration
+
+MAILER_DSN=smtp://a45e93001@smtp-brevo.com:xsmtpsib-
+6b7011de27cc0b318ae1d8765f140bfdf2fc8f2fd2f257ba7ad29a6e5ad789cf-gxNWAtsp6rqsS2QF@smtp-
+relay.brevo.com:587
+
+EMAIL VERIFICATION
+
+Email Verification
+
+1. Create a new ApiEmailVerificationController
+
+<?php
+
+namespace App\Controller;
+
+use App\Service\EmailVerificationService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+
+#[Route('/api')]
+class ApiEmailVerificationController extends AbstractController
+{
+public function __construct(
+private EmailVerificationService $emailVerificationService,
+private EntityManagerInterface $entityManager
+) {}
+
+/**
+* Verify email with token
+*/
+#[Route('/verify-email', name: 'api_verify_email', methods: ['POST'])]
+public function verifyEmail(Request $request): JsonResponse
+
+{
+$data = json_decode($request->getContent(), true);
+$token = $data['token'] ?? null;
+
+if (!$token) {
+return $this->json([
+'success' => false,
+'message' => 'Verification token is required'
+], 400);
+}
+
+$user = $this->emailVerificationService->verifyToken($token);
+
+if (!$user) {
+return $this->json([
+'success' => false,
+'message' => 'Invalid or expired verification token'
+], 400);
+}
+
+return $this->json([
+'success' => true,
+'message' => 'Email verified successfully',
+'user' => [
+'id' => $user->getId(),
+'email' => $user->getEmail(),
+'isVerified' => $user->isVerified()
+]
+], 200);
+
+}
+
+/**
+* Resend verification email
+*/
+#[Route('/resend-verification', name: 'api_resend_verification', methods: ['POST'])]
+public function resendVerification(#[CurrentUser] ?User $user): JsonResponse
+{
+if (!$user) {
+return $this->json([
+'success' => false,
+'message' => 'Authentication required'
+], 401);
+}
+
+if ($user->isVerified()) {
+return $this->json([
+'success' => false,
+'message' => 'Email is already verified'
+], 400);
+}
+s
+// Generate new token
+$verificationToken = $this->emailVerificationService->generateVerificationToken();
+$user->setVerificationToken($verificationToken);
+$this->entityManager->flush();
+
+// Create verification URL (for web verification or deep link)
+$verificationUrl = $this->generateUrl(
+
+'app_verify_email',
+['token' => $verificationToken],
+UrlGeneratorInterface::ABSOLUTE_URL
+);
+
+// Send email
+$this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+
+return $this->json([
+'success' => true,
+'message' => 'Verification email sent successfully'
+], 200);
+}
+
+/**
+* Check verification status
+*/
+#[Route('/verification-status', name: 'api_verification_status', methods: ['GET'])]
+public function verificationStatus(#[CurrentUser] ?User $user): JsonResponse
+{
+if (!$user) {
+return $this->json([
+'success' => false,
+'message' => 'Authentication required'
+], 401);
+}
+
+return $this->json([
+'success' => true,
+
+'isVerified' => $user->isVerified(),
+'email' => $user->getEmail()
+], 200);
+}
+}
+
+2. Create a registration Api
+
+<?php
+
+namespace App\Controller;
+
+use App\Entity\User;
+use App\Service\EmailVerificationService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+#[Route('/api')]
+class ApiRegistrationController extends AbstractController
+{
+public function __construct(
+
+private EntityManagerInterface $entityManager,
+private UserPasswordHasherInterface $passwordHasher,
+private EmailVerificationService $emailVerificationService,
+private ValidatorInterface $validator
+) {}
+
+#[Route('/register', name: 'api_register', methods: ['POST'])]
+public function register(Request $request): JsonResponse
+{
+$data = json_decode($request->getContent(), true);
+
+// Validate required fields
+if (!isset($data['username']) || !isset($data['email']) || !isset($data['password'])) {
+return $this->json([
+'success' => false,
+'message' => 'Username, email, and password are required'
+], 400);
+}
+
+// Basic validation
+if (strlen($data['username']) < 3) {
+return $this->json([
+'success' => false,
+'message' => 'Username must be at least 3 characters long'
+], 400);
+}
+
+if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+return $this->json([
+
+'success' => false,
+'message' => 'Invalid email address'
+], 400);
+}
+
+if (strlen($data['password']) < 6) {
+return $this->json([
+'success' => false,
+'message' => 'Password must be at least 6 characters long'
+], 400);
+}
+
+// Check if username already exists
+$existingUser = $this->entityManager
+->getRepository(User::class)
+->findOneBy(['username' => $data['username']]);
+
+if ($existingUser) {
+return $this->json([
+'success' => false,
+'message' => 'Username already exists'
+], 409);
+}
+
+// Check if email already exists
+$existingEmail = $this->entityManager
+->getRepository(User::class)
+->findOneBy(['email' => $data['email']]);
+
+if ($existingEmail) {
+return $this->json([
+'success' => false,
+'message' => 'Email already registered'
+], 409);
+}
+
+// Create new user
+$user = new User();
+$user->setUsername($data['username']);
+$user->setEmail($data['email']);
+
+// Hash password
+$hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
+$user->setPassword($hashedPassword);
+
+// Set default role
+$user->setRoles(['ROLE_USER']);
+
+// Generate verification token
+$verificationToken = $this->emailVerificationService->generateVerificationToken();
+$user->setVerificationToken($verificationToken);
+$user->setIsVerified(false);
+
+// Validate entity
+$errors = $this->validator->validate($user);
+if (count($errors) > 0) {
+$errorMessages = [];
+foreach ($errors as $error) {
+
+$errorMessages[] = $error->getMessage();
+}
+return $this->json([
+'success' => false,
+'message' => 'Validation failed',
+'errors' => $errorMessages
+], 400);
+}
+
+// Save user
+$this->entityManager->persist($user);
+$this->entityManager->flush();
+
+// Generate verification URL
+$verificationUrl = $this->generateUrl(
+'app_verify_email',
+['token' => $verificationToken],
+UrlGeneratorInterface::ABSOLUTE_URL
+);
+
+// Send verification email
+try {
+$this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+} catch (\Exception $e) {
+// Log error but don't fail registration
+// User can request resend later
+}
+
+return $this->json([
+
+'success' => true,
+'message' => 'Registration successful. Please check your email to verify your account.',
+'user' => [
+'id' => $user->getId(),
+'username' => $user->getUsername(),
+'email' => $user->getEmail(),
+'isVerified' => $user->isVerified(),
+'roles' => $user->getRoles()
+]
+], 201);
+}
+}
+
+3. Set the api/register endpoint to public_access
+- { path: ^/api/register, roles: PUBLIC_ACCESS }
+
+4. Create a JwtAuthenticationSuccessHandler.php in security folder
+<?php
+
+namespace App\Security;
+
+use App\Entity\User;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
+
+class JWTAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
+{
+public function __construct(
+private JWTTokenManagerInterface $jwtManager
+) {}
+
+public function onAuthenticationSuccess(Request $request, TokenInterface $token): JsonResponse
+{
+/** @var User $user */
+$user = $token->getUser();
+
+// Check if email is verified
+if (!$user->isVerified()) {
+return new JsonResponse([
+'success' => false,
+'message' => 'Please verify your email address before logging in',
+'verified' => false
+], 403);
+}
+
+// Generate JWT token
+$jwt = $this->jwtManager->create($user);
+
+return new JsonResponse([
+'token' => $jwt,
+'user' => [
+'username' => $user->getUserIdentifier(),
+'email' => $user->getEmail(),
+
+'roles' => $user->getRoles(),
+'verified' => $user->isVerified()
+]
+]);
+}
+}
+
+6. Update your security.yaml to use the JwtAuth for success handler
+
+success_handler: App\Security\JWTAuthenticationSuccessHandler
