@@ -1,3 +1,123 @@
+JWT AUTHENTICATION
+Step 1: Install Required Packages
+    Inside your Symfony project folder:
+
+    composer require symfony/security-bundle
+    composer require lexik/jwt-authentication-bundle
+
+    If you're building a pure API (no sessions):
+
+    composer require symfony/serializer-pack
+
+Step 2: Generate JWT Keys
+    JWT needs private/public keys.
+    Run:
+        php bin/console lexik:jwt:generate-keypair
+        It will create:
+
+        config/jwt/private.pem
+        config/jwt/public.pem
+
+    If it asks for a passphrase, you can press Enter (or set one).
+
+Step 3: Configure Environment Variables
+    In your .env file add:
+
+        JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+        JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+        JWT_PASSPHRASE=
+        (Leave passphrase empty if you didn’t set one.)
+
+Step 4: Configure Security
+    Edit config/packages/security.yaml
+    Example configuration for an API:
+
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+        providers:
+            app_user_provider:
+                entity:
+                    class: App\Entity\User
+                    property: email
+
+        firewalls:
+            login:
+                pattern: ^/api/login
+                stateless: true
+                json_login:
+                    check_path: /api/login
+                    username_path: email
+                    password_path: password
+                    success_handler: lexik_jwt_authentication.handler.authentication_success
+                    failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+            api:
+                pattern: ^/api
+                stateless: true
+                jwt: ~
+
+        access_control:
+            - { path: ^/api/login, roles: PUBLIC_ACCESS }
+            - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+Step 5: Make Sure You Have a User Entity
+    Your User entity must:
+    * Implement UserInterface
+    * Have email
+    * Have password
+    * Use password hashing
+    If you don’t have one yet:
+
+    php bin/console make:user
+    Then hash passwords properly when creating users.
+
+Step 6: Create a User (for testing)
+    If using Doctrine:
+
+    php bin/console make:command
+    Or manually insert a user into the database.
+    Hash password example:
+
+    php bin/console security:hash-password
+
+Step 7: Test JWT Authentication
+    Start your server:
+
+    symfony serve
+    Login Request
+    POST request to:
+
+    POST /api/login
+    Body (JSON):
+
+    {
+    "email": "test@example.com",
+    "password": "123456"
+    }
+
+    If successful, you’ll receive:
+    {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+
+    Use Token to Access Protected Routes
+    In Postman or frontend:
+    Header:
+
+    Authorization: Bearer YOUR_TOKEN_HERE
+    Now you can access:
+
+    GET /api/any-protected-route
+
+    If You’re Using API Platform
+    If your project uses API Platform, JWT works the same way — just protect routes with:
+
+    access_control:
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+
 GOOGLE OAUTH
 Step 1: Install required packages
 
@@ -173,68 +293,67 @@ use Symfony\Component\Mime\Address;
 
 class EmailVerificationService
 {
-public function __construct(
-private EntityManagerInterface $entityManager,
-private MailerInterface $mailer
-) {}
+    public function __construct(
+    private EntityManagerInterface $entityManager,
+    private MailerInterface $mailer
+    ) {}
 
-/**
-* Generate a unique verification token
-*/
-public function generateVerificationToken(): string
-{
-return bin2hex(random_bytes(32));
+    /**
+    * Generate a unique verification token
+    */
+    public function generateVerificationToken(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
 
-}
+    /**
+    * Send verification email to user
+    */
+    public function sendVerificationEmail(User $user, string $verificationUrl): void
+    {
+        $email = (new TemplatedEmail())
+        ->from(new Address('arielbensing22@gmail.com', 'Symfony Project Test')) // Change this to
+        verified sender
+        ->to(new Address($user->getEmail()))
+        ->subject('Please verify your email address')
+        ->htmlTemplate('emails/verification.html.twig')
+        ->context([
+            'user' => $user,
+            'verificationUrl' => $verificationUrl,
+        ]);
 
-/**
-* Send verification email to user
-*/
-public function sendVerificationEmail(User $user, string $verificationUrl): void
-{
-$email = (new TemplatedEmail())
-->from(new Address('arielbensing22@gmail.com', 'Symfony Project Test')) // Change this to
-verified sender
-->to(new Address($user->getEmail()))
-->subject('Please verify your email address')
-->htmlTemplate('emails/verification.html.twig')
-->context([
-'user' => $user,
-'verificationUrl' => $verificationUrl,
-]);
+        $this->mailer->send($email);
+    }
 
-$this->mailer->send($email);
-}
+    /**
+    * Verify a token and mark user as verified
+    */
+    public function verifyToken(string $token): ?User
+    {
+        $user = $this->entityManager
+        ->getRepository(User::class)
+        ->findOneBy(['verificationToken' => $token]);
 
-/**
-* Verify a token and mark user as verified
-*/
-public function verifyToken(string $token): ?User
-{
-$user = $this->entityManager
-->getRepository(User::class)
-->findOneBy(['verificationToken' => $token]);
+        if (!$user) {
+            return null;
+        }
 
-if (!$user) {
-return null;
-}
+        // Mark user as verified
+        $user->setIsVerified(true);
+        $user->setVerificationToken(null); // Clear the token
 
-// Mark user as verified
-$user->setIsVerified(true);
-$user->setVerificationToken(null); // Clear the token
+        $this->entityManager->flush();
 
-$this->entityManager->flush();
+        return $user;
+    }
 
-return $user;
-}
-
-/**
-* Check if a user needs verification
-*/
-public function needsVerification(User $user): bool
-{
-return !$user->isVerified();
-}
+    /**
+    * Check if a user needs verification
+    */
+    public function needsVerification(User $user): bool
+    {
+        return !$user->isVerified();
+    }
 }
 
 3. Add email field in our registration form
@@ -327,23 +446,23 @@ class EmailVerificationController extends AbstractController
 <title>Verify Your Email</title>
 </head>
 <body>
-<h1>Welcome {{ user.username }}!</h1>
+    <h1>Welcome {{ user.username }}!</h1>
 
-<p>Thank you for registering. Please verify your email address by clicking the link below:</p>
+    <p>Thank you for registering. Please verify your email address by clicking the link below:</p>
 
-<p>
-<a href="{{ verificationUrl }}" style="display: inline-block; padding: 10px 20px; background-color:
-#007bff; color: white; text-decoration: none; border-radius: 5px;">
-Verify Email Address
-</a>
-</p>
+    <p>
+        <a href="{{ verificationUrl }}" style="display: inline-block; padding: 10px 20px; background-color:
+        #007bff; color: white; text-decoration: none; border-radius: 5px;">
+        Verify Email Address
+        </a>
+    </p>
 
-<p>Or copy and paste this link into your browser:</p>
-<p>{{ verificationUrl }}</p>
+    <p>Or copy and paste this link into your browser:</p>
+    <p>{{ verificationUrl }}</p>
 
-<p>If you did not create an account, please ignore this email.</p>
+    <p>If you did not create an account, please ignore this email.</p>
 
-<p>Thanks,<br>Your App Team</p>
+    <p>Thanks,<br>Your App Team</p>
 </body>
 </html>
 
@@ -383,111 +502,109 @@ use Doctrine\ORM\EntityManagerInterface;
 #[Route('/api')]
 class ApiEmailVerificationController extends AbstractController
 {
-public function __construct(
-private EmailVerificationService $emailVerificationService,
-private EntityManagerInterface $entityManager
-) {}
+    public function __construct(
+    private EmailVerificationService $emailVerificationService,
+    private EntityManagerInterface $entityManager
+    ) {}
 
-/**
-* Verify email with token
-*/
-#[Route('/verify-email', name: 'api_verify_email', methods: ['POST'])]
-public function verifyEmail(Request $request): JsonResponse
+    /**
+    * Verify email with token
+    */
+    #[Route('/verify-email', name: 'api_verify_email', methods: ['POST'])]
+    public function verifyEmail(Request $request): JsonResponse
 
-{
-$data = json_decode($request->getContent(), true);
-$token = $data['token'] ?? null;
+    {
+        $data = json_decode($request->getContent(), true);
+        $token = $data['token'] ?? null;
 
-if (!$token) {
-return $this->json([
-'success' => false,
-'message' => 'Verification token is required'
-], 400);
+        if (!$token) {
+            return $this->json([
+            'success' => false,
+            'message' => 'Verification token is required'
+        ], 400);
+    }
+
+    $user = $this->emailVerificationService->verifyToken($token);
+
+    if (!$user) {
+        return $this->json([
+        'success' => false,
+        'message' => 'Invalid or expired verification token'
+        ], 400);
+    }
+
+    return $this->json([
+        'success' => true,
+        'message' => 'Email verified successfully',
+        'user' => [
+        'id' => $user->getId(),
+        'email' => $user->getEmail(),
+        'isVerified' => $user->isVerified()
+        ]
+    ], 200);
+
 }
 
-$user = $this->emailVerificationService->verifyToken($token);
+    /**
+    * Resend verification email
+    */
+    #[Route('/resend-verification', name: 'api_resend_verification', methods: ['POST'])]
+    public function resendVerification(#[CurrentUser] ?User $user): JsonResponse
+    {
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
 
-if (!$user) {
-return $this->json([
-'success' => false,
-'message' => 'Invalid or expired verification token'
-], 400);
-}
+        if ($user->isVerified()) {
+            return $this->json([
+            'success' => false,
+            'message' => 'Email is already verified'
+            ], 400);
+        }
 
-return $this->json([
-'success' => true,
-'message' => 'Email verified successfully',
-'user' => [
-'id' => $user->getId(),
-'email' => $user->getEmail(),
-'isVerified' => $user->isVerified()
-]
-], 200);
+        // Generate new token
+        $verificationToken = $this->emailVerificationService->generateVerificationToken();
+        $user->setVerificationToken($verificationToken);
+        $this->entityManager->flush();
 
-}
+        // Create verification URL (for web verification or deep link)
+        $verificationUrl = $this->generateUrl(
+            'app_verify_email',
+            ['token' => $verificationToken],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
-/**
-* Resend verification email
-*/
-#[Route('/resend-verification', name: 'api_resend_verification', methods: ['POST'])]
-public function resendVerification(#[CurrentUser] ?User $user): JsonResponse
-{
-if (!$user) {
-return $this->json([
-'success' => false,
-'message' => 'Authentication required'
-], 401);
-}
+        // Send email
+        $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
 
-if ($user->isVerified()) {
-return $this->json([
-'success' => false,
-'message' => 'Email is already verified'
-], 400);
-}
-s
-// Generate new token
-$verificationToken = $this->emailVerificationService->generateVerificationToken();
-$user->setVerificationToken($verificationToken);
-$this->entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'Verification email sent successfully'
+            ], 200);
+        }
 
-// Create verification URL (for web verification or deep link)
-$verificationUrl = $this->generateUrl(
+        /**
+        * Check verification status
+        */
+        #[Route('/verification-status', name: 'api_verification_status', methods: ['GET'])]
+        public function verificationStatus(#[CurrentUser] ?User $user): JsonResponse
+        {
+            if (!$user) {
+                return $this->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
 
-'app_verify_email',
-['token' => $verificationToken],
-UrlGeneratorInterface::ABSOLUTE_URL
-);
-
-// Send email
-$this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
-
-return $this->json([
-'success' => true,
-'message' => 'Verification email sent successfully'
-], 200);
-}
-
-/**
-* Check verification status
-*/
-#[Route('/verification-status', name: 'api_verification_status', methods: ['GET'])]
-public function verificationStatus(#[CurrentUser] ?User $user): JsonResponse
-{
-if (!$user) {
-return $this->json([
-'success' => false,
-'message' => 'Authentication required'
-], 401);
-}
-
-return $this->json([
-'success' => true,
-
-'isVerified' => $user->isVerified(),
-'email' => $user->getEmail()
-], 200);
-}
+        return $this->json([
+            'success' => true,
+            'isVerified' => $user->isVerified(),
+            'email' => $user->getEmail()
+        ], 200);
+    }
 }
 
 2. Create a registration Api
@@ -510,138 +627,134 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api')]
 class ApiRegistrationController extends AbstractController
 {
-public function __construct(
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private UserPasswordHasherInterface $passwordHasher,
+        private EmailVerificationService $emailVerificationService,
+        private ValidatorInterface $validator
+    ) {}
 
-private EntityManagerInterface $entityManager,
-private UserPasswordHasherInterface $passwordHasher,
-private EmailVerificationService $emailVerificationService,
-private ValidatorInterface $validator
-) {}
+    #[Route('/register', name: 'api_register', methods: ['POST'])]
+    public function register(Request $request): JsonResponse
+    {
+    $data = json_decode($request->getContent(), true);
 
-#[Route('/register', name: 'api_register', methods: ['POST'])]
-public function register(Request $request): JsonResponse
-{
-$data = json_decode($request->getContent(), true);
+    // Validate required fields
+    if (!isset($data['username']) || !isset($data['email']) || !isset($data['password'])) {
+        return $this->json([
+        'success' => false,
+        'message' => 'Username, email, and password are required'
+        ], 400);
+    }
 
-// Validate required fields
-if (!isset($data['username']) || !isset($data['email']) || !isset($data['password'])) {
-return $this->json([
-'success' => false,
-'message' => 'Username, email, and password are required'
-], 400);
-}
+    // Basic validation
+    if (strlen($data['username']) < 3) {
+        return $this->json([
+        'success' => false,
+        'message' => 'Username must be at least 3 characters long'
+        ], 400);
+    }
 
-// Basic validation
-if (strlen($data['username']) < 3) {
-return $this->json([
-'success' => false,
-'message' => 'Username must be at least 3 characters long'
-], 400);
-}
+    if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Invalid email address'
+        ], 400);
+    }
 
-if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-return $this->json([
+    if (strlen($data['password']) < 6) {
+        return $this->json([
+        'success' => false,
+        'message' => 'Password must be at least 6 characters long'
+        ], 400);
+    }
 
-'success' => false,
-'message' => 'Invalid email address'
-], 400);
-}
+    // Check if username already exists
+    $existingUser = $this->entityManager
+    ->getRepository(User::class)
+    ->findOneBy(['username' => $data['username']]);
 
-if (strlen($data['password']) < 6) {
-return $this->json([
-'success' => false,
-'message' => 'Password must be at least 6 characters long'
-], 400);
-}
+    if ($existingUser) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Username already exists'
+        ], 409);
+    }
 
-// Check if username already exists
-$existingUser = $this->entityManager
-->getRepository(User::class)
-->findOneBy(['username' => $data['username']]);
+    // Check if email already exists
+    $existingEmail = $this->entityManager
+    ->getRepository(User::class)
+    ->findOneBy(['email' => $data['email']]);
 
-if ($existingUser) {
-return $this->json([
-'success' => false,
-'message' => 'Username already exists'
-], 409);
-}
+    if ($existingEmail) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Email already registered'
+        ], 409);
+    }
 
-// Check if email already exists
-$existingEmail = $this->entityManager
-->getRepository(User::class)
-->findOneBy(['email' => $data['email']]);
+        // Create new user
+        $user = new User();
+        $user->setUsername($data['username']);
+        $user->setEmail($data['email']);
 
-if ($existingEmail) {
-return $this->json([
-'success' => false,
-'message' => 'Email already registered'
-], 409);
-}
+        // Hash password
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
+        $user->setPassword($hashedPassword);
 
-// Create new user
-$user = new User();
-$user->setUsername($data['username']);
-$user->setEmail($data['email']);
+        // Set default role
+        $user->setRoles(['ROLE_USER']);
 
-// Hash password
-$hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
-$user->setPassword($hashedPassword);
+        // Generate verification token
+        $verificationToken = $this->emailVerificationService->generateVerificationToken();
+        $user->setVerificationToken($verificationToken);
+        $user->setIsVerified(false);
 
-// Set default role
-$user->setRoles(['ROLE_USER']);
+        // Validate entity
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+        $errorMessages = [];
+        foreach ($errors as $error) {
+            $errorMessages[] = $error->getMessage();
+            }
+            return $this->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $errorMessages
+            ], 400);
+        }
 
-// Generate verification token
-$verificationToken = $this->emailVerificationService->generateVerificationToken();
-$user->setVerificationToken($verificationToken);
-$user->setIsVerified(false);
+    // Save user
+    $this->entityManager->persist($user);
+    $this->entityManager->flush();
 
-// Validate entity
-$errors = $this->validator->validate($user);
-if (count($errors) > 0) {
-$errorMessages = [];
-foreach ($errors as $error) {
+    // Generate verification URL
+    $verificationUrl = $this->generateUrl(
+    'app_verify_email',
+    ['token' => $verificationToken],
+    UrlGeneratorInterface::ABSOLUTE_URL
+    );
 
-$errorMessages[] = $error->getMessage();
-}
-return $this->json([
-'success' => false,
-'message' => 'Validation failed',
-'errors' => $errorMessages
-], 400);
-}
+    // Send verification email
+    try {
+    $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+    } catch (\Exception $e) {
+    // Log error but don't fail registration
+    // User can request resend later
+    }
 
-// Save user
-$this->entityManager->persist($user);
-$this->entityManager->flush();
-
-// Generate verification URL
-$verificationUrl = $this->generateUrl(
-'app_verify_email',
-['token' => $verificationToken],
-UrlGeneratorInterface::ABSOLUTE_URL
-);
-
-// Send verification email
-try {
-$this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
-} catch (\Exception $e) {
-// Log error but don't fail registration
-// User can request resend later
-}
-
-return $this->json([
-
-'success' => true,
-'message' => 'Registration successful. Please check your email to verify your account.',
-'user' => [
-'id' => $user->getId(),
-'username' => $user->getUsername(),
-'email' => $user->getEmail(),
-'isVerified' => $user->isVerified(),
-'roles' => $user->getRoles()
-]
-], 201);
-}
+    return $this->json([
+        'success' => true,
+        'message' => 'Registration successful. Please check your email to verify your account.',
+        'user' => [
+            'id' => $user->getId(),
+            'username' => $user->getUsername(),
+            'email' => $user->getEmail(),
+            'isVerified' => $user->isVerified(),
+            'roles' => $user->getRoles()
+        ]
+    ], 201);
+    }
 }
 
 3. Set the api/register endpoint to public_access
@@ -661,38 +774,38 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 
 class JWTAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
-public function __construct(
-private JWTTokenManagerInterface $jwtManager
-) {}
+    public function __construct(
+    private JWTTokenManagerInterface $jwtManager
+    ) {}
 
-public function onAuthenticationSuccess(Request $request, TokenInterface $token): JsonResponse
-{
-/** @var User $user */
-$user = $token->getUser();
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): JsonResponse
+    {
+    /** @var User $user */
+    $user = $token->getUser();
 
-// Check if email is verified
-if (!$user->isVerified()) {
-return new JsonResponse([
-'success' => false,
-'message' => 'Please verify your email address before logging in',
-'verified' => false
-], 403);
-}
+    // Check if email is verified
+    if (!$user->isVerified()) {
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'Please verify your email address before logging in',
+            'verified' => false
+        ], 403);
+    }
 
-// Generate JWT token
-$jwt = $this->jwtManager->create($user);
+    // Generate JWT token
+    $jwt = $this->jwtManager->create($user);
 
-return new JsonResponse([
-'token' => $jwt,
-'user' => [
-'username' => $user->getUserIdentifier(),
-'email' => $user->getEmail(),
+    return new JsonResponse([
+        'token' => $jwt,
+        'user' => [
+            'username' => $user->getUserIdentifier(),
+            'email' => $user->getEmail(),
 
-'roles' => $user->getRoles(),
-'verified' => $user->isVerified()
-]
-]);
-}
+            'roles' => $user->getRoles(),
+            'verified' => $user->isVerified()
+        ]
+    ]);
+    }
 }
 
 6. Update your security.yaml to use the JwtAuth for success handler
