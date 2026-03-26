@@ -1,0 +1,28 @@
+{% extends 'error.html.twig' %}
+
+{% block title %}Page Not Found | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="min-h-screen flex items-center justify-center bg-[#FBFBFA]">
+    <div class="text-center p-8 max-w-xl">
+
+        {# Massive, editorial 404 header #}
+        <h1 class="text-9xl font-bold text-brand-dark tracking-tighter mb-4">404</h1>
+
+        {# Subheading matching the 403 page style #}
+        <h2 class="text-2xl font-bold uppercase tracking-tight mb-4">Lost in the threads</h2>
+
+        {# Uppercase, widely tracked paragraph text #}
+        <p class="text-sm text-gray-500 font-medium tracking-widest uppercase mb-8">
+            We couldn't find the page or piece you're looking for.
+        </p>
+
+        {# The signature Mifania button with hover animation #}
+        <a href="{{ path('app_home') }}"
+           class="inline-block bg-brand text-white px-8 py-4 rounded-sm text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-dark transition-all shadow-md hover:-translate-y-0.5">
+            Return to Store
+        </a>
+
+    </div>
+</div>
+{% endblock %}

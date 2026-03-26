@@ -32,7 +32,7 @@ class EmailVerificationService
             ->from(new Address('mifaniapaolo0012@gmail.com', 'Mifania Sustainable Fashion Line'))
             ->to(new Address($user->getEmail()))
             ->subject('Mifania Sustainable Fashion Line - Account Email Verification')
-            ->htmlTemplate('email/index.html.twig')
+            ->htmlTemplate('email/verification.html.twig')
             ->context([
                 'user' => $user,
                 'verificationUrl' => $verificationUrl,

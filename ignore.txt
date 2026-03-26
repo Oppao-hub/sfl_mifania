@@ -1,3 +1,8 @@
+API
+composer require api symfony/orm-pack doctrine/doctrine-migrations-bundle
+composer require symfony/maker-bundle --dev
+composer require api
+
 JWT AUTHENTICATION
 Step 1: Install Required Packages
     Inside your Symfony project folder:

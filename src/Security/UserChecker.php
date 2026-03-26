@@ -29,9 +29,6 @@ class UserChecker implements UserCheckerInterface
 
         // --- THE LOGIC GOES HERE ---
 
-        // Assuming 'getStatus()' returns an Enum. If it returns a string, remove '->value'.
-        // Adjust 'Active' to match the exact string/case in your database.
-
         $status = $user->getStatus()->value; // e.g., 'Deactivated', 'Pending', 'Active'
 
         if ($status === 'Deactivated') {

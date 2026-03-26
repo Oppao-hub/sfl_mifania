@@ -1,0 +1,29 @@
+{% extends 'error.html.twig' %}
+
+{% block title %}Access Denied | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="min-h-screen flex items-center justify-center bg-[#FBFBFA]">
+    <div class="text-center p-8 max-w-xl">
+        <h1 class="text-9xl font-bold text-brand-dark tracking-tighter mb-4">403</h1>
+        <h2 class="text-2xl font-bold uppercase tracking-tight mb-4">Access Restricted</h2>
+        <p class="text-sm text-gray-500 font-medium tracking-widest uppercase mb-8">
+            This exclusive area is reserved for authorized members or administrators.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{{ path('app_home') }}"
+               class="inline-block bg-brand text-white px-8 py-4 rounded-sm text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-dark transition-all shadow-md hover:-translate-y-0.5">
+                Return to Homepage
+            </a>
+
+            {% if app.user %}
+                <a href="{{ path('app_account') }}"
+                   class="inline-block bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-sm text-xs font-bold uppercase tracking-[0.2em] hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-0.5 transition-all shadow-sm cursor-pointer">
+                    My Account
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
