@@ -3,19 +3,17 @@
 namespace App\Form;
 
 use App\Entity\Staff;
-use App\Entity\Enum\AccountStatus; // Ensure this path is correct
+use App\Entity\Enum\AccountStatus;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
@@ -28,7 +26,6 @@ class StaffType extends AbstractType
             ->add('firstName', TextType::class, ['label' => 'First Name'])
             ->add('lastName', TextType::class, ['label' => 'Last Name'])
             ->add('avatar', FileType::class, [
-                'label' => 'Avatar',
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
@@ -36,7 +33,7 @@ class StaffType extends AbstractType
                         'maxSize' => '5M',
                         'mimeTypes' => ['image/jpeg', 'image/png'],
                         'mimeTypesMessage' => 'Please upload a valid JPEG or PNG image.',
-                    ]),
+                    ])
                 ],
             ]);
 
@@ -45,10 +42,6 @@ class StaffType extends AbstractType
             $builder->add('password', PasswordType::class, [
                 'label' => 'Password',
                 'mapped' => false,
-                'constraints' => [
-                    new NotBlank(['message' => 'Password cannot be blank.']),
-                    new Length(['min' => 8, 'minMessage' => 'Min 8 characters.']),
-                ],
             ]);
         }
 
@@ -62,7 +55,6 @@ class StaffType extends AbstractType
             $form->add('email', EmailType::class, [
                 'mapped' => false,
                 'data' => $user ? $user->getEmail() : null,
-                'constraints' => [new NotBlank(['message' => 'Email is required'])],
             ]);
 
             // Status (Using your existing Enum)

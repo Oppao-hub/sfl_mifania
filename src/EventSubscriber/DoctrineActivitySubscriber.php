@@ -7,65 +7,100 @@ use App\Service\ActivityLogger;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsDoctrineListener(event: Events::onFlush)]
 class DoctrineActivitySubscriber
 {
-    public function __construct(private ActivityLogger $logger)
+    /**
+     * Entities that should bypass the automatic activity log
+     * to prevent infinite persistence loops or database noise.
+     */
+    private const IGNORED_ENTITIES = [
+        ActivityLog::class,
+        // App\Entity\Session::class, // Add future system entities here
+    ];
+
+    // Upgraded to PHP 8.1 readonly property
+    public function __construct(private readonly ActivityLogger $logger)
     {
     }
 
     public function onFlush(OnFlushEventArgs $args): void
     {
-        $em = $args->getObjectManager();
-        if (!$em instanceof EntityManagerInterface) {
-            return;
-        }
-
-        $uow = $em->getUnitOfWork();
+        $uow = $args->getObjectManager()->getUnitOfWork();
 
         // 1. Handle Creations
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            if ($entity instanceof ActivityLog) continue; // Don't log the log!
+            if ($this->isIgnored($entity)) {
+                continue;
+            }
 
-            // PASS FALSE to prevent infinite loop
-            $this->logger->log('CREATE', $this->getDetails($entity, 'Created'), null, false);
+            $this->logger->log(
+                'CREATE',
+                $this->formatLogMessage($entity, 'Created'),
+                null,
+                false
+            );
         }
 
         // 2. Handle Updates
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            if ($entity instanceof ActivityLog) continue;
+            if ($this->isIgnored($entity)) {
+                continue;
+            }
 
             $changes = $uow->getEntityChangeSet($entity);
-            $details = $this->getDetails($entity, 'Updated');
+            $changedFields = implode(', ', array_keys($changes));
 
-            // Add changed fields to description
-            $keys = array_keys($changes);
-            $details .= " (Fields: " . implode(', ', $keys) . ")";
+            $message = sprintf(
+                '%s (Modified fields: %s)',
+                $this->formatLogMessage($entity, 'Updated'),
+                $changedFields
+            );
 
-            // PASS FALSE
-            $this->logger->log('UPDATE', $details, null, false);
+            $this->logger->log('UPDATE', $message, null, false);
         }
 
         // 3. Handle Deletions
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
-            if ($entity instanceof ActivityLog) continue;
+            if ($this->isIgnored($entity)) {
+                continue;
+            }
 
-            // PASS FALSE
-            $this->logger->log('DELETE', $this->getDetails($entity, 'Deleted'), null, false);
+            $this->logger->log(
+                'DELETE',
+                $this->formatLogMessage($entity, 'Deleted'),
+                null,
+                false
+            );
         }
     }
 
-    private function getDetails(object $entity, string $action): string
+    /**
+     * Checks if the entity belongs to the IGNORED_ENTITIES list.
+     */
+    private function isIgnored(object $entity): bool
     {
-        $class = (new \ReflectionClass($entity))->getShortName();
-
-        $id = 'NEW';
-        if (method_exists($entity, 'getId') && $entity->getId()) {
-            $id = $entity->getId();
+        foreach (self::IGNORED_ENTITIES as $ignoredClass) {
+            if ($entity instanceof $ignoredClass) {
+                return true;
+            }
         }
 
-        return "$action $class (ID: $id)";
+        return false;
+    }
+
+    /**
+     * Formats the base description for the log entry.
+     */
+    private function formatLogMessage(object $entity, string $action): string
+    {
+        $className = (new \ReflectionClass($entity))->getShortName();
+
+        $id = method_exists($entity, 'getId') && $entity->getId() !== null
+            ? (string) $entity->getId()
+            : 'NEW';
+
+        return sprintf('%s %s (ID: %s)', $action, $className, $id);
     }
 }

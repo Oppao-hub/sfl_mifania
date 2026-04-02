@@ -3,7 +3,7 @@
 {% block title %}Edit Order: #{{ order.id }}{% endblock %}
 
 {% block main_content %}
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-5xl mx-auto animate-fadeIn">
         {{ include('dashboard/order/_form.html.twig', {
             form: form,
             button_label: 'Update Order'

@@ -7,13 +7,13 @@ use App\Entity\Product;
 use App\Entity\Story;
 use App\Entity\Enum\Size;
 use App\Entity\Enum\Color;
-use App\Entity\Enum\Gender;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -46,21 +46,13 @@ class ProductType extends AbstractType
                 'placeholder' => 'Select a color',
                 'choice_label' => fn(Color $color) => $color->value,
             ])
-            ->add('gender', EnumType::class, [
-                'class' => Gender::class,
-                'label' => 'Gender / Fit',
-                'placeholder' => 'Select a gender',
-                'choice_label' => fn(Gender $gender) => $gender->value,
-            ])
             ->add('price', TextType::class, [
                 'label' => 'MSRP (PHP)',
-                'invalid_message' => 'Please enter a valid number for the price.',
             ])
             ->add('cost', TextType::class, [
                 'label' => 'Archival Cost (PHP)',
-                'invalid_message' => 'Please enter a valid number for the cost.',
             ])
-            ->add('description', null, [
+            ->add('description', TextareaType::class, [
                 'label' => 'Narrative Description'
             ])
             ->add('ecoInfo', TextType::class, [
@@ -82,7 +74,6 @@ class ProductType extends AbstractType
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
-                    // File constraints MUST remain here as the file itself is not mapped to the DB.
                     new File([
                         'maxSize' => '5M',
                         'mimeTypes' => [

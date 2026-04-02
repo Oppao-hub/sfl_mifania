@@ -4,107 +4,181 @@
 
 {% block main_content %}
 {% form_theme checkoutForm 'form/error_theme.html.twig' %}
-<section class="bg-gray-50 py-16 px-6 md:px-12 min-h-[70vh]">
+
+<section class="pt-10 pb-6 bg-light-gray text-center border-b border-gray-200 reveal">
+    <h1 class="text-2xl md:text-4xl font-black tracking-tighter text-brand uppercase">Checkout</h1>
+    <div class="mt-4 flex justify-center">
+        {% include 'components/frontend/breadcrumbs.html.twig' with {
+            items: [
+                { name: 'Home', url: path('app_home') },
+                { name: 'Shopping Cart', url: path('app_cart_show') },
+                { name: 'Checkout' }
+            ]
+        } %}
+    </div>
+</section>
+
+<section class="bg-white py-16 px-6 md:px-12 min-h-[70vh]">
     <div class="max-w-[1440px] mx-auto">
 
-        <a href="{{ path('app_cart_show') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand transition-colors mb-6">
-            {{ ux_icon('lucide:arrow-left', { class: 'h-4 w-4' }) }} Back to Cart
-        </a>
+        <div class="flex items-center justify-center mb-16 gap-4 md:gap-8">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-black border border-brand/20">
+                    {{ ux_icon('lucide:check', {class: 'w-4 h-4'}) }}
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-brand/50">Shopping Cart</span>
+            </div>
+            <div class="w-12 h-px bg-brand/30"></div>
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center text-xs font-black">02</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-brand">Checkout</span>
+            </div>
+            <div class="w-12 h-px bg-gray-200"></div>
+            <div class="flex items-center gap-3 opacity-30">
+                <span class="w-8 h-8 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-xs font-black">03</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Confirmation</span>
+            </div>
+        </div>
 
-        <h1 class="text-3xl font-bold text-brand mb-8">Checkout</h1>
+        {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-16', novalidate: 'novalidate' } }) }}
 
-        {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-12', novalidate: 'novalidate' } }) }}
+            <div class="lg:col-span-2 space-y-12">
 
-            {# LEFT COLUMN: Checkout Form Inputs #}
-            <div class="lg:col-span-2 space-y-6">
+                {{ form_errors(checkoutForm, {'attr': {'class': 'text-red-500 text-[10px] font-black uppercase tracking-widest bg-red-50 p-6 border border-red-100 rounded-sm'}}) }}
 
-                {{ form_errors(checkoutForm, {'attr': {'class': 'text-red-500 text-xs font-bold uppercase tracking-widest bg-red-50 p-4 border border-red-100 rounded-md'}}) }}
+                {# Shipping Information #}
+                <div class="reveal">
+                    <div class="flex items-center gap-4 mb-10 border-b border-gray-100 pb-6">
+                        <span class="p-3 bg-app-bg text-brand rounded-sm border border-gray-100">
+                            {{ ux_icon('lucide:truck', {class: 'w-5 h-5'}) }}
+                        </span>
+                        <h2 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">Shipping Logistics</h2>
+                    </div>
 
-                <div class="bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-100">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4 uppercase tracking-tighter">Shipping Details</h2>
+                    {% set label_style = 'text-[9px] font-black tracking-[0.3em] uppercase text-gray-400 mb-3 block' %}
+                    {% set input_base = 'w-full px-5 py-4 bg-app-bg border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-all text-sm font-bold text-brand-dark placeholder:text-gray-300 shadow-inner' %}
 
-                    <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="md:col-span-2">
+                            {{ form_label(checkoutForm.shippingAddress, 'Destination Address *', { label_attr: { class: label_style } }) }}
+                            {{ form_widget(checkoutForm.shippingAddress, { attr: { class: input_base, rows: 3, placeholder: 'House No., Street, Brgy.' } }) }}
+                            {{ form_errors(checkoutForm.shippingAddress) }}
+                        </div>
+
                         <div>
-                            {{ form_label(checkoutForm.shippingAddress, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
-                            {{ form_widget(checkoutForm.shippingAddress, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors', rows: 3 } }) }}
-                            {{ form_errors(checkoutForm.shippingAddress, {'attr': {'class': 'text-red-500 text-[10px] uppercase font-bold mt-1'}}) }}
+                            {{ form_label(checkoutForm.city, 'City / Municipality *', { label_attr: { class: label_style } }) }}
+                            {{ form_widget(checkoutForm.city, { attr: { class: input_base, placeholder: 'Ex. Dumaguete City' } }) }}
+                            {{ form_errors(checkoutForm.city) }}
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                {{ form_label(checkoutForm.city, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
-                                {{ form_widget(checkoutForm.city, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors' } }) }}
-                                {{ form_errors(checkoutForm.city, {'attr': {'class': 'text-red-500 text-[10px] uppercase font-bold mt-1'}}) }}
-                            </div>
-                            <div>
-                                {{ form_label(checkoutForm.postalCode, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
-                                {{ form_widget(checkoutForm.postalCode, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors' } }) }}
-                                {{ form_errors(checkoutForm.postalCode, {'attr': {'class': 'text-red-500 text-[10px] uppercase font-bold mt-1'}}) }}
-                            </div>
-                        </div>
-
-                        <div class="pt-6 mt-6 border-t border-gray-100">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 uppercase tracking-tighter">Payment Method</h3>
-                            <div class="space-y-3">
-                                {% for child in checkoutForm.paymentMethod %}
-                                    <div class="flex items-center p-4 border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors cursor-pointer">
-                                        {{ form_widget(child, { attr: { class: 'w-4 h-4 text-brand border-gray-300 focus:ring-brand cursor-pointer' } }) }}
-                                        {{ form_label(child, null, { label_attr: { class: 'ml-3 block text-sm font-bold text-gray-700 cursor-pointer w-full mb-0 uppercase tracking-widest' } }) }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="pt-6 mt-6 border-t border-gray-100">
-                            {{ form_label(checkoutForm.orderNotes, null, { label_attr: { class: 'block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2' } }) }}
-                            {{ form_widget(checkoutForm.orderNotes, { attr: { class: 'w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-brand focus:border-brand outline-none transition-colors', rows: 2 } }) }}
+                        <div>
+                            {{ form_label(checkoutForm.postalCode, 'Postal Code *', { label_attr: { class: label_style } }) }}
+                            {{ form_widget(checkoutForm.postalCode, { attr: { class: input_base, placeholder: '6200' } }) }}
+                            {{ form_errors(checkoutForm.postalCode) }}
                         </div>
                     </div>
+                </div>
+
+                <div class="reveal" style="transition-delay: 100ms;">
+                    <div class="flex items-center gap-4 mb-10 border-b border-gray-100 py-6">
+                        <span class="p-3 bg-app-bg text-brand rounded-sm border border-gray-100">
+                            {{ ux_icon('lucide:credit-card', {class: 'w-5 h-5'}) }}
+                        </span>
+                        <h2 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">Payment Resolution</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        {% for child in checkoutForm.paymentMethod %}
+                            <label class="group relative flex items-center p-6 border border-gray-200 rounded-sm hover:border-brand transition-all cursor-pointer bg-app-bg/30 peer-checked:bg-white peer-checked:shadow-sm">
+                                {{ form_widget(child, { attr: { class: 'peer hidden' } }) }}
+                                <div class="w-5 h-5 rounded-full border-2 border-gray-200 mr-4 flex items-center justify-center peer-checked:border-brand peer-checked:bg-brand transition-all relative z-10">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+                                </div>
+                                <div class="flex flex-col relative z-10">
+                                    <span class="text-[11px] font-black text-brand-dark uppercase tracking-widest">{{ child.vars.label }}</span>
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                        {% if child.vars.label == 'CASH' %} Pay securely upon delivery {% else %} Encrypted electronic payment {% endif %}
+                                    </span>
+                                </div>
+                                <div class="absolute inset-0 border-2 border-transparent peer-checked:border-brand rounded-sm transition-all pointer-events-none"></div>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Notes #}
+                <div class="reveal" style="transition-delay: 200ms;">
+                    <div class="flex items-center gap-4 mb-6">
+                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Special Instructions (Optional)</h3>
+                    </div>
+                    {{ form_widget(checkoutForm.orderNotes, { attr: { class: input_base, rows: 2, placeholder: 'Notes for delivery or gift messages...' } }) }}
                 </div>
             </div>
 
             {# RIGHT COLUMN: Order Summary #}
             <div class="lg:col-span-1">
-                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 sticky top-28">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 uppercase tracking-tighter">Order Summary</h2>
+                <div class="bg-app-bg p-10 rounded-sm border border-gray-100 sticky top-32 shadow-sm">
+                    <h2 class="text-2xl font-black text-brand-dark mb-8 uppercase tracking-tighter border-b border-gray-200 pb-6">Manifest Summary</h2>
 
-                    <div class="space-y-4 mb-6 max-h-[350px] overflow-y-auto pr-2">
+                    <div class="space-y-6 mb-10 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                         {% for item in cart.cartItems %}
-                            <div class="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
-                                <img src="{{ item.product.image ? asset('uploads/products/' ~ item.product.image) : asset('images/default-product.png') }}"
-                                     class="w-16 h-20 object-cover rounded-sm border border-gray-100" alt="{{ item.product.name }}">
-                                <div class="flex-1">
-                                    <h3 class="text-xs font-bold text-gray-800 line-clamp-2">{{ item.product.name }}</h3>
-                                    <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-medium">Qty: {{ item.quantity }}</p>
-                                    <p class="text-sm font-bold text-brand mt-1">PHP {{ item.subtotal|number_format(2) }}</p>
+                            <div class="flex items-center gap-4 group">
+                                <div class="w-12 h-16 bg-white flex-shrink-0 overflow-hidden rounded-sm border border-gray-100">
+                                    <img src="{{ item.product.image ? asset('uploads/products/' ~ item.product.image) : asset('images/default-product.png') }}"
+                                         class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" alt="{{ item.product.name }}">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-[10px] font-black text-brand-dark uppercase truncate leading-tight">{{ item.product.name }}</h3>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Qty: {{ item.quantity }}</span>
+                                        <span class="text-[10px] font-black text-brand">₱{{ item.subtotal|number_format(2) }}</span>
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
 
-                    <div class="space-y-4 text-sm text-gray-600 mb-6 border-b border-t border-gray-100 py-6">
+                    <div class="space-y-5 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-8 border-b border-gray-200 pb-8">
                         <div class="flex justify-between items-center">
                             <span>Subtotal</span>
-                            <span class="font-bold text-gray-800">PHP {{ cart.totalPrice|number_format(2) }}</span>
+                            <span class="text-brand-dark font-black">₱{{ cart.totalPrice|number_format(2) }}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span>Shipping</span>
-                            <span class="font-bold text-green-600 uppercase tracking-wider text-xs bg-green-50 px-2 py-1 rounded-sm">Free</span>
+                            <span>Carbon Neutral Shipping</span>
+                            <span class="text-green-600 font-black">Free</span>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-end mb-8">
-                        <span class="text-sm font-bold text-gray-800 uppercase tracking-widest">Total</span>
-                        <span class="text-2xl font-bold text-brand">PHP {{ cart.totalPrice|number_format(2) }}</span>
+                    <div class="flex justify-between items-end mb-10">
+                        <span class="text-xs font-black text-brand-dark uppercase tracking-[0.2em]">Total</span>
+                        <div class="text-right">
+                            <span class="text-3xl font-black text-brand block tracking-tighter leading-none">₱{{ cart.totalPrice|number_format(2) }}</span>
+                            {% if cart.estimatedPoints > 0 %}
+                                <span class="inline-flex items-center gap-1.5 text-[9px] font-black text-terracotta uppercase tracking-[0.2em] mt-2 bg-terracotta/5 px-2 py-1 rounded-sm border border-terracotta/10">
+                                    {{ ux_icon('lucide:sparkles', {class: 'w-3 h-3'}) }}
+                                    +{{ cart.estimatedPoints }} Points
+                                </span>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-brand text-white py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-brand-dark transition-all shadow-md hover:shadow-lg cursor-pointer">
-                        Place Order
+                    <button type="submit"
+                            onclick="this.classList.add('opacity-80', 'pointer-events-none'); this.querySelector('.btn-text').classList.add('invisible'); this.querySelector('.btn-spinner').classList.remove('hidden');"
+                            class="group relative flex items-center justify-center w-full bg-brand text-white py-5 rounded-sm font-black text-[10px] tracking-[0.3em] uppercase hover:bg-brand-dark transition-all shadow-xl active:scale-95 overflow-hidden cursor-pointer">
+                        <span class="btn-text relative z-10">Place Order</span>
+                        <svg class="btn-spinner hidden absolute w-5 h-5 animate-spin text-white z-20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <div class="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
                     </button>
 
-                    <div class="flex items-center justify-center gap-2 text-[10px] text-gray-400 mt-4 uppercase tracking-widest font-bold">
-                         {{ ux_icon('lucide:shield-check', { class: 'h-4 w-4' }) }}
-                         Secure Checkout
+                    <div class="flex flex-col items-center gap-4 mt-8 pt-8 border-t border-gray-200">
+                         <div class="flex items-center gap-3">
+                             {{ ux_icon('lucide:lock', { class: 'h-3.5 w-3.5 text-brand' }) }}
+                             <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Authenticated Secure Session</span>
+                         </div>
+                         <div class="flex gap-4 opacity-30 grayscale contrast-125 scale-75">
+                             {{ ux_icon('logos:visa', { class: 'h-4 w-auto' }) }}
+                             {{ ux_icon('logos:mastercard', { class: 'h-4 w-auto' }) }}
+                             {{ ux_icon('logos:paypal', { class: 'h-4 w-auto' }) }}
+                         </div>
                     </div>
                 </div>
             </div>

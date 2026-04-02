@@ -1,53 +1,41 @@
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}System Activity Logs{% endblock %}
+{% block title %}System Activity Logs | Mifania{% endblock %}
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
         title: 'Activity Logs',
-        headers: ['User / Actor', 'Privilege Role', 'Action Taken', 'Target Data', 'Timestamp', 'Actions'],
-        id: 'dashboard-table'
+        icon: 'tabler:logs',
+        headers: ['User / Actor', 'Action Taken', 'Target Data', 'Date' ,'Actions'],
     } %}
         {% block rows %}
             {% for log in logs %}
                 <tr class="hover:bg-row-hover transition-colors group">
 
                     {# User Column #}
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
+                    <td class="border-y border-border-color px-3 py-4 text-sm font-bold text-brand-dark tracking-tight">
                         {% if log.user %}
                             {{ log.user.userIdentifier }}
                         {% else %}
-                            <span class="text-gray italic font-medium">System / Anonymous</span>
+                            <span class="text-gray italic font-medium text-xs">System / Anonymous</span>
                         {% endif %}
                     </td>
 
-                    {# Role Column #}
-                    <td class="border-y border-border-color px-4 py-3">
-                        <span class="inline-flex px-2.5 py-1 bg-app-bg text-gray rounded-md text-[9px] font-black uppercase tracking-widest border border-border-color">
-                            {{ log.role|default('N/A')|replace({'ROLE_': ''}) }}
-                        </span>
-                    </td>
-
-                    {# Action Column #}
-                    <td class="border-y border-border-color px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand">
+                    <td class="border-y border-border-color px-3 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-brand">
                         {{ log.action }}
                     </td>
-
-                    {# Target Data / Description Column #}
-                    <td class="border-y border-border-color px-4 py-3 text-sm text-dark-gray truncate max-w-[250px]">
-                        {{ log.targetData|default('—') }}
+                    <td class="border-y border-border-color px-3 py-4">
+                        <span class="block text-xs text-brand-dark/70 font-medium truncate max-w-[250px] xl:max-w-[400px]">
+                            {{ log.targetData|default('—') }}
+                        </span>
                     </td>
-
-                    {# Timestamp Column #}
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-gray">
-                        {{ log.createdAt|date('M d, Y / H:i') }}
+                    <td class="border-y border-border-color px-3 py-4">
+                        <span class="block text-xs text-brand-dark/70 font-medium">{{ log.createdAt|date('M d, Y') }}</span>
                     </td>
-
-                    {# Actions Column #}
-                    <td class="border-y border-border-color py-3 px-4 text-center">
+                    <td class="border-y border-border-color px-3 py-4">
                         <div class="flex justify-center items-center gap-2">
                             <a href="{{ path('app_activity_log_show', {'id': log.id}) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all" title="View Audit Details">
+                               class="p-2.5 text-gray hover:text-brand bg-white border border-border-color rounded-xl hover:bg-brand/5 hover:border-brand/20 transition-all shadow-sm" title="View Audit Details">
                                 {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                             </a>
                         </div>
@@ -55,8 +43,17 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="6" class="py-10 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray">
-                        No activity logs found.
+                    <td colspan="6" class="px-6 py-16 text-center border-y border-border-color bg-app-bg/50">
+                        <div class="p-4 bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm border border-border-color">
+                            {{ ux_icon('lucide:search-x', {class: 'w-6 h-6 text-gray/40'}) }}
+                        </div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray">
+                            {% if searchQuery %}
+                                No logs match your search criteria.
+                            {% else %}
+                                No activity logs found.
+                            {% endif %}
+                        </p>
                     </td>
                 </tr>
             {% endfor %}

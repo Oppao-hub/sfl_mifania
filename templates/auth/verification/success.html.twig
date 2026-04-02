@@ -1,0 +1,31 @@
+{% extends 'auth.html.twig' %}
+
+{% block title %}Email Sent | Mifania{% endblock %}
+
+{% block main_content %}
+    <div class="mt-10 mb-8 flex justify-center">
+        <div class="h-20 w-20 rounded-full bg-green-50 flex items-center justify-center text-green-600 shadow-inner">
+            {{ ux_icon('lucide:mail-check', { class: 'h-10 w-10' }) }}
+        </div>
+    </div>
+
+    <div class="text-left mb-10">
+        <h1 class="text-2xl font-bold text-brand-dark tracking-tight mb-2 uppercase">Verification Sent!</h1>
+        <p class="text-sm text-gray-500 font-medium tracking-widest leading-relaxed">
+            If an account is associated with your email, you will receive a new verification link shortly.
+            <br><br>
+            Please check your <strong>inbox and spam folder</strong>.
+        </p>
+    </div>
+
+    <div class="space-y-4 text-center">
+        <a href="{{ path('app_login') }}"
+            class="w-full inline-flex items-center justify-center bg-brand text-white h-14 rounded-sm text-sm font-bold tracking-[0.2em] hover:bg-brand-dark transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+            Back to Sign In
+        </a>
+
+        <div class="mt-4">
+                <a href="{{ path('app_shop') }}" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-brand transition-colors">Back to Store</a>
+        </div>
+    </div>
+{% endblock %}

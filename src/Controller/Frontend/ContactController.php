@@ -2,6 +2,7 @@
 
 namespace App\Controller\Frontend;
 
+use App\Form\ContactType;
 use App\Service\ContactMailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,25 +14,31 @@ class ContactController extends AbstractController
     #[Route('/contact', name: 'app_contact')]
     public function index(Request $request, ContactMailerService $contactMailer): Response
     {
-        // Check if the user just submitted the form
-        if ($request->isMethod('POST')) {
-            // Grab the data from the HTML form fields
-            $name = $request->request->get('name');
-            $email = $request->request->get('email');
-            $subject = $request->request->get('subject');
-            $message = $request->request->get('message');
+        $form = $this->createForm(ContactType::class);
+        $form->handleRequest($request);
 
-            // Fire off the email using your new service!
-            $contactMailer->sendContactMessage($name, $email, $subject, $message);
+        if($form->isSubmitted() && $form->isValid()){
+            $data = $form->getData();
 
-            // Add a success banner to show the user
+            $contactMailer->sendContactMessage(
+                $data['name'],
+                $data['email'],
+                $data['subject'],
+                $data['message'],
+            );
+
             $this->addFlash('success', 'Thank you! Your message has been sent. We will get back to you shortly.');
-
-            // Refresh the page so they don't accidentally submit the form twice
-            return $this->redirectToRoute('app_contact');
+            return $this->redirectToRoute('app_contact_success');
         }
 
-        // If they just landed on the page normally, show the form
-        return $this->render('frontend/contact/index.html.twig');
+        return $this->render('frontend/contact/index.html.twig',[
+            'form' => $form->createView(),
+        ])->setStatusCode($form->isSubmitted() && !$form->isValid() ? 422 : 200);
+    }
+
+    #[Route('/contact/success', name: 'app_contact_success')]
+    public function success(): Response
+    {
+        return $this->render('frontend/contact/success.html.twig');
     }
 }

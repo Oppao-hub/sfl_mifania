@@ -2,10 +2,8 @@
 
 namespace App\Security;
 
-use App\Entity\Cart;
 use App\Entity\User;
-use App\Entity\Customer;
-use App\Entity\Wallet;
+use App\Entity\Staff;
 use App\Service\RegisterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
@@ -15,6 +13,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
@@ -26,18 +28,20 @@ class GoogleAuthenticator extends OAuth2Authenticator
     private $router;
     private $entityManager;
     private $registerNotifier;
-
     private $urlGenerator;
+    private $passwordHasher;
+
 
     use TargetPathTrait;
 
-    public function __construct(ClientRegistry $clientRegistry, RouterInterface $router, EntityManagerInterface $entityManager, RegisterNotifier $registerNotifier, UrlGeneratorInterface $urlGenerator)
+    public function __construct(ClientRegistry $clientRegistry, RouterInterface $router, EntityManagerInterface $entityManager, RegisterNotifier $registerNotifier, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher)
     {
         $this->clientRegistry = $clientRegistry;
         $this->router = $router;
         $this->entityManager = $entityManager;
         $this->registerNotifier = $registerNotifier;
         $this->urlGenerator = $urlGenerator;
+        $this->passwordHasher = $passwordHasher;
     }
 
     public function supports(Request $request): bool
@@ -50,73 +54,88 @@ class GoogleAuthenticator extends OAuth2Authenticator
         $client = $this->clientRegistry->getClient('google');
         $accessToken = $this->fetchAccessToken($client);
 
-        /** @var GoogleUser $googleUser */
-        $googleUser = $client->fetchUserFromToken($accessToken);
-        $email = $googleUser->getEmail();
-        $firstName = $googleUser->getFirstName();
-        $lastName = $googleUser->getLastName();
-
-        // Check if user exists **before** creating the Passport
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-
-        if (!$user) {
-            $user = new User();
-            $user->setEmail($email);
-            $user->setRoles(['ROLE_CUSTOMER']);
-
-            $randomPassword = bin2hex(random_bytes(10));
-            $user->setPassword($randomPassword);
-            $user->setIsVerified(true);
-
-            $customer = new Customer();
-            $customer->setUser($user);
-            $customer->setFirstName($firstName);
-            $customer->setLastName($lastName);
-
-            $wallet = new Wallet();
-            $wallet->setCustomer($customer);
-            $wallet->setBalance(0.0);
-            $wallet->setRewardPoints(0);
-
-            $cart = new Cart();
-            $cart->setCustomer($customer);
-
-            $this->entityManager->persist($user);
-            $this->entityManager->persist($customer);
-            $this->entityManager->persist($wallet);
-            $this->entityManager->persist($cart);
-            $this->entityManager->flush();
-
-            $this->registerNotifier->sendNewUserNotification($user);
-            $this->registerNotifier->sendUserWelcomeEmail($user);
-
-        }
-
-        // Now create the Passport
         return new SelfValidatingPassport(
-            new UserBadge($email, function () use ($user) {
+            new UserBadge($accessToken->getToken(), function () use ($accessToken, $client) {
+                /** @var GoogleUser $googleUser */
+                $googleUser = $client->fetchUserFromToken($accessToken);
+                $email = $googleUser->getEmail();
+
+                // 1. Check if user already exists
+                $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+                if ($existingUser) {
+                    return $existingUser;
+                }
+
+                // 2. Create user and automatically verify them
+                $user = new User();
+                $user->setEmail($email);
+                $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));
+                $user->setRoles(['ROLE_STAFF']);
+                $user->setIsVerified(true);
+
+                $staff = new Staff();
+                $staff->setFirstName($googleUser->getFirstName());
+                $staff->setLastName($googleUser->getLastName());
+
+                // Grab Google Profile Picture URL
+                // if ($googleUser->getAvatar()) {
+                //     $staff->setAvatar($googleUser->getAvatar());
+                // } else {
+                //     $staff->setAvatar('default-avatar.jpg');
+                // }
+
+                $user->setStaff($staff);
+                $staff->setUser($user);
+
+                $this->entityManager->persist($user);
+                $this->entityManager->persist($staff);
+                $this->entityManager->flush();
+
+                // 3. Trigger Notifications for the new user
+                try {
+                    $this->registerNotifier->sendNewUserNotification($user);
+                    $this->registerNotifier->sendUserWelcomeEmail($user);
+                } catch (\Exception $e) {
+                    // Silently fail if mailer is not configured to avoid blocking login
+                }
+
                 return $user;
-            })
+            }),
+            [
+                new RememberMeBadge(),
+            ]
         );
     }
 
 
     public function onAuthenticationSuccess(Request $request, $token, string $firewallName): ?RedirectResponse
     {
+        if ($request->hasSession()) {
+            $request->getSession()->getFlashBag()->add('success', 'Successfully logged in with Google!');
+        }
+
+        // Get the authenticated user from the token
+        /** @var User $user */
+        $user = $token->getUser();
+        $roles = $user->getRoles();
+
+        if (\in_array('ROLE_SUPER_ADMIN', $roles, true) || \in_array('ROLE_ADMIN', $roles, true) || \in_array('ROLE_STAFF', $roles, true)) {
+            return new RedirectResponse($this->router->generate('app_dashboard'));
+        }
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
+        }else {
+            return new RedirectResponse($this->router->generate('app_shop'));
         }
-
-        $user = $token->getUser();
-        if (\in_array('ROLE_SUPER_ADMIN', $user->getRoles()) ||\in_array('ROLE_ADMIN', $user->getRoles()) || \in_array('ROLE_STAFF', $user->getRoles())) {
-            return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
-        }
-
-        return new RedirectResponse($this->router->generate('app_shop'));
     }
 
-    public function onAuthenticationFailure(Request $request, \Symfony\Component\Security\Core\Exception\AuthenticationException $exception): ?RedirectResponse
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
+        $message = strtr($exception->getMessageKey(), $exception->getMessageData());
+
+        // Pass the error back to your custom login template
+        $request->getSession()->getFlashBag()->add('error', $message);
         return new RedirectResponse($this->router->generate('app_login'));
     }
 }

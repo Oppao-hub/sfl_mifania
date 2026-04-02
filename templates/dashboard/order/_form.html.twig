@@ -1,7 +1,7 @@
 {% form_theme form 'form/error_theme.html.twig' %}
 
 {% set label_style = 'text-[10px] uppercase font-black tracking-[0.2em] text-gray ml-1 block mb-2' %}
-{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all' %}
+{% set input_base = 'w-full px-4 py-3.5 bg-app-bg border border-border-color rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none text-sm font-bold text-brand-dark transition-all shadow-inner' %}
 {% set readonly_base = 'w-full px-4 py-3.5 bg-gray/5 border border-border-color rounded-xl text-sm font-black text-gray/60 cursor-not-allowed' %}
 {% set select_style = 'boutique-select ' ~ input_base %}
 
@@ -12,26 +12,32 @@
         <div class="flex-grow w-full">
             <label class="{{ label_style }}">Piece Selection</label>
             {{ form_widget(itemForm.product, {'attr': {'class': select_style ~ ' item-product-select'}}) }}
-            {{ form_errors(itemForm.product) }}
+            <div class="mt-2">{{ form_errors(itemForm.product) }}</div>
         </div>
 
         <div class="w-full lg:w-24">
             <label class="{{ label_style }} text-center lg:ml-0">Qty</label>
             {{ form_widget(itemForm.quantity, {'attr': {'class': input_base ~ ' text-center item-quantity'}}) }}
-            {{ form_errors(itemForm.quantity) }}
+            <div class="mt-2">{{ form_errors(itemForm.quantity) }}</div>
         </div>
 
-        <div class="w-full lg:w-32">
+        <div class="w-full lg:w-36">
             <label class="{{ label_style }}">Unit Value</label>
-            {{ form_widget(itemForm.price, {'attr': {'class': readonly_base ~ ' item-price', 'readonly': true}}) }}
+            <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray font-black">₱</span>
+                {{ form_widget(itemForm.price, {'attr': {'class': readonly_base ~ ' item-price pl-8', 'readonly': true}}) }}
+            </div>
         </div>
 
         <div class="w-full lg:w-40">
             <label class="{{ label_style }}">Line Total</label>
-            {{ form_widget(itemForm.subtotal, {'attr': {'class': readonly_base ~ ' item-subtotal text-right font-mono', 'readonly': true}}) }}
+            <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray font-black">₱</span>
+                {{ form_widget(itemForm.subtotal, {'attr': {'class': readonly_base ~ ' item-subtotal text-right font-mono pl-8', 'readonly': true}}) }}
+            </div>
         </div>
 
-        <button type="button" class="remove-item-btn p-3.5 bg-white border border-danger/20 text-danger rounded-xl hover:bg-danger/10 transition-all active:scale-95 cursor-pointer shadow-sm" aria-label="Remove item">
+        <button type="button" class="remove-item-btn p-3.5 bg-white border border-danger/20 text-danger rounded-xl hover:bg-danger/10 transition-all active:scale-95 cursor-pointer shadow-sm lg:mb-[2px]" aria-label="Remove item">
             {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
         </button>
     </div>
@@ -69,18 +75,11 @@
         {# SECTION 1: Credentials #}
         <div class="p-8 md:p-10 border-b border-border-color bg-app-bg">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-2">
+                <div>
                     {{ form_label(form.customer, null, { label_attr: {'class': label_style} })}}
                     {{ form_widget(form.customer, {'attr': {'class': select_style}}) }}
-                    {{ form_errors(form.customer) }}
+                    <div class="mt-2">{{ form_errors(form.customer) }}</div>
                 </div>
-                {% if form.orderDate is defined %}
-                    <div class="space-y-2">
-                        {{ form_label(form.orderDate, null, { label_attr: {'class': label_style} }) }}
-                        {{ form_widget(form.orderDate, {'attr': {'class': input_base}}) }}
-                        {{ form_errors(form.orderDate) }}
-                    </div>
-                {% endif %}
             </div>
         </div>
 
@@ -105,13 +104,13 @@
             </div>
 
             <div id="order-items-fields"
-                data-prototype="{{ _self.print_order_item_row(form.orderItems.vars.prototype, label_style, input_base, readonly_base)|e('html_attr') }}"
+                data-prototype="{{ _self.print_order_item_row(form.orderItems.vars.prototype, label_style, input_base, readonly_base, select_style)|e('html_attr') }}"
                 data-widget-counter="{{ form.orderItems|length }}"
                 class="space-y-6">
 
                 {% if form.orderItems|length > 0 %}
                     {% for item in form.orderItems %}
-                        {{ _self.print_order_item_row(item, label_style, input_base, readonly_base) }}
+                        {{ _self.print_order_item_row(item, label_style, input_base, readonly_base, select_style) }}
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-16 border-2 border-dashed border-border-color rounded-2xl bg-app-bg">
@@ -122,6 +121,7 @@
                     </div>
                 {% endif %}
             </div>
+            <div class="mt-2">{{ form_errors(form.orderItems) }}</div>
         </div>
 
         {# SECTION 3: Financial Settlement #}
@@ -132,22 +132,26 @@
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray font-black group-focus-within:text-brand transition-colors">₱</span>
                     {{ form_widget(form.totalAmount, {'attr': {'class': readonly_base ~ ' pl-10 text-lg font-black text-brand-dark bg-white shadow-sm', 'readonly': true}}) }}
                 </div>
+                <div class="mt-2">{{ form_errors(form.totalAmount) }}</div>
             </div>
-            <div class="space-y-2">
+            <div>
                 {{ form_label(form.paymentMethod, null, { label_attr: {'class': label_style} }) }}
                 {{ form_widget(form.paymentMethod, {'attr': {'class': select_style ~ ' bg-white shadow-sm'}}) }}
+                <div class="mt-2">{{ form_errors(form.paymentMethod) }}</div>
             </div>
-            <div class="space-y-2">
+            <div>
                 {{ form_label(form.paymentStatus, null, { label_attr: {'class': label_style} }) }}
                 {{ form_widget(form.paymentStatus, {'attr': {'class': select_style ~ ' bg-white shadow-sm'}}) }}
+                <div class="mt-2">{{ form_errors(form.paymentStatus) }}</div>
             </div>
         </div>
 
         {# SECTION 4: Processing Status & Loyalty #}
         <div class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="space-y-2">
+            <div>
                 {{ form_label(form.orderStatus, null, { label_attr: {'class': label_style} }) }}
                 {{ form_widget(form.orderStatus, {'attr': {'class': select_style}}) }}
+                <div class="mt-2">{{ form_errors(form.orderStatus) }}</div>
             </div>
             <div>
                 {{ form_label(form.rewardPoints, 'Loyalty Points Earned', { label_attr: {'class': label_style} }) }}
@@ -156,6 +160,7 @@
                     {{ form_widget(form.rewardPoints, {'attr': {'class': readonly_base ~ ' pl-12 text-terracotta', 'readonly': true}}) }}
                 </div>
                 <p class="text-[9px] uppercase font-bold text-gray tracking-widest mt-2 ml-1 italic leading-none">Credited upon manifest completion</p>
+                <div class="mt-2">{{ form_errors(form.rewardPoints) }}</div>
             </div>
         </div>
     </div>

@@ -1,0 +1,62 @@
+{% set slide_interval = interval|default(4500) %}
+{% set slide_images = images|default([
+    asset('uploads/auth/carousel/img1.jpeg'),
+    asset('uploads/auth/carousel/img2.jpeg'),
+    asset('uploads/auth/carousel/img3.jpeg'),
+]) %}
+
+{# 2. The Component Layout #}
+<div class="hidden lg:block w-1/2 relative bg-gray-900 overflow-hidden"
+     x-data="{
+        activeSlide: 0,
+        totalSlides: {{ slide_images|length }},
+        timer: null,
+
+        init() {
+            this.startTimer();
+        },
+        startTimer() {
+            this.timer = setInterval(() => {
+                this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
+            }, {{ slide_interval }});
+
+        },
+        goToSlide(index) {
+            this.activeSlide = index;
+            clearInterval(this.timer);
+            this.startTimer();
+        }
+     }">
+
+    {# Slide Images #}
+    {% for slide in slide_images %}
+        <img src="{{ slide }}"
+             class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
+             :class="activeSlide === {{ loop.index0 }} ? 'opacity-100 z-10' : 'opacity-0 z-0'"
+             alt="Mifania Campaign - Slide {{ loop.index }}">
+    {% endfor %}
+
+    {# Dark Gradient Overlay #}
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20"></div>
+
+    {# Dynamic Text #}
+    <div class="absolute bottom-0 left-0 p-16 text-white w-full z-30">
+        <span class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 block text-white/70">
+            {{ subtitle|default('Mifania Collective') }}
+        </span>
+        <h2 class="text-4xl xl:text-5xl font-black uppercase tracking-tight mb-4 leading-none">
+            {{ title|default('Fashion That<br>Respects The Earth')|raw }}
+        </h2>
+
+        {# Indicators #}
+        <div class="flex gap-3 mt-8">
+            {% for slide in slide_images %}
+                <button @click="goToSlide({{ loop.index0 }})"
+                        aria-label="Go to slide {{ loop.index }}"
+                        class="h-1 rounded-full transition-all duration-1000 ease-in cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                        :class="activeSlide === {{ loop.index0 }} ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'">
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>

@@ -1,17 +1,45 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ currentCategory|default('Shop') }} | Mifania{% endblock %}
+{% block title %}
+    {% if currentCategory != 'All' %}
+        {{ currentCategory|replace({'-': ' '})|title }} | Mifania
+    {% else %}
+        Shop | Mifania
+    {% endif %}
+{% endblock %}
 
 {% block main_content %}
 <div class="text-gray-800 bg-white min-h-screen">
     {# Page Header #}
-    <section class="py-16 bg-light-gray text-center border-b border-gray-200">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand">{{ currentCategory|default('Shop') }}</h1>
-        {% include 'components/frontend/breadcrumbs.html.twig' with {
-            items: [
-                { name: 'Home', url: path('app_home') },
+    <section class="pt-10 pb-6 bg-light-gray text-center border-b border-gray-200 reveal">
+        <h1 class="text-2xl md:text-4xl font-black tracking-tighter text-brand uppercase">
+            {% if currentCategory != 'All' %}
+                {{ currentCategory|replace({'-': ' '})|title }}
+            {% else %}
+                Shop
+            {% endif %}
+        </h1>
+
+        {# --- DYNAMIC BREADCRUMBS LOGIC --- #}
+        {% set breadcrumb_items = [
+            { name: 'Home', url: path('app_home') }
+        ] %}
+
+        {% if currentCategory != 'All' %}
+            {# If they are in a category, make 'Shop' clickable and add the current category #}
+            {% set breadcrumb_items = breadcrumb_items|merge([
+                { name: 'Shop', url: path('app_shop') },
+                { name: currentCategory|replace({'-': ' '})|title }
+            ]) %}
+        {% else %}
+            {# If they are just on the main shop page, 'Shop' is the final unclickable text #}
+            {% set breadcrumb_items = breadcrumb_items|merge([
                 { name: 'Shop' }
-            ]
+            ]) %}
+        {% endif %}
+
+        {% include 'components/frontend/breadcrumbs.html.twig' with {
+            items: breadcrumb_items
         } %}
     </section>
 
@@ -28,15 +56,26 @@
                     method="get"
                     class="pr-0 lg:pr-8 space-y-10 sticky top-24"
                 >
-                    {# Keep the search term hidden so it doesn't get lost when price/color is changed #}
+                    {# --- CRITICAL FIX: PRESERVE URL PARAMETERS --- #}
+                    {# Keep the search term, department, and category hidden so they don't get lost! #}
                     <input type="hidden" name="q" value="{{ searchTerm }}">
+                    {% if app.request.query.get('department') %}
+                        <input type="hidden" name="department" value="{{ app.request.query.get('department') }}">
+                    {% endif %}
+                    {% if app.request.query.get('category') %}
+                        <input type="hidden" name="category" value="{{ app.request.query.get('category') }}">
+                    {% endif %}
 
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-lg font-bold text-brand uppercase tracking-tighter">Filters</h3>
 
                         {# Show 'Clear All' if any filter is active #}
                         {% if searchTerm or selectedColors|length > 0 or currentMaxPrice < 5000 %}
-                            <a href="{{ path('app_shop') }}"
+                            {# When clearing, we must pass the current department/category so they stay on the page! #}
+                            <a href="{{ path('app_shop', {
+                                department: app.request.query.get('department'),
+                                category: app.request.query.get('category')
+                            }) }}"
                                class="text-[10px] uppercase tracking-widest text-red-500 hover:text-red-700 underline font-bold transition-colors">
                                 Clear All
                             </a>
@@ -130,12 +169,9 @@
                                 </form>
                             </div>
 
-                            {# The Reusable Product Card #}
                             {% include 'components/frontend/product_card.html.twig' with {
-                                'image': (product.image is not empty and product.image != 'default.png')
-                                    ? asset('uploads/products/' ~ product.image)
-                                    : 'https://placehold.co/400x500?text=No+Image',
-                                'category': product.subCategory ? product.subCategory.name : product.gender.value,
+                                'image': product.image ? asset('uploads/products/' ~ product.image) : 'https://placehold.co/800x1000?text=' ~ product.name|url_encode,
+                                'category': product.subCategory ? product.subCategory.name : 'Uncategorized',
                                 'name': product.name,
                                 'price': product.price,
                                 'slug': product.slug
@@ -146,7 +182,10 @@
                         <div class="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-20 border border-dashed border-gray-200 rounded-sm bg-gray-50">
                             {{ ux_icon('lucide:package-open', { class: 'h-12 w-12 text-gray-300 mx-auto mb-4' }) }}
                             <p class="text-sm font-bold text-gray-500 uppercase tracking-widest">No products found matching your filters.</p>
-                            <a href="{{ path('app_shop') }}" class="text-brand text-xs font-bold underline mt-2 inline-block">Clear all filters</a>
+                            <a href="{{ path('app_shop', {
+                                department: app.request.query.get('department'),
+                                category: app.request.query.get('category')
+                            }) }}" class="text-brand text-xs font-bold underline mt-2 inline-block">Clear all filters</a>
                         </div>
                     {% endfor %}
                 </div>

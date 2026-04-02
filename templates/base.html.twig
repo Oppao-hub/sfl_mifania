@@ -9,249 +9,36 @@
     {{ encore_entry_script_tags('app') }}
 </head>
 
-<body class="text-gray-800 bg-white" x-data="{ mobileMenuOpen: false, searchOpen: false }" :class="mobileMenuOpen ? 'overflow-hidden' : ''">
+{# We keep your Alpine data for menus and search #}
+<body x-data="{ mobileMenuOpen: false, searchOpen: false }" :class="mobileMenuOpen ? 'overflow-hidden' : ''" class="bg-app-bg text-brand-dark antialiased flex flex-col min-h-screen animate-page-intro">
 
-    {# Desktop & Mobile Navigation Header #}
-    <nav class="flex items-center justify-between px-4 py-4 md:px-8 lg:px-12 bg-white sticky top-0 z-50 shadow-sm">
+    {# Define nav_links here so the Mobile Menu can still use them later! #}
+    {% set nav_links = [
+        { name: 'Shop', url: path('app_shop') },
+        { name: 'About Us', url: path('app_about') },
+        { name: 'Contact Us', url: path('app_contact') }
+    ] %}
 
-        {# Left: Logo #}
-        <div class="flex flex-shrink-0 items-center">
+    {# THIS SINGLE LINE LOADS THE ENTIRE HEADER & MOBILE MENU #}
+    {{ render(controller('App\\Controller\\Frontend\\NavbarController::renderNav')) }}
 
-            {% if is_granted('ROLE_CUSTOMER') %}
-                <a href="{{ path('app_shop') }}">
-                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 lg:h-12" />
-                </a>
-            {% else %}
-                <a href="{{ path('app_home') }}">
-                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 lg:h-12" />
-                </a>
-            {% endif %}
-
-        </div>
-
-        {# Center: Desktop Navigation Links (Hidden on Mobile) #}
-        <div class="hidden lg:flex items-center gap-8 text-sm font-semibold text-brand">
-            {% set nav_links = [
-                { name: 'Shop', url: path('app_shop') },
-                { name: 'Women', url: path('app_shop_collection', { 'collectionName': 'Women' }) },
-                { name: 'Men', url: path('app_shop_collection', { 'collectionName': 'Men' }) },
-                { name: 'Accessories', url: path('app_shop_collection', { 'collectionName': 'Accessories' }) },
-                { name: 'About Us', url: path('app_about') },
-                { name: 'Contact Us', url: path('app_contact') }
-            ] %}
-
-            {% for link in nav_links %}
-                <a href="{{ link.url }}" class="group relative inline-block py-1 hover:text-brand-dark transition-colors duration-300">
-                    {{ link.name }}
-                    <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand origin-bottom-right scale-x-0 transition-transform duration-300 ease-out group-hover:origin-bottom-left group-hover:scale-x-100"></span>
-                </a>
-            {% endfor %}
-        </div>
-
-        <div class="flex items-center gap-4 lg:gap-6 text-brand">
-           <button @click="searchOpen = !searchOpen" class="hidden sm:block hover:text-brand-dark transition-all duration-300 hover:scale-110 focus:outline-none cursor-pointer" title="Search">
-                {{ ux_icon('ic:round-search', { class: 'h-5 w-5' }) }}
-            </button>
-
-            <a href="{{ path('app_wishlist') }}" class="hover:text-brand-dark transition-all duration-300 hover:scale-110" title="Wishlist">
-                {{ ux_icon('mdi:favourite-border', { class: 'h-5 w-5 lg:h-5 lg:w-5' }) }}
-            </a>
-
-            <a href="{{ path('app_cart_show') }}" class="hover:text-brand-dark transition-all duration-300 hover:scale-110" title="Cart">
-                {{ ux_icon('lucide:shopping-cart', { class: 'h-5 w-5 lg:h-5 lg:w-5' }) }}
-            </a>
-
-            {# Desktop Auth (Hidden on Mobile) #}
-            <div class="hidden lg:flex items-center">
-                {% if app.user %}
-                    {# We add x-data here to control the dropdown state #}
-                    <div class="flex items-center gap-4 border-l border-gray-200 pl-4 ml-2 relative" x-data="{ userMenuOpen: false }">
-
-                        {# 1. The Toggle Button #}
-                        <button @click="userMenuOpen = !userMenuOpen"
-                                class="bg-light-gray text-brand-dark hover:bg-gray-100 flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 focus:outline-none cursor-pointer"
-                                title="My Account">
-                            {{ ux_icon('lucide:user-check', { class: 'h-4 w-4' }) }}
-                            <span class="text-xs font-bold">Hi, {{ app.user.customer.firstName|default('Paolo') }}</span>
-
-                            {# Animated Chevron Arrow #}
-                            <div :class="userMenuOpen ? 'rotate-180' : ''" class="transition-transform duration-200 ml-1 text-gray-400">
-                                {{ ux_icon('lucide:chevron-down', { class: 'h-3 w-3' }) }}
-                            </div>
-                        </button>
-
-                        {# 2. The Animated Dropdown Menu #}
-                        <div x-cloak x-show="userMenuOpen"
-                            @click.away="userMenuOpen = false"
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-150"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2"
-                            class="absolute right-0 top-full mt-3 w-56 bg-white rounded-sm shadow-lg border border-gray-100 py-2 z-50">
-
-                            {# Quick Links #}
-                            <a href="{{ path('app_account') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">
-                                {{ ux_icon('lucide:user', { class: 'h-4 w-4' }) }}
-                                My Profile
-                            </a>
-                            <a href="{{ path('app_account_orders') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">
-                                {{ ux_icon('lucide:shopping-bag', { class: 'h-4 w-4' }) }}
-                                My Orders
-                            </a>
-                            <a href="{{ path('app_wishlist') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">
-                                {{ ux_icon('lucide:heart', { class: 'h-4 w-4' }) }}
-                                Wishlist
-                            </a>
-
-                            <div class="border-t border-gray-100 my-1"></div>
-
-                            {# Logout uses the Global Confirm Modal! #}
-                            <button type="button"
-                                    @click="userMenuOpen = false; $dispatch('open-confirm', {
-                                        title: 'Sign Out?',
-                                        message: 'Are you sure you want to log out of your Mifania account?',
-                                        actionUrl: '{{ path('app_logout') }}',
-                                        confirmText: 'Log Out',
-                                        isDanger: false
-                                    })"
-                                    class="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer text-left">
-                                {{ ux_icon('lucide:log-out', { class: 'h-4 w-4' }) }}
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="pl-4 ml-2 border-l border-gray-200">
-                        <a href="{{ path('app_login') }}" class="bg-brand text-white hover:bg-brand-dark flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5" title="Login / Register">
-                            {{ ux_icon('lucide:user', { class: 'h-4 w-4' }) }}
-                            <span class="text-xs font-bold uppercase tracking-widest">Login</span>
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
-
-            {# Mobile Hamburger Button #}
-            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 text-brand hover:text-brand-dark transition-colors focus:outline-none">
-                {{ ux_icon('lucide:menu', { class: 'h-6 w-6' }) }}
-            </button>
-        </div>
-
-        <div x-cloak x-show="searchOpen"
-             @click.away="searchOpen = false"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-md z-40 px-6 py-6 flex justify-center">
-
-            <form action="{{ path('app_shop') }}" method="GET" class="w-full max-w-3xl relative flex items-center">
-                {{ ux_icon('ic:round-search', { class: 'absolute left-4 h-5 w-5 text-gray-400' }) }}
-                <input type="text" name="q" placeholder="Search for sustainable fashion..."
-                       class="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors text-sm"
-                       x-ref="searchInput"
-                       x-effect="if(searchOpen) $nextTick(() => $refs.searchInput.focus())">
-
-                <button type="button" @click="searchOpen = false" class="absolute right-4 text-gray-400 hover:text-brand transition-colors">
-                    {{ ux_icon('lucide:x', { class: 'h-5 w-5' }) }}
-                </button>
-            </form>
-        </div>
-    </nav>
-
-    {# Mobile Slide-out Drawer #}
-    <div x-cloak x-show="mobileMenuOpen" class="relative z-[100] lg:hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
-
-        {# Background backdrop #}
-        <div x-show="mobileMenuOpen"
-             x-transition:enter="ease-in-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in-out duration-300"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity"
-             @click="mobileMenuOpen = false"></div>
-
-        {# Drawer panel (Simplified to prevent invisible click-traps) #}
-        <div x-show="mobileMenuOpen"
-             x-transition:enter="transform transition ease-in-out duration-300"
-             x-transition:enter-start="translate-x-full"
-             x-transition:enter-end="translate-x-0"
-             x-transition:leave="transform transition ease-in-out duration-300"
-             x-transition:leave-start="translate-x-0"
-             x-transition:leave-end="translate-x-full"
-             class="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col">
-
-            {# Drawer Header #}
-            <div class="px-6 py-5 flex justify-between items-center border-b border-gray-100">
-                <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="h-8 w-auto" />
-                <button type="button" class="p-2 -mr-2 rounded-md text-gray-400 hover:text-brand transition-colors focus:outline-none" @click="mobileMenuOpen = false">
-                    <span class="sr-only">Close panel</span>
-                    {{ ux_icon('lucide:x', { class: 'h-6 w-6' }) }}
-                </button>
-            </div>
-
-            {# Drawer Content #}
-            <div class="flex-1 overflow-y-auto px-6 py-8 space-y-8">
-
-                {# Mobile Links #}
-                <div class="flex flex-col space-y-6 text-lg font-medium text-gray-900">
-                    {% for link in nav_links %}
-                        <a href="{{ link.url }}" class="hover:text-brand transition-colors">{{ link.name }}</a>
-                    {% endfor %}
-                    <a href="#" class="hover:text-brand transition-colors">Contact Us</a>
-                </div>
-
-                {# Mobile Auth #}
-                <div class="pt-8 border-t border-gray-100">
-                    {% if app.user %}
-                        <div class="flex flex-col space-y-6">
-                            <a href="{{ path('app_account') }}" class="flex items-center gap-3 text-brand">
-                                {{ ux_icon('lucide:user-check', { class: 'h-5 w-5' }) }}
-                                <span class="font-bold">My Account</span>
-                            </a>
-                            <a href="{{ path('app_logout') }}" class="flex items-center gap-3 text-red-600">
-                                {{ ux_icon('lucide:log-out', { class: 'h-5 w-5' }) }}
-                                <span class="font-bold">Logout</span>
-                            </a>
-                        </div>
-                    {% else %}
-                        <a href="{{ path('app_login') }}" class="flex justify-center w-full bg-brand text-white px-4 py-3.5 rounded-lg font-bold uppercase tracking-widest hover:bg-brand-dark transition-colors shadow-sm">
-                            Login / Register
-                        </a>
-                    {% endif %}
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <main class="min-h-[70vh] flex flex-col">
-
-        {# 1. Render whatever page the user is currently on #}
-        <div class="flex-grow">
+    {# MAIN CONTENT #}
+    <main class="min-h-[70vh] flex flex-col text-left flex-grow">
+        <div class="flex-grow animation-fadeIn">
             {% block main_content %}{% endblock %}
         </div>
-
-        {# 2. If it is NOT the Homepage, automatically show the benefits above the footer #}
         {% if app.request.attributes.get('_route') != 'app_home' %}
-            {% include 'components/frontend/benefits.html.twig' %}
+            {% include 'components/frontend/benefits.html.twig' ignore missing %}
         {% endif %}
-
     </main>
 
-    {# Footer (Responsive Adjustments) #}
-    <footer class="bg-light-gray px-6 md:px-12 pb-12 pt-16 mt-auto">
+    {# YOUR EXISTING FOOTER #}
+    <footer class="bg-light-gray px-6 md:px-12 pb-12 pt-16 mt-auto text-left">
          <div class="max-w-[1440px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 text-sm border-t border-gray-300 pt-16">
-
             <div class="lg:col-span-1">
                 <div class="flex items-center gap-2 mb-6">
                     <a href="{{ path('app_home') }}" class="flex items-center gap-2">
-                        <img src="{{ asset('uploads/logo/symbol.svg') }}" alt="Mifania Logo" class="w-8 h-8">
+                        <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:10">
                         <span class="text-xl font-bold tracking-tight text-brand uppercase">MIFANIA</span>
                     </a>
                 </div>
@@ -259,13 +46,13 @@
                     MIFANIA Sustainable Fashion Line. Fashion that respects the Earth isn't a trend; it's our future. We create timeless pieces using 100% organic materials and ethical labor practices.
                 </p>
                 <div class="flex gap-4">
-                    <a href="https://www.facebook.com/profile.php?id=61586255665900" target="_blank" class="w-8 h-8 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors">
+                    <a href="https://www.facebook.com/profile.php?id=61586255665900" target="_blank" class="w-9 h-9 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark hover:-translate-y-1 shadow-sm transition-all duration-300">
                         {{ ux_icon('lucide:facebook', { class: 'h-4 w-4 text-white' }) }}
                     </a>
-                    <a href="#" class="w-8 h-8 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors">
+                    <a href="#" class="w-9 h-9 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark hover:-translate-y-1 shadow-sm transition-all duration-300">
                         {{ ux_icon('lucide:instagram', { class: 'h-4 w-4 text-white' }) }}
                     </a>
-                    <a href="https://www.tiktok.com/@mifania.sfl" target="_blank" class="w-8 h-8 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors">
+                    <a href="https://www.tiktok.com/@mifania.sfl" target="_blank" class="w-9 h-9 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark hover:-translate-y-1 shadow-sm transition-all duration-300">
                         {{ ux_icon('ic:baseline-tiktok', { class: 'h-4 w-4 text-white' }) }}
                     </a>
                 </div>
@@ -274,27 +61,35 @@
             <div>
                 <h4 class="font-bold text-brand mb-6 uppercase tracking-wider text-xs">Company</h4>
                 <ul class="text-gray-500 space-y-4 text-xs">
-                    <li><a href="#story" class="hover:text-brand transition-colors">Our Story</a></li>
-                    <li><a href="#" class="hover:text-brand transition-colors">Blog</a></li>
-                    <li><a href="{{ path('app_contact') }}" class="hover:text-brand transition-colors">Contact Us</a></li>
+                    <li><a href="{{ path('app_about') }}#story" class="hover:text-brand hover:translate-x-1 inline-block transition-transform duration-300">About Us</a></li>
+                    <li><a href="{{ path('app_contact') }}#contact" class="hover:text-brand hover:translate-x-1 inline-block transition-transform duration-300">Contact Us</a></li>
                 </ul>
             </div>
 
             <div>
                 <h4 class="font-bold text-brand mb-6 uppercase tracking-wider text-xs">Customer Service</h4>
                 <ul class="text-gray-500 space-y-4 text-xs">
-                    <li><a href="{{ path('app_account') }}" class="hover:text-brand transition-colors">My Account</a></li>
-                    <li><a href="{{ path('app_account_orders') }}" class="hover:text-brand transition-colors">Track Your Order</a></li>
-                    <li><a href="{{ path('app_home') }}#faq" class="hover:text-brand transition-colors">FAQ</a></li>
+                    <li><a href="{{ path('app_account') }}" class="hover:text-brand hover:translate-x-1 inline-block transition-transform duration-300">My Account</a></li>
+                    <li><a href="{{ path('app_account_orders') }}" class="hover:text-brand hover:translate-x-1 inline-block transition-transform duration-300">Track Your Order</a></li>
+                    <li><a href="{{ path('app_home') }}#faq" class="hover:text-brand hover:translate-x-1 inline-block transition-transform duration-300">FAQ</a></li>
                 </ul>
             </div>
 
             <div>
-                 <h4 class="font-bold text-brand mb-6 uppercase tracking-wider text-xs">Contact Info</h4>
-                 <ul class="text-gray-500 space-y-4 text-xs">
-                     <li class="flex items-start gap-2">{{ ux_icon('lucide:phone', { class: 'h-4 w-4 shrink-0 mt-0.5' }) }} +63 09234 2342</li>
-                     <li class="flex items-start gap-2">{{ ux_icon('lucide:mail', { class: 'h-4 w-4 shrink-0 mt-0.5' }) }} mifaniasfl@example.com</li>
-                     <li class="flex items-start gap-2">{{ ux_icon('lucide:map-pin', { class: 'h-4 w-4 shrink-0 mt-0.5' }) }} National Highway, Zamboanguita, Negros Oriental, Philippines</li>
+                 <h4 class="font-bold text-brand mb-6 uppercase tracking-widest text-xs">Contact Info</h4>
+                 <ul class="text-gray-500 space-y-4 text-xs font-medium">
+                     <li class="flex items-start gap-3 group">
+                         {{ ux_icon('lucide:phone', { class: 'h-4 w-4 shrink-0 text-brand mt-0.5 group-hover:scale-110 transition-transform' }) }}
+                         <span>+63 09234 2342</span>
+                     </li>
+                     <li class="flex items-start gap-3 group">
+                         {{ ux_icon('lucide:mail', { class: 'h-4 w-4 shrink-0 text-brand mt-0.5 group-hover:scale-110 transition-transform' }) }}
+                         <a href="mailto:mifaniasfl@example.com" class="hover:text-brand transition-colors">mifaniasfl@example.com</a>
+                     </li>
+                     <li class="flex items-start gap-3 group">
+                         {{ ux_icon('lucide:map-pin', { class: 'h-4 w-4 shrink-0 text-brand mt-0.5 group-hover:scale-110 transition-transform' }) }}
+                         <span>National Highway, Zamboanguita,<br>Negros Oriental, Philippines</span>
+                     </li>
                  </ul>
             </div>
         </div>
@@ -308,10 +103,33 @@
         </div>
     </footer>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Create the observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    // If the element is in the viewport...
+                    if (entry.isIntersecting) {
+                        // Add the 'active' class to trigger the CSS transition
+                        entry.target.classList.add('active');
+                        // Optional: Stop observing it so it doesn't fade out when scrolling up
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.15 // Triggers when 15% of the element is visible
+            });
+
+            // Find all elements with the 'reveal' class and observe them
+            const hiddenElements = document.querySelectorAll('.reveal');
+            hiddenElements.forEach((el) => observer.observe(el));
+        });
+    </script>
+
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    {% include "components/frontend/back_to_top.html.twig" ignore missing %}
-    {% include 'components/frontend/flash/flash_messages.html.twig' %}
-    {% include 'components/frontend/modal/global_confirm.html.twig' %}
+    {% include 'components/frontend/back_to_top.html.twig' ignore missing %}
+    {% include 'components/frontend/flash/flash_messages.html.twig' ignore missing %}
+    {% include 'components/frontend/modal/global_confirm.html.twig' ignore missing %}
 </body>
 </html>

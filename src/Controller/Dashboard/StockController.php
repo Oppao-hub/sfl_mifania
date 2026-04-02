@@ -10,9 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted; // <-- 1. Added Security Import
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-// 2. RBAC FIX: Lock the inventory management to Staff members
 #[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/stocks')]
 final class StockController extends AbstractController
@@ -41,6 +40,7 @@ final class StockController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $stock->setAddedBy($this->getUser());
             $entityManager->persist($stock);
             $entityManager->flush();
 
@@ -69,6 +69,7 @@ final class StockController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $stock->setUpdatedBy($this->getUser());
             $entityManager->flush();
 
             $this->addFlash('success', 'Stock updated successfully!');
@@ -81,7 +82,6 @@ final class StockController extends AbstractController
         ]);
     }
 
-    // 4. RBAC FIX: Only Admins can permanently delete a stock record!
     #[Route('/{id}', name: 'app_stock_delete', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Stock $stock, EntityManagerInterface $entityManager): Response

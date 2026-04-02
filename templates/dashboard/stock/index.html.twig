@@ -6,9 +6,11 @@
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
         title: 'Manage Stock Inventory',
+        icon: 'si:inventory-line',
+        entity_name: 'Stock',
+        total_count: stocks|length,
         new_path: 'app_stock_new',
-        headers: ['ID','Product', 'Quantity', 'Location', 'Status', 'Added By', 'Actions'],
-        id: 'dashboard-table'
+        headers: ['ID','Product', 'Location', 'Quantity', 'Status', 'Actions'],
     } %}
 
         {% block rows %}
@@ -21,13 +23,12 @@
                             {{ stock.product.name }}
                         </a>
                     </td>
-
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-mono font-bold text-brand-dark">
-                        {{ stock.quantity|number_format(0, '.', ',') }}
-                    </td>
-
                     <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-gray uppercase tracking-widest">
                         {{ stock.location|default('N/A') }}
+                    </td>
+
+                    <td class="border-y border-border-color px-4 py-3 text-sm font-black text-brand-dark">
+                        {{ stock.quantity }}
                     </td>
 
                     <td class="border-y border-border-color px-4 py-3 text-sm">
@@ -38,11 +39,6 @@
                             {{ stock.status.value }}
                         </span>
                     </td>
-
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-gray">
-                        {{ stock.addedBy.email|default('System') }}
-                    </td>
-
                     <td class="border-y border-border-color py-3 px-4 text-center">
                         <div class="flex justify-center items-center gap-2">
                             <a href="{{ path('app_stock_show', {'id': stock.id}) }}"

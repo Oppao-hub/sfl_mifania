@@ -5,12 +5,6 @@
 
     <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">{{ category }}</p>
 
-    {% if product.ecoInfo %}
-        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 truncate">
-            {{ product.ecoInfo }}
-        </p>
-    {% endif %}
-
     <h3 class="text-md font-bold text-brand group-hover:text-brand-dark transition-colors">{{ name }}</h3>
 
     <p class="font-bold text-gray-800 mt-1">PHP {{ price|number_format(2) }}</p>

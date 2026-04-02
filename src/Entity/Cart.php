@@ -133,6 +133,12 @@ class Cart
         return $this;
     }
 
+    public function getEstimatedPoints(): int
+    {
+        $total = (float) $this->getTotalPrice();
+        return (int) floor($total / 50);
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;

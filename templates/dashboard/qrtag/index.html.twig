@@ -1,57 +1,70 @@
 {% extends "dashboard/dashboard.html.twig" %}
 {% set qrTags = qrTags|default([]) %}
 
-{% block title %}QR Tag Management{% endblock %}
+{% block title %}QR Tag Registry | Mifania{% endblock %}
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
-        title: 'Manage QR Codes',
+        title: 'Provenance Tags',
         new_path: 'app_qrTag_new',
-        headers: ['ID', 'Product', 'QR Code Value', 'Date Generated', 'Image Path', 'Actions'],
-        id: 'dashboard-table'
+        icon: 'lucide:qr-code',
+        entity_name: 'QR Tag',
+        total_count: qrTags|length,
+        headers: ['ID', 'Product', 'QR Code Destination', 'Actions'],
     } %}
 
         {% block rows %}
             {% for qrTag in qrTags %}
                 <tr class="hover:bg-row-hover transition-colors group">
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">#{{ qrTag.id }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ qrTag.product.name }}</td>
-
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray truncate max-w-[200px]">
-                        {{ qrTag.qrCodeValue ?: 'N/A' }}
+                    <td class="border-y border-border-color px-6 py-4 text-[10px] uppercase font-black tracking-[0.2em] text-gray">
+                        #{{ qrTag.id }}
                     </td>
 
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-gray">
-                        {{ qrTag.dateGenerated ? qrTag.dateGenerated|date('M d, Y H:i') : '—' }}
+                    <td class="border-y border-border-color px-6 py-4 text-sm font-black text-brand-dark tracking-tighter uppercase">
+                        {{ qrTag.product.name }}
                     </td>
 
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray truncate max-w-[150px]">
-                        {{ qrTag.qrImagePath ?: 'Pending' }}
+                    <td class="border-y border-border-color px-6 py-4">
+                        <span class="block max-w-[200px] xl:max-w-[250px] truncate text-xs font-mono text-gray">
+                            {{ qrTag.qrCodeValue ?: 'N/A' }}
+                        </span>
                     </td>
 
-                    <td class="border-y border-border-color py-3 px-4 text-center">
-                        <div class="flex justify-center items-center gap-2">
+                    <td class="border-y border-border-color px-6 py-4">
+                        <div class="flex items-center gap-2">
                             <a href="{{ path('app_qrTag_show', {'id': qrTag.id}) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                               class="p-2.5 text-gray hover:text-brand bg-white border border-border-color rounded-xl hover:bg-brand/5 hover:border-brand/20 transition-all shadow-sm">
                                 {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                             </a>
 
                             <a href="{{ path('app_qrTag_edit', {'id': qrTag.id}) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                               class="p-2.5 text-gray hover:text-brand bg-white border border-border-color rounded-xl hover:bg-brand/5 hover:border-brand/20 transition-all shadow-sm">
                                 {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
-                            {% if is_granted('ROLE_ADMIN') %} {# This is the line that was added #}
+
+                            {% if is_granted('ROLE_ADMIN') %}
                                 <button type="button"
                                     @click="$dispatch('open-delete-modal', {
                                         url: '{{ path('app_qrTag_delete', {id: qrTag.id}) }}',
                                         name: 'QR for {{ qrTag.product.name|e('js') }}',
                                         token: '{{ csrf_token('delete' ~ qrTag.id) }}'
                                     })"
-                                    class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                    class="p-2.5 text-danger/70 hover:text-danger bg-white border border-border-color rounded-xl hover:bg-danger/10 hover:border-danger/30 transition-all shadow-sm cursor-pointer">
                                     {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                                 </button>
                             {% endif %}
                         </div>
+                    </td>
+                </tr>
+            {% else %}
+                {# Empty State #}
+                <tr>
+                    <td colspan="6" class="px-6 py-16 text-center border-y border-border-color bg-app-bg/50">
+                        <div class="p-4 bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm border border-border-color">
+                            {{ ux_icon('lucide:qr-code', {class: 'w-6 h-6 text-gray/40'}) }}
+                        </div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray">No QR Tags Found</p>
+                        <p class="text-xs text-gray/60 mt-2 font-medium">Generate your first provenance tag for a product.</p>
                     </td>
                 </tr>
             {% endfor %}

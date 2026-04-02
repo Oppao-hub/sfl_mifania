@@ -45,25 +45,25 @@
                 <div>
                     {{ form_label(form.product, 'Related Product', {'label_attr': {'class': label_style}}) }}
                     {{ form_widget(form.product, {'attr': {'class': select_style, 'placeholder': 'Select product'}}) }}
-                    {{ form_errors(form.product) }}
+                    <div class="mt-2">{{ form_errors(form.product) }}</div>
                 </div>
 
                 <div>
                     {{ form_label(form.qrCodeValue, 'QR Code Value', {'label_attr': {'class': label_style}}) }}
-                    {{ form_widget(form.qrCodeValue, {'attr': {'class': input_base, 'placeholder': 'e.g. https://mifania.com/verify/...'}}) }}
-                    {{ form_errors(form.qrCodeValue) }}
+                    {{ form_widget(form.qrCodeValue, {'attr': {'class': input_base, 'placeholder': 'Generated after saving'}}) }}
+                    <div class="mt-2">{{ form_errors(form.qrCodeValue) }}</div>
                 </div>
 
                 <div>
                     {{ form_label(form.dateGenerated, 'Date Generated', {'label_attr': {'class': label_style}}) }}
                     {{ form_widget(form.dateGenerated, {'attr': {'class': input_base, 'placeholder': 'Automatically set on creation'}}) }}
-                    {{ form_errors(form.dateGenerated) }}
+                    <div class="mt-2">{{ form_errors(form.dateGenerated) }}</div>
                 </div>
 
                 <div>
                     {{ form_label(form.qrImagePath, 'QR Image Path', {'label_attr': {'class': label_style}}) }}
                     {{ form_widget(form.qrImagePath, {'attr': {'class': input_base, 'placeholder': 'Generated after saving'}}) }}
-                    {{ form_errors(form.qrImagePath) }}
+                    <div class="mt-2">{{ form_errors(form.qrImagePath) }}</div>
                 </div>
             </div>
         </div>

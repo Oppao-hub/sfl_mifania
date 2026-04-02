@@ -28,7 +28,7 @@ class ApiRegistrationController extends AbstractController
         private RegisterNotifier $registerNotifier
     ) {}
 
-    #[Route('/register', name: 'api_register', methods: ['POST'])]
+    #[Route('/register', name: 'api_register', methods: ['POST','GET'])]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);

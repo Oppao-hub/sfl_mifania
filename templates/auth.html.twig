@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mifania | Sustainable Fashion Line{% endblock %}</title>
+
+    {{ encore_entry_link_tags('app') }}
+    {{ encore_entry_script_tags('app') }}
+</head>
+
+<body class="flex items-center justify-center w-full min-h-screen animate-page-intro">
+
+    <div class="w-full min-h-screen flex flex-col lg:flex-row bg-[#FBFBFA]">
+        {% include 'components/frontend/auth_carousel.html.twig' with {
+            title: '',
+            subtitle: '',
+            interval: 5000,
+            images: [
+                asset('uploads/auth/carousel/img1.jpeg'),
+                asset('uploads/auth/carousel/img2.jpeg'),
+                asset('uploads/auth/carousel/img3.jpeg'),
+            ]
+        } %}
+
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 md:p-16">
+            <div class="w-full max-w-md">
+                <a href="{{ path('app_home') }}" class="flex self-center">
+                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-32 mx-auto">
+                </a>
+                {% block main_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    {% include 'components/frontend/flash/flash_messages.html.twig' ignore missing %}
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

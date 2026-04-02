@@ -82,17 +82,40 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findByGender(string $gender)
+    /**
+     * Fetch products based on their Master Category (e.g., 'Womenswear', 'Menswear')
+     * * @return Product[] Returns an array of Product objects
+     */
+    public function findByMasterCategory(string $categoryName, int $limit = 4): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.gender = :gender')
-            ->orWhere('p.gender = :unisex') // Include Unisex items
-            ->setParameter('gender', $gender)
-            ->setParameter('unisex', 'Unisex')
-            ->orderBy('p.id', 'DESC')
-            ->setMaxResults(20) // Limit results for homepage
+            // 1. Hop from Product to SubCategory
+            ->join('p.subCategory', 'sc')
+            // 2. Hop from SubCategory to Master Category
+            ->join('sc.category', 'c')
+            // 3. Check the Master Category's name
+            ->andWhere('c.name = :categoryName')
+            ->setParameter('categoryName', $categoryName)
+            // Optional: Order by newest products first for the homepage!
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Count products based on their Master Category
+     */
+    public function countByMasterCategory(string $categoryName): int
+    {
+        return $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->join('p.subCategory', 'sc')
+            ->join('sc.category', 'c')
+            ->andWhere('c.name = :categoryName')
+            ->setParameter('categoryName', $categoryName)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findByMaxPrice(int $price): array

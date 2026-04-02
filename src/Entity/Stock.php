@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Enum\StockStatus;
 use App\Repository\StockRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StockRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -16,9 +17,12 @@ class Stock
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'You must specify a stock quantity.')]
+    #[Assert\PositiveOrZero(message: 'Quantity cannot be negative.')]
     private ?int $quantity = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255, maxMessage: 'Location name is too long.')]
     private ?string $location = null;
 
     #[ORM\Column(length: 50, enumType: StockStatus::class)]
@@ -26,10 +30,14 @@ class Stock
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Assert\NotBlank(message: 'You must select an associated product.')]
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
     private ?User $addedBy = null;
+
+    #[ORM\ManyToOne]
+    private ?User $updatedBy = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -53,9 +61,11 @@ class Stock
     #[ORM\PreUpdate]
     public function updateStatus(): void
     {
-        if ($this->quantity == 0) {
+        $qty = $this->quantity ?? 0;
+
+        if ($qty <= 0) {
             $this->status = StockStatus::OUT_OF_STOCK;
-        } elseif ($this->quantity < 50) {
+        } elseif ($qty < 50) {
             $this->status = StockStatus::LOW_STOCK;
         } else {
             $this->status = StockStatus::IN_STOCK;
@@ -72,10 +82,9 @@ class Stock
         return $this->quantity;
     }
 
-    public function setQuantity(int $quantity): static
+    public function setQuantity(?int $quantity): static
     {
         $this->quantity = $quantity;
-
         return $this;
     }
 
@@ -87,7 +96,6 @@ class Stock
     public function setLocation(?string $location): static
     {
         $this->location = $location;
-
         return $this;
     }
 
@@ -99,31 +107,39 @@ class Stock
     public function setStatus(?StockStatus $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
-    public function getProduct(): ?product
+    public function getProduct(): ?Product
     {
         return $this->product;
     }
 
-    public function setProduct(?product $product): static
+    public function setProduct(?Product $product): static
     {
         $this->product = $product;
-
         return $this;
     }
 
-    public function getAddedBy(): ?user
+    public function getAddedBy(): ?User
     {
         return $this->addedBy;
     }
 
-    public function setAddedBy(?user $addedBy): static
+    public function setAddedBy(?User $addedBy): static
     {
         $this->addedBy = $addedBy;
+        return $this;
+    }
 
+    public function getUpdatedBy(): ?User
+    {
+        return $this->updatedBy;
+    }
+
+    public function setUpdatedBy(?User $updatedBy): static
+    {
+        $this->updatedBy = $updatedBy;
         return $this;
     }
 
@@ -135,7 +151,6 @@ class Stock
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -147,7 +162,6 @@ class Stock
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 }

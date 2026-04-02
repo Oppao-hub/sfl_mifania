@@ -5,20 +5,19 @@
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
         title: 'Manage Orders',
+        icon: 'lets-icons:order',
+        entity_name: 'Order',
+        total_count: orders|length,
         new_path: 'app_order_new',
-        headers: ['ID', 'Customer', 'Total', 'Points', 'Payment Method', 'Payment Status', 'Order Status', 'Actions'],
-        id: 'dashboard-table'
+        headers: ['ID', 'Customer', 'Total', 'Payment Method', 'Payment Status', 'Order Status', 'Actions'],
     } %}
         {% block rows %}
             {% for order in orders %}
                 <tr class="hover:bg-row-hover transition-colors group">
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">#{{ order.id }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-black text-brand-dark">₱{{ order.totalAmount|number_format(2) }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-bold text-terracotta">{{ order.rewardPoints }} pts</td>
-
-                    {# Payment Method Selector #}
-                    <td class="border-y border-border-color px-4 py-3">
+                    <td class="border-y border-border-color px-3 py-3 text-xs font-mono text-gray">#{{ order.id }}</td>
+                    <td class="border-y border-border-color px-3 py-3 text-sm font-bold text-brand-dark">{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
+                    <td class="border-y border-border-color px-3 py-3 text-sm font-black text-brand-dark">₱{{ order.totalAmount|number_format(2) }}</td>
+                    <td class="border-y border-border-color px-3 py-3">
                         <form method="post" action="{{ path('app_order_change_payment_method', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_payment_method' ~ order.id) }}">
                             <select name="payment_method"
@@ -35,9 +34,7 @@
                             </select>
                         </form>
                     </td>
-
-                    {# Payment Status Selector #}
-                    <td class="border-y border-border-color px-4 py-3">
+                    <td class="border-y border-border-color px-3 py-3">
                         <form method="post" action="{{ path('app_order_change_payment_status', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_payment_status' ~ order.id) }}">
                             <select name="payment_status"
@@ -57,9 +54,7 @@
                             </select>
                         </form>
                     </td>
-
-                    {# Order Status Selector #}
-                    <td class="border-y border-border-color px-4 py-3">
+                    <td class="border-y border-border-color px-3 py-3">
                         <form method="post" action="{{ path('app_order_change_status', {'id': order.id}) }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('change_status' ~ order.id) }}">
                             <select name="status"
@@ -79,9 +74,7 @@
                             </select>
                         </form>
                     </td>
-
-                    {# Actions #}
-                    <td class="border-y border-border-color py-3 px-4 text-center">
+                    <td class="border-y border-border-color py-3 px-3 text-center">
                         <div class="flex justify-center items-center gap-2">
                             <a href="{{ path('app_order_show', { id: order.id }) }}"
                                class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">

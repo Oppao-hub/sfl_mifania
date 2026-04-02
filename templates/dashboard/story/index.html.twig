@@ -1,60 +1,66 @@
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}Brand Narratives{% endblock %}
+{% block title %}Brand Narratives | Mifania{% endblock %}
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
-        title: 'Manage Stories',
+        title: 'Narrative Registry',
         total_count: stories|length,
+        icon: 'si:book-line',
+        entity_name: 'Narrative',
         new_path: 'app_story_new',
-        headers: ['ID', 'Story Headline', 'Material Preview', 'Artisan Preview', 'Dyeing Preview', 'Actions'],
-        id: 'dashboard-story-table'
+        headers: ['ID', 'Story Headline', 'Material Narrative', 'Actions'],
     } %}
 
     {% block rows %}
         {% for story in stories %}
             <tr class="hover:bg-row-hover transition-colors group">
 
-                <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">
-                    #{{ story.id }}
+                <td class="border-y border-border-color px-6 py-4 text-[10px] uppercase font-black tracking-[0.2em] text-gray">
+                    #{{ story.id|default('000') }}
                 </td>
 
-                <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
+                <td class="border-y border-border-color px-6 py-4 text-sm font-black text-brand-dark tracking-tighter uppercase">
                     {{ story.title }}
                 </td>
 
-                <td class="border-y border-border-color px-4 py-3 text-xs font-medium text-gray italic">
-                    "{{ story.materialContent|length > 25 ? story.materialContent|slice(0, 25) ~ '...' : story.materialContent }}"
+                <td class="border-y border-border-color px-6 py-4">
+                    <span class="block max-w-[200px] xl:max-w-[250px] truncate text-xs font-medium text-gray italic">
+                        "{{ story.materialContent }}"
+                    </span>
                 </td>
 
-                <td class="border-y border-border-color px-4 py-3 text-xs font-medium text-gray italic">
-                    "{{ story.artisanContent|length > 25 ? story.artisanContent|slice(0, 25) ~ '...' : story.artisanContent }}"
-                </td>
-
-                <td class="border-y border-border-color px-4 py-3 text-xs font-medium text-gray italic">
-                    "{{ story.dyeingContent|length > 25 ? story.dyeingContent|slice(0, 25) ~ '...' : story.dyeingContent }}"
-                </td>
-
-                <td class="border-y border-border-color py-3 px-4 text-center">
-                    <div class="flex justify-center items-center gap-2">
+                <td class="border-y border-border-color px-6 py-4">
+                    <div class="flex justify-end items-center gap-2">
                         <a href="{{ path('app_story_show', { id: story.id }) }}"
-                           class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                           class="p-2.5 text-gray hover:text-brand bg-white border border-border-color rounded-xl hover:bg-brand/5 hover:border-brand/20 transition-all shadow-sm">
                            {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                         </a>
 
                         <a href="{{ path('app_story_edit', { id: story.id }) }}"
-                           class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                           class="p-2.5 text-gray hover:text-brand bg-white border border-border-color rounded-xl hover:bg-brand/5 hover:border-brand/20 transition-all shadow-sm">
                            {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                         </a>
 
-                        {% if is_granted('ROLE_ADMIN') %}                        if
+                        {% if is_granted('ROLE_ADMIN') %}
                             <button type="button"
-                                    @click="$dispatch('open-delete-modal', { url: '{{ path('app_story_delete', {id: story.id}) }}', name: 'Story: {{ story.title|e('js') }}', token: '{{ csrf_token('delete' ~ story.id) }}' })"
-                                    class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                    @click.stop="$dispatch('open-delete-modal', { url: '{{ path('app_story_delete', {id: story.id}) }}', name: 'Narrative: {{ story.title|e('js') }}', token: '{{ csrf_token('delete' ~ story.id) }}' })"
+                                    class="p-2.5 text-danger/70 hover:text-danger bg-white border border-border-color rounded-xl hover:bg-danger/10 hover:border-danger/30 transition-all shadow-sm cursor-pointer">
                                 {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                             </button>
                         {% endif %}
                     </div>
+                </td>
+            </tr>
+        {% else %}
+            {# Empty State #}
+            <tr>
+                <td colspan="5" class="px-6 py-16 text-center border-y border-border-color bg-app-bg/50">
+                    <div class="p-4 bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm border border-border-color">
+                        {{ ux_icon('lucide:book-open', {class: 'w-6 h-6 text-gray/40'}) }}
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray">No Brand Narratives Found</p>
+                    <p class="text-xs text-gray/60 mt-2 font-medium">Draft your first narrative to attach to your collections.</p>
                 </td>
             </tr>
         {% endfor %}

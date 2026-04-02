@@ -19,9 +19,8 @@ use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode as QrCodeQrCode;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted; // <-- Added the security import!
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-// 1. RBAC FIX: Lock the QR Tag manager to Staff members
 #[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/qrTag')]
 final class QRTagController extends AbstractController
@@ -52,7 +51,6 @@ final class QRTagController extends AbstractController
             $product = $qRTag->getProduct();
 
             if (!$product) {
-                $this->addFlash('error', 'Please select a product to generate the QR Code.');
                 return $this->redirectToRoute('app_qrTag_new');
             }
 

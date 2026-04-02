@@ -8,7 +8,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     normalizationContext: ['groups' => ['category:read']],
@@ -16,29 +18,42 @@ use Symfony\Component\Serializer\Annotation\Groups;
 )]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
+#[UniqueEntity(fields: ['slug'], message: 'This URL slug is already in use. Please choose another.')]
+#[UniqueEntity(fields: ['name'], message: 'A category with this name already exists.')]
 class Category
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['category:read', 'subcategory:read'])]
     private ?int $id = null;
 
-    #[Groups(['category:read'])]
     #[ORM\Column(length: 50)]
+    #[Groups(['category:read', 'category:write', 'subcategory:read'])]
+    #[Assert\NotBlank(message: 'Please enter a name for this category.')]
+    #[Assert\Length(max: 50, maxMessage: 'The name cannot be longer than {{ limit }} characters.')]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['category:read'])]
+    #[Groups(['category:read', 'category:write'])]
+    #[Assert\NotBlank(message: 'A brief description is required.')]
     private ?string $description = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(['category:read'])]
+    #[Groups(['category:read', 'category:write'])]
+    // Removed NotBlank here so the auto-generator can do its job if left empty!
+    #[Assert\Regex(
+        pattern: '/^[a-z0-9\-]+$/',
+        message: 'The slug can only contain lowercase letters, numbers, and hyphens.'
+    )]
     private ?string $slug = null;
 
     #[ORM\Column]
+    #[Groups(['category:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
+    #[Groups(['category:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     /**
@@ -48,38 +63,28 @@ class Category
     #[Groups(['category:read'])]
     private Collection $subCategories;
 
-    /**
-     * @var Collection<int, Product>
-     */
-    // This collection is no longer strictly necessary if Product only maps to SubCategory,
-    // but kept here for potential denormalization/convenience.
-    #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'category')]
-    #[Groups(['category:read'])]
-    private Collection $products;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $gender = null;
-
     public function __construct()
     {
         $this->subCategories = new ArrayCollection();
-        $this->products = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
     public function updateTimestamps(): void
     {
-        // Set createdAt only on creation
         $this->createdAt ??= new \DateTimeImmutable();
-        // Update updatedAt on creation and update
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    // ADDED HOOKS SO IT RUNS AUTOMATICALLY
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
     public function setSlugValue(): void
     {
         if (empty($this->slug) && !empty($this->name)) {
-            $this->slug = $this->name;
+            $text = preg_replace('~[^\pL\d]+~u', '-', $this->name);
+            $text = trim($text, '-');
+            $this->slug = strtolower($text);
         }
     }
 
@@ -93,10 +98,9 @@ class Category
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(?string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -105,10 +109,9 @@ class Category
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -120,7 +123,6 @@ class Category
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -128,7 +130,8 @@ class Category
     {
         return $this->slug;
     }
-    public function setSlug(string $slug): static
+
+    public function setSlug(?string $slug): static
     {
         $this->slug = $slug;
         return $this;
@@ -142,7 +145,6 @@ class Category
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
@@ -160,63 +162,16 @@ class Category
             $this->subCategories->add($subCategory);
             $subCategory->setCategory($this);
         }
-
         return $this;
     }
 
     public function removeSubCategory(SubCategory $subCategory): static
     {
         if ($this->subCategories->removeElement($subCategory)) {
-            // set the owning side to null (unless already changed)
             if ($subCategory->getCategory() === $this) {
                 $subCategory->setCategory(null);
             }
         }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Product>
-     */
-    public function getProducts(): Collection
-    {
-        return $this->products;
-    }
-
-    public function addProduct(Product $product): static
-    {
-        if (!$this->products->contains($product)) {
-            $this->products->add($product);
-            // Since Product is now directly linked to SubCategory,
-            // this method is primarily for denormalized usage and should be reviewed/removed if unused.
-            // Keeping the original logic for now, but note Product::$category was removed.
-            $product->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeProduct(Product $product): static
-    {
-        if ($this->products->removeElement($product)) {
-            if ($product->getCategory() === $this) {
-                $product->setCategory(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getGender(): ?string
-    {
-        return $this->gender;
-    }
-
-    public function setGender(?string $gender): static
-    {
-        $this->gender = $gender;
-
         return $this;
     }
 }

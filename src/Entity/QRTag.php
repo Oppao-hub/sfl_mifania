@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\QRTagRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: QRTagRepository::class)]
 class QRTag
@@ -16,12 +17,14 @@ class QRTag
 
     #[ORM\OneToOne(inversedBy: 'qrTag', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'You must select a product to link to this QR Tag.')]
     private ?Product $product = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $qrCodeValue = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Generation date cannot be empty.')]
     private ?\DateTime $dateGenerated = null;
 
     #[ORM\Column(length: 255)]
@@ -29,7 +32,7 @@ class QRTag
 
     public function __construct()
     {
-        $this->dateGenerated = new \DateTime(); // Automatically set current date
+        $this->dateGenerated = new \DateTime();
     }
 
     public function getId(): ?int
@@ -45,7 +48,6 @@ class QRTag
     public function setProduct(?Product $product): static
     {
         $this->product = $product;
-
         return $this;
     }
 
@@ -57,7 +59,6 @@ class QRTag
     public function setQrCodeValue(?string $qrCodeValue): static
     {
         $this->qrCodeValue = $qrCodeValue;
-
         return $this;
     }
 
@@ -66,10 +67,9 @@ class QRTag
         return $this->dateGenerated;
     }
 
-    public function setDateGenerated(\DateTime $dateGenerated): static
+    public function setDateGenerated(?\DateTime $dateGenerated): static
     {
         $this->dateGenerated = $dateGenerated;
-
         return $this;
     }
 
@@ -78,10 +78,9 @@ class QRTag
         return $this->qrImagePath;
     }
 
-    public function setQrImagePath(string $qrImagePath): static
+    public function setQrImagePath(?string $qrImagePath): static
     {
         $this->qrImagePath = $qrImagePath;
-
         return $this;
     }
 }

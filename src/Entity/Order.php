@@ -28,13 +28,17 @@ class Order
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['order:read', 'order:write'])]
+    #[Groups(['order:read'])]
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Assert\NotNull(message: 'Please select a customer for this order.')] // <-- ADDED
     private ?Customer $customer = null;
 
-    #[Groups(['order:read', 'order:write'])]
+    #[Groups(['order:read'])]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Assert\NotBlank(message: 'Total amount is required.')] // <-- ADDED
+    #[Assert\PositiveOrZero(message: 'Total amount cannot be negative.')] // <-- ADDED
+    #[Assert\Type(type: 'numeric', message: 'Total amount must be a valid number.')] // <-- ADDED
     private ?string $totalAmount = null;
 
     #[Groups(['order:read', 'order:write'])]
@@ -64,8 +68,10 @@ class Order
     /**
      * @var Collection<int, OrderItem>
      */
-    #[Groups(['order:read', 'order:write'])]
+    #[Groups(['order:read'])]
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
+    #[Assert\Count(min: 1, minMessage: 'An order must contain at least one product.')] // <-- ADDED
+    #[Assert\Valid]
     private Collection $orderItems;
 
     /**
@@ -87,12 +93,22 @@ class Order
         $now = new \DateTimeImmutable();
         $this->createdAt = $this->createdAt ?? $now;
         $this->updatedAt = $this->updatedAt ?? $now;
+
+        // Auto-calculate reward points: 1 point per 50 pesos
+        if ($this->totalAmount) {
+            $this->rewardPoints = (int) floor((float)$this->totalAmount / 50);
+        }
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+
+        // Recalculate if amount changes
+        if ($this->totalAmount) {
+            $this->rewardPoints = (int) floor((float)$this->totalAmount / 50);
+        }
     }
 
     // --- getters and setters below ---
@@ -111,12 +127,12 @@ class Order
         $this->customer = $customer;
         return $this;
     }
-
-    public function getTotalAmount(): ?string
+public function getTotalAmount(): ?string
     {
         return $this->totalAmount;
     }
-    public function setTotalAmount(string $totalAmount): static
+
+    public function setTotalAmount(?string $totalAmount): static
     {
         $this->totalAmount = $totalAmount;
         return $this;

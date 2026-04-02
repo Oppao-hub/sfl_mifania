@@ -6,7 +6,6 @@
 
 {{ form_start(form, {'attr': {'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
 
-    {# --- STICKY HEADER --- #}
     <div class="sticky top-24 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
             <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
@@ -45,12 +44,12 @@
                 <div>
                     {{ form_label(form.product, 'Associated Product', { label_attr: {'class': label_style} })}}
                     {{ form_widget(form.product, {'attr': {'class': select_style}}) }}
-                    {{ form_errors(form.product) }}
+                    <div class="mt-2">{{ form_errors(form.product) }}</div>
                 </div>
                 <div>
                     {{ form_label(form.location, 'Storage Location', { label_attr: {'class': label_style} }) }}
                     {{ form_widget(form.location, {'attr': {'class': input_base, 'placeholder': 'e.g. Warehouse A, Shelf 3'}}) }}
-                    {{ form_errors(form.location) }}
+                    <div class="mt-2">{{ form_errors(form.location) }}</div>
                 </div>
             </div>
         </div>
@@ -63,27 +62,10 @@
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray">{{ ux_icon('lucide:hash', {class: 'w-4 h-4'}) }}</div>
                         {{ form_widget(form.quantity, {'attr': {'class': input_base ~ ' pl-10 bg-white font-mono', 'placeholder': '0'}}) }}
                     </div>
-                    {{ form_errors(form.quantity) }}
-                </div>
-                <div>
-                    {{ form_label(form.status, 'Inventory Status', { label_attr: {'class': label_style} }) }}
-                    {{ form_widget(form.status, {'attr': {'class': select_style ~ ' bg-white'}}) }}
-                    {{ form_errors(form.status) }}
+                    <div class="mt-2">{{ form_errors(form.quantity) }}</div>
                 </div>
             </div>
         </div>
-
-        <div class="p-8 md:p-10">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    {{ form_label(form.addedBy, 'Authorized By (Staff)',{ label_attr: {'class': label_style} }) }}
-                    {{ form_widget(form.addedBy, {'attr': {'class': select_style}}) }}
-                    {{ form_errors(form.addedBy) }}
-                    <p class="text-[9px] uppercase font-bold text-gray tracking-widest mt-2 ml-1 italic leading-none">Record of authorization</p>
-                </div>
-            </div>
-        </div>
-
     </div>
 
 {{ form_end(form) }}

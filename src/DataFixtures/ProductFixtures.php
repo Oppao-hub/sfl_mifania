@@ -3,109 +3,93 @@
 namespace App\DataFixtures;
 
 use App\Entity\Product;
+use App\Entity\SubCategory; // <-- ADDED IMPORT
+use App\Entity\Story;       // <-- ADDED IMPORT
+use App\Entity\Enum\Color;
 use App\Entity\Enum\Size;
-use App\Entity\Enum\Gender;
-use App\Entity\SubCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use App\Entity\Enum\Color;
 
 class ProductFixtures extends Fixture implements DependentFixtureInterface
 {
-    public const PRODUCT_REFERENCE = 'product';
-
     public function load(ObjectManager $manager): void
     {
-        /** @var SubCategory $subCategory */
-        $subCategory = $this->getReference(SubCategoryFixtures::BAGS_CATEGORY_REFERENCE, SubCategory::class);
+        // Ensure you have an array of sizes and colors to randomize
+        $sizes = Size::cases();
+        $colors = Color::cases();
 
         $productsData = [
             [
-                'name' => 'Reusable Bamboo Tote Bag',
-                'material' => 'Bamboo Fiber',
-                'size' => 'Large',
-                'color' => 'Beige',
-                'gender' => 'Unisex',
-                'price' => '599.99',
-                'cost' => '300.00',
-                'description' => 'A durable, eco-friendly tote bag made from bamboo fiber.',
-                'points' => 50,
-                'ecoInfo' => 'Made from 100% sustainable bamboo materials.',
-                'image' => 'bamboo-tote.jpg',
+                'name' => 'Organic Bamboo Wrap Dress',
+                'material' => '100% Organic Bamboo',
+                'price' => '3200.00',
+                'cost' => '1100.00',
+                'desc' => 'A versatile, universally flattering wrap dress made from incredibly soft bamboo fiber.',
+                'eco' => 'Saves 40L of water compared to standard cotton.',
+                'subcat_ref' => 'subcat_0', // Dresses
+                'story_ref' => StoryFixtures::STORY_BAMBOO
             ],
             [
-                'name' => 'Recycled Plastic Bottle Bag',
-                'material' => 'Recycled PET',
-                'size' => 'Medium',
-                'color' => 'Blue',
-                'gender' => 'Women',
-                'price' => '499.99',
-                'cost' => '250.00',
-                'description' => 'Stylish everyday bag made from recycled plastic bottles.',
-                'points' => 45,
-                'ecoInfo' => 'Made from 10 recycled PET bottles.',
-                'image' => 'plastic-bag.jpg',
+                'name' => 'Hemp Linen Button-Down',
+                'material' => 'Hemp & Organic Linen Blend',
+                'price' => '2400.00',
+                'cost' => '900.00',
+                'desc' => 'A structured yet breathable shirt perfect for both the office and the weekend.',
+                'eco' => 'Hemp actively absorbs CO2 during growth.',
+                'subcat_ref' => 'subcat_3', // Men's Shirts
+                'story_ref' => StoryFixtures::STORY_HEMP
             ],
             [
-                'name' => 'Organic Cotton Pouch',
-                'material' => 'Organic Cotton',
-                'size' => 'Small',
-                'color' => 'White',
-                'gender' => 'Men',
-                'price' => '199.99',
-                'cost' => '80.00',
-                'description' => 'Soft and reusable cotton pouch, perfect for accessories.',
-                'points' => 20,
-                'ecoInfo' => 'Certified organic cotton, no synthetic dyes.',
-                'image' => 'cotton-pouch.jpg',
+                'name' => 'Recycled PET Tote Bag',
+                'material' => 'Post-Consumer Recycled Plastics',
+                'price' => '1200.00',
+                'cost' => '400.00',
+                'desc' => 'A highly durable, water-resistant everyday tote built from 12 recycled plastic bottles.',
+                'eco' => 'Prevents 12 plastic bottles from reaching the ocean.',
+                'subcat_ref' => 'subcat_7', // Bags
+                'story_ref' => StoryFixtures::STORY_EVERYDAY
             ],
             [
-                'name' => 'Hemp Shopping Bag',
-                'material' => 'Hemp',
-                'size' => 'Large',
-                'color' => 'Green',
-                'gender' => 'Women',
-                'price' => '699.99',
-                'cost' => '350.00',
-                'description' => 'Strong and stylish hemp shopping bag.',
-                'points' => 60,
-                'ecoInfo' => 'Hemp grows fast and requires minimal water.',
-                'image' => 'hemp-bag.jpg',
+                'name' => 'Gender-Neutral Organic Hoodie',
+                'material' => 'GOTS Certified Organic Cotton',
+                'price' => '2800.00',
+                'cost' => '1200.00',
+                'desc' => 'The ultimate heavyweight comfort hoodie, designed with a relaxed, inclusive fit.',
+                'eco' => 'Zero pesticides used in the cotton farming process.',
+                'subcat_ref' => 'subcat_5', // Hoodies
+                'story_ref' => StoryFixtures::STORY_COTTON
             ],
             [
-                'name' => 'Foldable Eco Bag',
-                'material' => 'Nylon',
-                'size' => 'Medium',
-                'color' => 'Green',
-                'gender' => 'Men',
-                'price' => '299.99',
-                'cost' => '120.00',
-                'description' => 'Compact foldable bag ideal for groceries.',
-                'points' => 30,
-                'ecoInfo' => 'Reusable and long-lasting alternative to plastic bags.',
-                'image' => 'foldable-bag.jpg',
+                'name' => 'Minimalist Tencel Trousers',
+                'material' => '100% Tencel Lyocell',
+                'price' => '3500.00',
+                'cost' => '1400.00',
+                'desc' => 'Draping beautifully and resisting wrinkles, these trousers are a staple of sustainable elegance.',
+                'eco' => 'Produced in a closed-loop system recycling 99% of solvents.',
+                'subcat_ref' => 'subcat_2', // Women's Trousers
+                'story_ref' => StoryFixtures::STORY_MINIMALIST
             ],
         ];
 
-        foreach ($productsData as $i => $data) {
+        foreach ($productsData as $data) {
             $product = new Product();
-            $product->setName($data['name'])
-                ->setSubCategory($subCategory)
-                ->setMaterial($data['material'])
-                ->setSize(Size::from($data['size']))
-                ->setColor(Color::from($data['color']))
-                ->setGender(Gender::from($data['gender']))
-                ->setPrice($data['price'])
-                ->setCost($data['cost'])
-                ->setDescription($data['description'])
-                ->setEcoInfo($data['ecoInfo'])
-                ->setImage($data['image']);
+            $product->setName($data['name']);
+            $product->setMaterial($data['material']);
+            $product->setPrice($data['price']);
+            $product->setCost($data['cost']);
+            $product->setDescription($data['desc']);
+            $product->setEcoInfo($data['eco']);
+
+            // Randomize enums
+            $product->setSize($sizes[array_rand($sizes)]);
+            $product->setColor($colors[array_rand($colors)]);
+
+            // FIX: Added the specific Entity::class as the required second argument!
+            $product->setSubCategory($this->getReference($data['subcat_ref'], SubCategory::class));
+            $product->setStory($this->getReference($data['story_ref'], Story::class));
 
             $manager->persist($product);
-
-            // This reference is used by OrderFixtures and StockFixtures
-            $this->addReference(self::PRODUCT_REFERENCE . '-' . $i, $product);
         }
 
         $manager->flush();
@@ -114,7 +98,8 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
-            SubCategoryFixtures::class,
+            StoryFixtures::class,
+            TaxonomyFixtures::class,
         ];
     }
 }

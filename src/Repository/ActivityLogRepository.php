@@ -16,28 +16,21 @@ class ActivityLogRepository extends ServiceEntityRepository
         parent::__construct($registry, ActivityLog::class);
     }
 
-//    /**
-//     * @return ActivityLog[] Returns an array of ActivityLog objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return ActivityLog[]
+     */
+    public function searchLogs(?string $query, int $limit = 100): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->leftJoin('a.user', 'u')
+            ->orderBy('a.createdAt', 'DESC')
+            ->setMaxResults($limit);
 
-//    public function findOneBySomeField($value): ?ActivityLog
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if ($query) {
+            $qb->andWhere('a.action LIKE :query OR a.targetData LIKE :query OR u.email LIKE :query')
+               ->setParameter('query', "'%' . { $query } . '%'");
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

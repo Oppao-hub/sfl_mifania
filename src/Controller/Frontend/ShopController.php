@@ -14,23 +14,52 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ShopController extends AbstractController
 {
     #[Route('', name: 'app_shop')]
-    public function index(ProductRepository $productRepository, Request $request, PaginatorInterface $paginator)
+    public function index(ProductRepository $productRepository, Request $request, PaginatorInterface $paginator): Response
     {
-        // Use query->get to stay consistent
         $searchTerm = $request->query->get('q');
         $maxPrice = $request->query->getInt('maxPrice', 5000);
         $selectedColors = $request->query->all('colors');
 
+        // Grab the new parameters from the URL (e.g., /shop?department=women  OR  /shop?category=blazers)
+        $department = $request->query->get('department');
+        $categorySlug = $request->query->get('category');
+
+        // Always join the categories so we can filter by them safely
         $queryBuilder = $productRepository->createQueryBuilder('p')
+            ->leftJoin('p.subCategory', 'sc')
+            ->leftJoin('sc.category', 'c')
             ->where('p.price <= :maxPrice')
             ->setParameter('maxPrice', $maxPrice);
 
+        // 1. Filter by Master Category (Department)
+        if ($department) {
+            // Map simple URL strings to your exact Database Master Categories
+            $categoryMap = [
+                'women' => 'Women',
+                'men' => 'Men',
+                'unisex' => 'Unisex',
+                'accessories' => 'Accessories'
+            ];
+
+            $mappedDepartment = $categoryMap[strtolower($department)] ?? ucfirst($department);
+
+            $queryBuilder->andWhere('c.name = :department')
+                         ->setParameter('department', $mappedDepartment);
+        }
+
+        // 2. Filter by Specific Sub-Category
+        if ($categorySlug) {
+            $queryBuilder->andWhere('sc.slug = :categorySlug')
+                         ->setParameter('categorySlug', $categorySlug);
+        }
+
+        // 3. Filter by Search Query
         if ($searchTerm) {
-            $queryBuilder->andWhere('p.name LIKE :searchTerm OR p.description LIKE :searchTerm')
+            $queryBuilder->andWhere('(p.name LIKE :searchTerm OR p.description LIKE :searchTerm)')
                          ->setParameter('searchTerm', '%' . $searchTerm . '%');
         }
 
-        // Check if colors exist and filter them
+        // 4. Filter by Color
         if (!empty($selectedColors)) {
             $queryBuilder->andWhere('p.color IN (:colors)')
                          ->setParameter('colors', $selectedColors);
@@ -44,64 +73,20 @@ final class ShopController extends AbstractController
             9
         );
 
+        // Determine what to show in the Breadcrumbs/Header
+        $currentCategory = 'All';
+        if ($department) {
+            $currentCategory = $mappedDepartment ?? ucfirst($department);
+        } elseif ($categorySlug) {
+            $currentCategory = $categorySlug;
+        }
+
         return $this->render('frontend/shop/index.html.twig', [
             'currentMaxPrice' => $maxPrice,
-            'selectedColors' => $selectedColors,
-            'pagination' => $pagination,
-            'searchTerm' => $searchTerm,
-        ]);
-    }
-
-    #[Route('/collection/{collectionName}', name: 'app_shop_collection')]
-    public function collection(
-        string $collectionName,
-        ProductRepository $productRepository,
-        Request $request,
-        PaginatorInterface $paginator
-    ): Response {
-        $searchTerm = $request->query->get('q');
-        $maxPrice = $request->query->getInt('maxPrice', 5000);
-        $selectedColors = $request->query->all('colors');
-
-        $queryBuilder = $productRepository->createQueryBuilder('p')
-            ->leftJoin('p.subCategory', 'sc')
-            ->leftJoin('sc.category', 'c')
-            ->where('p.price <= :maxPrice')
-            ->setParameter('maxPrice', $maxPrice);
-
-        if (\in_array(strtolower($collectionName), ['men', 'women'])) {
-            $queryBuilder->andWhere('p.gender = :gender')
-                        ->setParameter('gender', ucfirst($collectionName));
-        }else {
-            $queryBuilder->andWhere('c.name = :categoryName')
-                         ->setParameter('categoryName', ucfirst($collectionName));
-        }
-
-        if ($searchTerm) {
-            $queryBuilder->andWhere('(p.name LIKE :searchTerm OR p.description LIKE :searchTerm)')
-                         ->setParameter('searchTerm', '%' . $searchTerm . '%');
-        }
-
-        if (!empty($selectedColors)) {
-            $queryBuilder->andWhere('p.color IN (:colors)')
-                ->setParameter('colors', $selectedColors);
-        }
-
-        $queryBuilder->orderBy('p.createdAt', 'DESC');
-
-        $pagination = $paginator->paginate(
-            $queryBuilder,
-            $request->query->getInt('page', 1),
-            9
-        );
-
-        return $this->render('frontend/shop/index.html.twig', [
-            'initial_products' => $this->container->get('serializer')->serialize($pagination->getItems(), 'json', ['groups' => 'product:read']),
-            'currentMaxPrice' => $maxPrice,
-            'selectedColors' => $selectedColors,
-            'pagination' => $pagination,
-            'currentCategory' => $collectionName,
-            'searchTerm' => $searchTerm,
+            'selectedColors'  => $selectedColors,
+            'pagination'      => $pagination,
+            'searchTerm'      => $searchTerm,
+            'currentCategory' => $currentCategory, // Passes clean text to your Twig breadcrumbs!
         ]);
     }
 

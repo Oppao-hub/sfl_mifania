@@ -2,36 +2,43 @@
 
 namespace App\Controller\Frontend;
 
+use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
-use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\Response;
+use App\Entity\NewsletterSubscriber;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Routing\Attribute\Route;
 
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(Request $request, ProductRepository $productRepo): Response
+    public function index(Request $request, ProductRepository $productRepo, CategoryRepository $categoryRepo): Response
     {
-        // 1. Get the current gender from Session (Default to 'Women' if not set)
-        $currentGender = $request->getSession()->get('shop_gender', 'Women');
+        // 1. Get the current Master Category from Session (Default to 'Women' if not set)
+        $currentCategory = $request->getSession()->get('shop_category', 'Women');
 
-        // 2. Fetch the Products (Filtered by Gender)
-        $products = $productRepo->findByGender($currentGender);
-        // Fetch the 3 newest products
+        // 2. Fetch the Products (Filtered by Master Category)
+        $products = $productRepo->findByMasterCategory($currentCategory);
+
+        // Fetch the newest/top products
         $topProducts = $productRepo->findTopSellers(3);
-        // 3. Send to your Template`
+
+        // 3. Send to your Template
         return $this->render('frontend/home/index.html.twig', [
-            'women_count' => $productRepo->count(['gender' => 'Women']),
-            'men_count'   => $productRepo->count(['gender' => 'Men']),
-            'acc_count' => $productRepo->countByCategoryName('Accessories'),
-            'active_gender' => $currentGender,
-            'products' => $products,
-            'topProducts' => $topProducts,
+            'women_count'      => $productRepo->countByMasterCategory('Women'),
+            'men_count'        => $productRepo->countByMasterCategory('Men'),
+            'acc_count'        => $productRepo->countByMasterCategory('Accessories'),
+            'unisex_count'     => $productRepo->countByMasterCategory('Unisex'),
+            'women_categories' => $categoryRepo->findByName('Women'),
+            'men_categories'   => $categoryRepo->findByName('Men'),
+            'acc_categories'   => $categoryRepo->findByName('Accessories'),
+            'active_category'  => $currentCategory,
+            'products'         => $products,
+            'topProducts'      => $topProducts,
         ]);
     }
 
@@ -59,10 +66,10 @@ class HomeController extends AbstractController
 
         // 4. TODO: Save to Database OR Send to Brevo API
         // Example:
-        // $subscriber = new NewsletterSubscriber();
-        // $subscriber->setEmail($email);
-        // $em->persist($subscriber);
-        // $em->flush();
+        $subscriber = new NewsletterSubscriber();
+        $subscriber->setEmail($email);
+        $em->persist($subscriber);
+        $em->flush();
 
         // 5. Send Success Message and Redirect
         $this->addFlash('success', 'Welcome to the circle! You have successfully subscribed.');

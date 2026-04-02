@@ -16,7 +16,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-// 1. RBAC FIX: Explicitly lock this entire controller to Admins only
 #[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/account')]
 class AdminAccountController extends AbstractController

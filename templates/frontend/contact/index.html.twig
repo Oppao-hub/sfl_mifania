@@ -3,113 +3,88 @@
 {% block title %}Contact Us | Mifania Sustainable Fashion Line{% endblock %}
 
 {% block main_content %}
-   <section class="py-16 bg-light-gray text-center border-b border-gray-200">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand">Contact Us</h1>
-        {% include 'components/frontend/breadcrumbs.html.twig' with {
-            items: [
-                { name: 'Home', url: path('app_home') },
-                { name: 'Contact Us' }
-            ]
-        } %}
+   <section class="pt-10 pb-6 bg-light-gray text-center border-b border-gray-200 reveal">
+        <h1 class="text-2xl md:text-4xl font-black tracking-tighter text-brand uppercase">Contact Us</h1>
+        <div class="mt-4 flex justify-center">
+            {% include 'components/frontend/breadcrumbs.html.twig' ignore missing with {
+                items: [
+                    { name: 'Home', url: path('app_home') },
+                    { name: 'Contact Us' }
+                ]
+            } %}
+        </div>
     </section>
 
     <section class="max-w-[1440px] mx-auto bg-white px-6 md:px-12 py-16 lg:py-24">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16">
 
-            <div class="lg:col-span-2">
-                <h2 class="text-2xl md:text-3xl font-bold text-brand-dark mb-2">Get in Touch</h2>
-                <p class="text-sm text-gray-500 mb-8">Your email address will not be published. Required fields are marked *</p>
+            {# FORM #}
+            <div class="lg:col-span-2 reveal">
+                <h2 class="text-2xl md:text-3xl font-bold text-brand-dark mb-2 uppercase tracking-tight">Get in Touch</h2>
+                <p class="text-sm text-gray-500 mb-8 font-medium">Your email address will not be published. Required fields are marked *</p>
 
-                <form action="{{ path('app_contact') }}" method="POST" class="space-y-6">
+                {% form_theme form 'form/error_theme.html.twig' %}
+                {% set label_style = 'text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block' %}
+                {% set input_base = 'w-full px-4 py-3 border border-gray-200 rounded-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors text-sm font-medium' %}
+
+                {{ form_start(form, {'attr': {'class': 'space-y-6', 'novalidate': 'novalidate'}}) }}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="flex flex-col gap-2">
-                            <label for="name" class="text-sm font-bold text-gray-800">Your Name *</label>
-                            <input type="text" id="name" name="name" placeholder="Ex. Paolo Mifania" required
-                                class="w-full px-4 py-3 border border-gray-200 rounded-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors text-sm">
+                        <div class="flex flex-col">
+                            {{ form_label(form.name, 'Your Name *', { label_attr: {'class': label_style} }) }}
+                            {{ form_widget(form.name, {'attr': {'class': input_base, 'placeholder': 'Ex. Paolo Mifania'}}) }}
+                            {{ form_errors(form.name) }}
                         </div>
-
-                        <div class="flex flex-col gap-2">
-                            <label for="email" class="text-sm font-bold text-gray-800">Email *</label>
-                            <input type="email" id="email" name="email" placeholder="example@gmail.com" required
-                                class="w-full px-4 py-3 border border-gray-200 rounded-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors text-sm">
+                        <div class="flex flex-col">
+                            {{ form_label(form.email, 'Email *', { label_attr: {'class': label_style} }) }}
+                            {{ form_widget(form.email, {'attr': {'class': input_base, 'placeholder': 'example@gmail.com'}}) }}
+                            {{ form_errors(form.email) }}
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <label for="subject" class="text-sm font-bold text-gray-800">Subject *</label>
-                        <input type="text" id="subject" name="subject" placeholder="Enter Subject" required
-                            class="w-full px-4 py-3 border border-gray-200 rounded-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors text-sm">
+                    <div class="flex flex-col">
+                        {{ form_label(form.subject, 'Subject *', { label_attr: {'class': label_style} }) }}
+                        {{ form_widget(form.subject, {'attr': {'class': input_base, 'placeholder': 'Enter Subject'}}) }}
+                        {{ form_errors(form.subject) }}
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <label for="message" class="text-sm font-bold text-gray-800">Your Message *</label>
-                        <textarea id="message" name="message" rows="6" placeholder="Enter here.." required
-                            class="w-full px-4 py-3 border border-gray-200 rounded-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors text-sm resize-y"></textarea>
+                    <div class="flex flex-col">
+                        {{ form_label(form.message, 'Your Message *', { label_attr: {'class': label_style} }) }}
+                        {{ form_widget(form.message, {'attr': {'class': input_base ~ ' resize-y', 'rows': '6', 'placeholder': 'Enter here..'}}) }}
+                        {{ form_errors(form.message) }}
                     </div>
 
-                    <button type="submit" class="bg-brand-dark hover:bg-brand text-white px-10 py-3.5 text-sm font-bold tracking-widest rounded-sm shadow-sm transition-colors uppercase cursor-pointer">
-                        Send Message
+                    <button type="submit"
+                            onclick="this.classList.add('opacity-80', 'pointer-events-none'); this.querySelector('.btn-text').classList.add('invisible'); this.querySelector('.btn-spinner').classList.remove('hidden');"
+                            class="relative inline-flex items-center justify-center bg-brand text-white px-10 py-4 text-xs font-bold tracking-widest rounded-sm shadow-md transition-all uppercase cursor-pointer hover:bg-brand-dark hover:-translate-y-0.5 mt-2">
+                        <span class="btn-text">Send Message</span>
+                        <svg class="btn-spinner hidden absolute w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </button>
-                </form>
+                {{ form_end(form) }}
             </div>
 
-            <div class="bg-light-gray p-8 lg:p-10 rounded-sm h-fit">
-
-                {# Address #}
+            {# INFO BAR #}
+            <div class="bg-light-gray p-8 lg:p-10 rounded-sm h-fit reveal" style="transition-delay: 200ms;">
                 <div class="mb-8">
-                    <h3 class="text-lg font-bold text-brand-dark mb-3">Address</h3>
-                    <p class="text-sm text-gray-600 leading-relaxed">National Highway, Zamboanguita, Negros Oriental, Philippines</p>
+                    <h3 class="text-sm uppercase tracking-widest font-bold text-brand-dark mb-3">Address</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed font-medium">National Highway, Zamboanguita, Negros Oriental, Philippines</p>
                 </div>
-
                 <div class="mb-8">
-                    <h3 class="text-lg font-bold text-brand-dark mb-3">Contact</h3>
-                    <ul class="text-sm text-gray-600 space-y-2">
-                        <li><span class="font-semibold text-gray-800">Phone :</span> +63 09234 2342</li>
-                        <li><span class="font-semibold text-gray-800">Email :</span> mifaniasfl@example.com</li>
+                    <h3 class="text-sm uppercase tracking-widest font-bold text-brand-dark mb-3">Contact</h3>
+                    <ul class="text-sm text-gray-600 space-y-2 font-medium">
+                        <li><span class="font-bold text-gray-800">Phone :</span> +63 09234 2342</li>
+                        <li><span class="font-bold text-gray-800">Email :</span> mifaniasfl@example.com</li>
                     </ul>
                 </div>
-
                 <div class="mb-8">
-                    <h3 class="text-lg font-bold text-brand-dark mb-3">Open Time</h3>
-                    <ul class="text-sm text-gray-600 space-y-3">
-                        <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 w-full max-w-xs">
-                            <span class="whitespace-nowrap">Monday - Friday</span>
-                            <span class="whitespace-nowrap font-medium">10:00 AM - 08:00 PM</span>
-                        </li>
-                        <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 w-full max-w-xs">
-                            <span class="whitespace-nowrap">Saturday - Sunday</span>
-                            <span class="whitespace-nowrap font-medium">11:00 AM - 06:00 PM</span>
+                    <h3 class="text-sm uppercase tracking-widest font-bold text-brand-dark mb-3">Open Time</h3>
+                    <ul class="text-sm text-gray-600 space-y-3 font-medium">
+                        <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 w-full">
+                            <span class="whitespace-nowrap">Mon - Fri</span>
+                            <span class="whitespace-nowrap font-bold text-gray-800">10:00 AM - 08:00 PM</span>
                         </li>
                     </ul>
                 </div>
-
-                <div>
-                    <h3 class="text-lg font-bold text-brand-dark mb-4">Stay Connected</h3>
-                    <div class="flex gap-4">
-                        <a href="https://www.facebook.com/profile.php?id=61586255665900" target="_blank" class="w-8 h-8 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors">
-                            {{ ux_icon('lucide:facebook', { class: 'h-4 w-4 text-white' }) }}
-                        </a>
-                        <a href="#" class="w-8 h-8 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors">
-                            {{ ux_icon('lucide:instagram', { class: 'h-4 w-4 text-white' }) }}
-                        </a>
-                        <a href="https://www.tiktok.com/@mifania.sfl" target="_blank" class="w-8 h-8 bg-brand rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors">
-                            {{ ux_icon('ic:baseline-tiktok', { class: 'h-4 w-4 text-white' }) }}
-                        </a>
-                    </div>
-                </div>
-
             </div>
         </div>
-    </section>
-
-    <section class="w-full h-[300px] md:h-[450px] bg-gray-200 grayscale hover:grayscale-0 transition-all duration-700">
-        <iframe
-            width="100%"
-            height="100%"
-            frameborder="0"
-            style="border:0"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3945.000000000000!2d123.166667!3d9.100000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33ab700000000000%3A0x0000000000000000!2sZamboanguita%2C%20Negros%20Oriental%2C%20Philippines!5e0!3m2!1sen!2sus!4v1600000000000!5m2!1sen!2sus"
-            allowfullscreen>
-        </iframe>
     </section>
 {% endblock %}

@@ -1,67 +1,89 @@
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}Admin Management{% endblock %}
+{% block title %}Admin Management | Mifania{% endblock %}
 
 {% block main_content %}
     {% embed 'components/table/table.html.twig' with {
         title: 'Manage Admins',
+        icon: 'lucide:user-star',
+        entity_name: 'Admin',
+        total_count: admins|length,
         new_path: 'app_admin_new',
-        headers: ['ID', 'First Name', 'Last Name', 'Email', 'Account Status', 'Actions'],
-        id: 'dashboard-table'
+        headers: ['ID', 'First Name', 'Last Name', 'Email', 'Status', 'Actions']
     } %}
 
         {% block rows %}
             {% for admin in admins %}
-                <tr class="hover:bg-row-hover transition-colors">
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">#{{ admin.id }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ admin.firstName }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">{{ admin.lastName }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-medium text-gray">{{ admin.user.email }}</td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm text-center">
-                        <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': admin.user.id}) }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ admin.user.id) }}">
+                <tr class="hover:bg-row-hover transition-colors group">
+                    <td class="px-6 py-4 text-xs font-mono text-gray">#{{ admin.id }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-brand-dark">{{ admin.firstName }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-brand-dark">{{ admin.lastName }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray">{{ admin.user.email }}</td>
+                    <td class="px-6 py-4">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': admin.user.id}) }}" class="m-0">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ admin.user.id) }}">
 
-                            <select name="status"
-                                    onchange="$dispatch('open-status-modal', {
-                                        url: '{{ path('app_admin_user_toggle_status', {id: admin.user.id}) }}',
-                                        email: '{{ admin.user.email|e('js') }}',
-                                        currentStatus: '{{ admin.user.status.value }}',
-                                        token: '{{ csrf_token('toggle' ~ admin.user.id) }}'
-                                    }); this.value = '{{ admin.user.status.value }}';"
-                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none transition-colors border
-                                    {% if admin.user.status.value == 'Active' %}
-                                        text-success bg-success/10 border-success/20 hover:bg-success/20
-                                    {% else %}
-                                        text-danger bg-danger/10 border-danger/20 hover:bg-danger/20
-                                    {% endif %}">
+                                <select name="status"
+                                        onchange="window.dispatchEvent(new CustomEvent('open-status-modal', {
+                                            detail: {
+                                                url: '{{ path('app_admin_user_toggle_status', {id: admin.user.id}) }}',
+                                                email: '{{ admin.user.email|e('js') }}',
+                                                currentStatus: '{{ admin.user.status.value }}',
+                                                token: '{{ csrf_token('toggle' ~ admin.user.id) }}'
+                                            }
+                                        })); this.value = '{{ admin.user.status.value }}';"
+                                        class="text-[10px] font-black uppercase tracking-widest py-1.5 px-3 rounded-lg cursor-pointer outline-none transition-colors border shadow-sm
+                                        {% if admin.user.status.value|lower == 'active' %}
+                                            text-success bg-success/10 border-success/20 hover:bg-success/20
+                                        {% else %}
+                                            text-danger bg-danger/10 border-danger/20 hover:bg-danger/20
+                                        {% endif %}">
 
-                                <option value="Active" {% if admin.user.status.value == 'Active' %}selected{% endif %}>Active</option>
-                                <option value="Deactivated" {% if admin.user.status.value != 'Active' %}selected{% endif %}>Deactivated</option>
-                            </select>
-                        </form>
+                                    <option value="Active" {% if admin.user.status.value|lower == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="Deactivated" {% if admin.user.status.value|lower != 'active' %}selected{% endif %}>Deactivated</option>
+                                </select>
+                            </form>
+                        {% else %}
+                            <span class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg border
+                                {% if admin.user.status.value|lower == 'active' %}
+                                    text-success bg-success/10 border-success/20
+                                {% else %}
+                                    text-danger bg-danger/10 border-danger/20
+                                {% endif %}">
+                                {{ admin.user.status.value }}
+                            </span>
+                        {% endif %}
                     </td>
-                    <td class="border-y border-border-color py-3 px-4 text-sm text-center">
-                        <div class="flex justify-center items-center gap-2">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
                             <a href="{{ path('app_admin_show', { id: admin.id }) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all" title="View">
                                 {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                             </a>
 
                             <a href="{{ path('app_admin_edit', { id: admin.id }) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all" title="Edit">
                                 {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
-
+                        {% if is_granted('ROLE_ADMIN') %}
                             <button type="button"
                                 @click="$dispatch('open-delete-modal', {
                                     url: '{{ path('app_admin_delete', {id: admin.id}) }}',
-                                    name: '{{ admin.firstName|e('js') }} {{ admin.lastName|e('js') }}',
+                                    name: 'Admin {{ admin.firstName|e('js') }} {{ admin.lastName|e('js') }}',
                                     token: '{{ csrf_token('delete' ~ admin.id) }}'
                                 })"
-                                class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                class="p-2 text-terracotta hover:text-danger hover:bg-red-50 bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer" title="Delete">
                                 {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                             </button>
+                        {% endif %}
                         </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray font-medium">
+                        No administrators found in the database.
                     </td>
                 </tr>
             {% endfor %}

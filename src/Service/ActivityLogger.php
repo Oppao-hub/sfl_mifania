@@ -10,8 +10,8 @@ use Symfony\Bundle\SecurityBundle\Security;
 class ActivityLogger
 {
     public function __construct(
-        private EntityManagerInterface $em,
-        private Security $security
+        private readonly EntityManagerInterface $em,
+        private readonly Security $security
     ) {
     }
 
@@ -28,14 +28,20 @@ class ActivityLogger
 
         if ($user instanceof User) {
             $log->setUser($user);
-            $roles = implode(', ', $user->getRoles());
+
+            // Polish: Grab the highest privilege role for a cleaner UI badge
+            $roles = $user->getRoles();
+            $primaryRole = in_array('ROLE_ADMIN', $roles) ? 'ROLE_ADMIN' : 'ROLE_USER';
+            $log->setRole($primaryRole);
         } else {
-            $roles = 'IS_AUTHENTICATED_ANONYMOUSLY';
+            // Polish: Cleaner system fallback string
+            $log->setRole('SYSTEM');
         }
 
-        $log->setRole($roles);
         $log->setAction($action);
         $log->setTargetData($targetData);
+
+        // (If your ActivityLog __construct already sets this, you can safely remove this line)
         $log->setCreatedAt(new \DateTimeImmutable());
 
         $this->em->persist($log);
@@ -43,12 +49,10 @@ class ActivityLogger
         // 3. Handle Saving Strategy
         if ($performFlush) {
             // SCENARIO A: Called from Controller (Registration, etc.)
-            // We save immediately.
             $this->em->flush();
         } else {
             // SCENARIO B: Called from onFlush Listener
-            // We CANNOT flush here (infinite loop).
-            // We must manually calculate the change set so the current flush picks it up.
+            // Compute the change set so Doctrine inserts this log in the current transaction queue
             $uow = $this->em->getUnitOfWork();
             $uow->computeChangeSet($this->em->getClassMetadata(ActivityLog::class), $log);
         }

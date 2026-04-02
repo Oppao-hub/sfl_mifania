@@ -3,36 +3,29 @@
 namespace App\Controller\Dashboard;
 
 use App\Entity\Product;
-use App\Entity\QRTag;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Color\Color;
-use Endroid\QrCode\QrCode as QrCodeQrCode;
-use Endroid\QrCode\RoundBlockSizeMode;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/product')]
-final class ProductController extends AbstractController
+class ProductController extends AbstractController
 {
     #[Route('/', name: 'app_product_index', methods: ['GET'])]
     public function index(ProductRepository $productRepository): Response
     {
-        $products = $productRepository->findAll();
+        $products = $productRepository->findBy([], ['createdAt' => 'DESC']);
 
-        if (empty($products)) {
-            $this->addFlash('warning', 'No Products found. Please create one first.');
+        if(empty($products)) {
+            $this->addFlash('warning', 'No products found. Please create one first.');
             return $this->redirectToRoute('app_product_new', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -43,15 +36,18 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/new', name: 'app_product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $product = new Product();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            /** @var UploadedFile $imageFile */
             $imageFile = $form->get('image')->getData();
 
+            // Handle Image Upload
             if ($imageFile) {
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
@@ -59,54 +55,19 @@ final class ProductController extends AbstractController
 
                 try {
                     $imageFile->move(
-                        $this->getParameter('product_images_directory'),
+                        $this->getParameter('product_images_directory'), // Make sure this is in services.yaml
                         $newFilename
                     );
+                    $product->setImage($newFilename);
                 } catch (FileException $e) {
-                    $this->addFlash('error', 'Error uploading image.');
+                    $this->addFlash('error', 'There was an issue uploading your product image.');
                 }
-                $product->setImage($newFilename);
             }
-            $em->persist($product);
-            $em->flush();
 
-            // Generate a dynamic, production-ready absolute URL for the QR Code
-            $qrValue = $this->generateUrl(
-                'app_product_show',
-                ['id' => $product->getId()],
-                UrlGeneratorInterface::ABSOLUTE_URL
-            );
+            $entityManager->persist($product);
+            $entityManager->flush(); // <--- ActivityLogger subscriber automatically catches this!
 
-            // Generate QR Code Image
-            $qrCode = new QrCodeQrCode(
-                data: $qrValue,
-                encoding: new Encoding('UTF-8'),
-                errorCorrectionLevel: ErrorCorrectionLevel::High,
-                size: 300,
-                margin: 10,
-                roundBlockSizeMode: RoundBlockSizeMode::Margin,
-                foregroundColor: new Color(0, 0, 0),
-                backgroundColor: new Color(255, 255, 255),
-            );
-
-            $writer = new PngWriter();
-            $result = $writer->write($qrCode);
-
-            // File path to save the QR image
-            $filePath = $this->getParameter('product_qr_directory');
-            $fileName = 'product' . $product->getId() . '.png';
-            $result->saveToFile($filePath . '/' . $fileName);
-
-            // Create QRTag entity and relate it to Product
-            $qrTag = new QRTag();
-            $qrTag->setProduct($product);
-            $qrTag->setQrCodeValue($qrValue);
-            $qrTag->setQrImagePath($fileName);
-
-            $em->persist($qrTag);
-            $em->flush();
-
-            $this->addFlash('success', 'Product created successfully!');
+            $this->addFlash('success', 'Manifest saved: ' . $product->getName() . ' has been added to the catalog.');
             return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -130,15 +91,13 @@ final class ProductController extends AbstractController
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
-        $currentImage = $product->getImage();
-
         if ($form->isSubmitted() && $form->isValid()) {
+
+            /** @var UploadedFile $imageFile */
             $imageFile = $form->get('image')->getData();
 
+            // Handle Image Upload Replacement
             if ($imageFile) {
-                // BUG FIX: Store the old image filename before replacing it
-                $oldImage = $product->getImage();
-
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
@@ -149,27 +108,18 @@ final class ProductController extends AbstractController
                         $newFilename
                     );
 
-                    // BUG FIX: Physically delete the old product image from the server
-                    if ($oldImage) {
-                        $oldImagePath = $this->getParameter('product_images_directory') . '/' . $oldImage;
-                        if (file_exists($oldImagePath)) {
-                            unlink($oldImagePath);
-                        }
-                    }
+                    // Optional: You could add logic here to delete the old image file from the server
 
+                    $product->setImage($newFilename);
                 } catch (FileException $e) {
-                    $this->addFlash('error', 'Error uploading image.');
+                    $this->addFlash('error', 'There was an issue uploading the new visual.');
                 }
-                $product->setImage($newFilename);
-
-            } else {
-                $product->setImage($currentImage);
             }
 
-            $entityManager->flush();
+            $entityManager->flush(); // <--- ActivityLogger subscriber catches the exact modified fields!
 
-            $this->addFlash('success', 'Product updated successfully!');
-            return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', 'Manifest updated: ' . $product->getName() . ' modifications saved.');
+            return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('dashboard/product/edit.html.twig', [
@@ -182,21 +132,16 @@ final class ProductController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->request->get('_token'))) {
 
-            // BUG FIX: Actually delete the physical image file before removing the database record!
-            if ($product->getImage()) {
-                $imagePath = $this->getParameter('product_images_directory') . '/' . $product->getImage();
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
-            }
+            $productName = $product->getName();
 
             $entityManager->remove($product);
-            $entityManager->flush();
+            $entityManager->flush(); // <--- ActivityLogger subscriber catches the deletion!
+
+            $this->addFlash('success', 'Manifest voided: ' . $productName . ' has been retired from the catalog.');
         }
 
-        $this->addFlash('success', 'Product deleted successfully!');
         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
     }
 }

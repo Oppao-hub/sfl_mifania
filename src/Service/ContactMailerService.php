@@ -5,25 +5,26 @@ namespace App\Service;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 
+/**
+ * Service handled for sending contact form messages to administrators.
+ */
 class ContactMailerService
 {
     public function __construct(
         private MailerInterface $mailer,
-        private string $adminEmail // Reusing the same admin email variable!
+        private string $adminEmail
     ) {}
 
+    /**
+     * Sends a contact form message using the configured mailer transport (e.g., Brevo).
+     */
     public function sendContactMessage(string $name, string $customerEmail, string $subject, string $message): void
     {
         $email = (new TemplatedEmail())
-            // 1. MUST send FROM your verified Gmail to avoid spam filters
-            ->from('Mifania Website <mifaniapaolo0012@gmail.com>')
-
-            // 2. But we set REPLY-TO to the customer, so when you hit "Reply" in your inbox, it goes to them!
+            ->from('Mifania SFL <mifaniapaolo0012@gmail.com>')
             ->replyTo($customerEmail)
-
-            // 3. Send it to your admin inbox
             ->to($this->adminEmail)
-            ->subject('Mifania Contact Form: ' . $subject)
+            ->subject('Mifania SFL - New Contact Inquiry: ' . $subject)
             ->htmlTemplate('email/contact_message.html.twig')
             ->context([
                 'name' => $name,

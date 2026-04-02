@@ -40,86 +40,74 @@ body {
     transition: max-height 0.3s ease-in-out;
 }
 
+@layer utilities {
+    .animate-page-intro {
+        animation: pageFadeIn 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+}
+
+@keyframes pageFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 [x-cloak] {
     display: none !important;
 }
 
 /* --- 📋 Unified DataTables 2.0 Styles --- */
 
-/* The Control Row Wrapper */
-.dt-layout-row:has(.dt-search),
-.dt-layout-row:has(.dt-length) {
-    @apply w-full border-b border-border-color pb-4 mb-4;
+/* The Custom Control Row Wrapper (Targets your JS 'dt-controls' class) */
+.dt-controls {
+    @apply w-full border-b border-border-color pb-6;
 }
 
 /* 1. Search Input */
 .dt-search input {
-    @apply bg-app-bg/50 ring-1 ring-border-color rounded-xl px-4 py-2 text-sm text-brand-dark outline-none w-64 transition-all;
+    @apply bg-app-bg ring-1 ring-border-color rounded-xl px-4 py-2.5 text-sm text-brand-dark outline-none w-64 transition-all shadow-inner;
 }
 
 .dt-search input:focus {
-    @apply ring-2 ring-brand/30 border-brand;
+    @apply ring-2 ring-brand/30 border-brand bg-white;
 }
 
 /* 2. Length Dropdown */
 .dt-length select {
-    @apply bg-app-bg/50 ring-1 ring-border-color rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-dark outline-none cursor-pointer transition-all;
+    @apply bg-white ring-1 ring-border-color rounded-xl px-4 py-2.5 text-sm font-bold text-brand-dark outline-none cursor-pointer transition-all shadow-sm;
 }
 
 .dt-length select:focus-visible {
     @apply ring-2 ring-brand/30 border-brand;
 }
 
-/* 3. Info Text (Bottom Left) */
-.dt-info {
-    @apply flex items-center gap-2 px-4 py-2 mr-2 bg-brand/10 text-brand-dark
-           rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border-none shadow-sm w-fit;
-}
-
-.dt-info::before {
-    content: "";
-    @apply w-1.5 h-1.5 rounded-full bg-brand animate-pulse;
-}
-
-/* 4. Pagination */
+/* 3. Pagination */
 .dt-paging .dt-paging-button {
-    @apply border-none bg-transparent text-gray font-black text-xs px-3 py-2 rounded-xl transition-all cursor-pointer;
+    @apply border-none bg-transparent text-gray font-black text-xs px-3.5 py-2 rounded-xl transition-all cursor-pointer;
 }
 
-/* Use standard CSS for !important overrides in DataTables */
 .dt-paging .dt-paging-button.current {
     background-color: var(--color-brand) !important;
     color: var(--color-white) !important;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    box-shadow: 0 2px 4px rgb(82 98 46 / 0.2) !important;
 }
 
 .dt-paging .dt-paging-button:hover:not(.current) {
-    background-color: var(--color-app-bg) !important;
-    color: var(--color-brand) !important;
+    background-color: var(--color-row-hover) !important;
+    color: var(--color-brand-dark) !important;
 }
 
-/* 5. Floating Table Rows */
+/* 4. Table Container Margin */
 .dt-container {
-    @apply mt-5;
+    @apply mt-2;
 }
 
-.js-datatable tbody tr td {
-    @apply border-y border-border-color bg-white transition-all duration-300 py-3 px-4;
-}
-
-.js-datatable tbody tr td:first-child {
-    @apply border-l rounded-l-2xl;
-}
-
-.js-datatable tbody tr td:last-child {
-    @apply border-r rounded-r-2xl;
-}
-
-.js-datatable tbody tr:hover td {
-    @apply border-brand/20 bg-row-hover;
-}
-
-/* 6. Sorting Arrows */
+/* 5. Sorting Arrows */
 span.dt-column-order {
     @apply inline-flex flex-col gap-[2px] ml-2 align-middle;
     width: 10px;
@@ -127,12 +115,12 @@ span.dt-column-order {
 
 span.dt-column-order::before {
     content: "";
-    @apply border-b-4 border-l-4 border-r-4 border-t-0 border-l-transparent border-r-transparent border-b-gray/30;
+    @apply border-b-4 border-l-4 border-r-4 border-t-0 border-l-transparent border-r-transparent border-b-gray/30 transition-colors;
 }
 
 span.dt-column-order::after {
     content: "";
-    @apply border-t-4 border-l-4 border-r-4 border-b-0 border-l-transparent border-r-transparent border-t-gray/30;
+    @apply border-t-4 border-l-4 border-r-4 border-b-0 border-l-transparent border-r-transparent border-t-gray/30 transition-colors;
 }
 
 th.dt-ordering-asc span.dt-column-order::before {
@@ -151,4 +139,23 @@ th.dt-ordering-desc span.dt-column-order::after {
 
 .animate-fadeIn {
     animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Custom Scrollbar for DataTables */
+.dataTables_scrollBody::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb; /* Tailwind gray-200 */
+    border-radius: 10px;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
+    background-color: #d1d5db; /* Tailwind gray-300 */
 }

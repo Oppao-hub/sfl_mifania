@@ -22,16 +22,22 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/dashboard/customer')]
 final class CustomerController extends AbstractController
 {
-
     public function __construct(private readonly CustomerRepository $customerRepository)
     {
     }
 
     #[Route(name: 'app_customer_index', methods: ['GET'])]
-    public function index(CustomerRepository $customerRepository): Response
+    public function index(): Response
     {
+        $customers = $this->customerRepository->findAll();
+
+        if (empty($customers)) {
+            $this->addFlash('warning', 'No Customer found. Please create one first.');
+            return $this->redirectToRoute('app_customer_new', [], Response::HTTP_SEE_OTHER);
+        }
+
         return $this->render('dashboard/customer/index.html.twig', [
-            'customers' => $customerRepository->findAll(),
+            'customers' => $customers,
         ]);
     }
 
@@ -45,14 +51,12 @@ final class CustomerController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
 
             $user = new User();
-            $email = $form->get('email')->getData();
-            $plainPassword = $form->get('password')->getData();
-
-            $user->setEmail($email);
+            $user->setEmail($form->get('email')->getData());
             $user->setRoles(['ROLE_CUSTOMER']);
             $user->setCustomer($customer);
-            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-            $user->setPassword($hashedPassword);
+
+            $plainPassword = $form->get('password')->getData();
+            $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
 
             $wallet = new Wallet();
             $wallet->setBalance(0);
@@ -62,26 +66,19 @@ final class CustomerController extends AbstractController
             $imageFile = $form->get('avatar')->getData();
 
             if ($imageFile) {
-                $originalFileName = pathinfo(
-                    $imageFile->getClientOriginalName(),
-                    PATHINFO_FILENAME
-                );
+                $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFileName = $slugger->slug($originalFileName);
                 $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move(
-                        $this->getParameter('customer_images_directory'),
-                        $newFileName
-                    );
+                    $imageFile->move($this->getParameter('customer_images_directory'), $newFileName);
                     $customer->setAvatar($newFileName);
                 } catch (FileException $e) {
-                    // UX FIX: Actually tell the user if the upload fails!
                     $this->addFlash('error', 'There was an error uploading the profile picture.');
-                    $customer->setAvatar('No Avatar Yet');
+                    $customer->setAvatar('default-avatar.jpg');
                 }
             } else {
-                $customer->setAvatar('No Avatar Yet');
+                $customer->setAvatar('default-avatar.jpg');
             }
 
             $em->persist($user);
@@ -124,33 +121,32 @@ final class CustomerController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_customer_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Customer $customer, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function edit(Request $request, Customer $customer, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(CustomerType::class, $customer, ['is_edit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $user = $customer->getUser();
+            if ($user) {
+                $user->setEmail($form->get('email')->getData());
+                $user->setStatus($form->get('status')->getData());
+                $user->setIsVerified($form->get('isVerified')->getData());
+            }
+
             $imageFile = $form->get('avatar')->getData();
 
             if ($imageFile) {
-                // BUG FIX: Save the old avatar filename before replacing it
                 $oldAvatar = $customer->getAvatar();
-
-                $originalFileName = pathinfo(
-                    $imageFile->getClientOriginalName(),
-                    PATHINFO_FILENAME
-                );
+                $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFileName = $slugger->slug($originalFileName);
                 $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move(
-                        $this->getParameter('customer_images_directory'),
-                        $newFileName
-                    );
+                    $imageFile->move($this->getParameter('customer_images_directory'), $newFileName);
 
-                    // BUG FIX: Physically delete the old image file (protecting the default fallback)
-                    if ($oldAvatar && $oldAvatar !== 'No Avatar Yet' && $oldAvatar !== 'default-avatar.jpg') {
+                    if ($oldAvatar && $oldAvatar !== 'default-avatar.jpg') {
                         $oldAvatarPath = $this->getParameter('customer_images_directory') . '/' . $oldAvatar;
                         if (file_exists($oldAvatarPath)) {
                             unlink($oldAvatarPath);
@@ -163,8 +159,8 @@ final class CustomerController extends AbstractController
                 }
             }
 
-            $entityManager->persist($customer);
-            $entityManager->flush();
+            $em->persist($customer);
+            $em->flush();
 
             $this->addFlash('success', 'Customer updated successfully!');
             return $this->redirectToRoute('app_customer_index', [], Response::HTTP_SEE_OTHER);
@@ -178,24 +174,23 @@ final class CustomerController extends AbstractController
 
     #[Route('/{id}', name: 'app_customer_delete', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function delete(Request $request, Customer $customer, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Customer $customer, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('delete' . $customer->getId(), $request->getPayload()->getString('_token'))) {
 
-            // BUG FIX: Delete the physical image when the Customer record is destroyed
             $avatar = $customer->getAvatar();
-            if ($avatar && $avatar !== 'No Avatar Yet' && $avatar !== 'default-avatar.jpg') {
+            if ($avatar && $avatar !== 'default-avatar.jpg') {
                 $avatarPath = $this->getParameter('customer_images_directory') . '/' . $avatar;
                 if (file_exists($avatarPath)) {
                     unlink($avatarPath);
                 }
             }
 
-            $entityManager->remove($customer);
-            $entityManager->flush();
+            $em->remove($customer);
+            $em->flush();
+            $this->addFlash('success', 'Customer deleted successfully!');
         }
 
-        $this->addFlash('success', 'Customer deleted successfully!');
         return $this->redirectToRoute('app_customer_index', [], Response::HTTP_SEE_OTHER);
     }
 
@@ -215,23 +210,13 @@ final class CustomerController extends AbstractController
 
     #[Route('/user/{id}/reset-password', name: 'app_customer_reset_password')]
     #[IsGranted('ROLE_ADMIN')]
-    public function resetPassword(
-        User $user,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager,
-    ): Response
+    public function resetPassword(User $user, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em): Response
     {
         $tempPassword = 'password123';
+        $user->setPassword($passwordHasher->hashPassword($user, $tempPassword));
+        $em->flush();
 
-        $hashedPassword = $passwordHasher->hashPassword(
-            $user,
-            $tempPassword
-        );
-
-        $user->setPassword($hashedPassword);
-        $entityManager->flush();
-
-        $this->addFlash('success', message: 'Password reset to: ' . $tempPassword);
+        $this->addFlash('success', 'Password reset to: ' . $tempPassword);
 
         return $this->redirectToRoute('app_customer_edit', ['id' => $user->getCustomer()->getId()]);
     }

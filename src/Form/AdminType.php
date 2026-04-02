@@ -11,20 +11,16 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
 
 class AdminType extends AbstractType
 {
-    // Inject Symfony Security to know who is loading this form
     public function __construct(private Security $security)
     {
     }
@@ -42,17 +38,13 @@ class AdminType extends AbstractType
                         'maxSize' => '5M',
                         'mimeTypes' => ['image/jpeg', 'image/png'],
                         'mimeTypesMessage' => 'Please upload a valid JPEG or PNG image.',
-                    ]),
+                    ])
                 ],
             ]);
 
         if (!$options['is_edit']) {
             $builder->add('password', PasswordType::class, [
                 'mapped' => false,
-                'constraints' => [
-                    new NotBlank(['message' => 'Password required']),
-                    new Length(['min' => 8]),
-                ],
             ]);
         }
 
@@ -64,7 +56,6 @@ class AdminType extends AbstractType
             $form->add('email', EmailType::class, [
                 'mapped' => false,
                 'data' => $user ? $user->getEmail() : null,
-                'constraints' => [new NotBlank(), new Email()],
             ]);
 
             $form->add('status', EnumType::class, [

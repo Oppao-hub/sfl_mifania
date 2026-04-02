@@ -18,7 +18,7 @@ class RewardTransaction
     private ?Customer $customer = null;
 
     #[ORM\ManyToOne(inversedBy: 'rewardTransactions')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Order $order = null;
 
     #[ORM\Column]

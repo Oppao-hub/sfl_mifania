@@ -1,86 +1,90 @@
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}Customers{% endblock %}
+{% block title %}Manage Customers | Mifania{% endblock %}
 
 {% block main_content %}
+
     {% embed 'components/table/table.html.twig' with {
         title: 'Manage Customers',
+        icon: 'lucide:users',
+        total_count: customers|length,
+        entity_name: 'Customer',
         new_path: 'app_customer_new',
-        headers: ['ID', 'First Name', 'Last Name', 'Email', 'Address', 'City', 'Status', 'Actions'],
-        id: 'dashboard-table'
+        headers: ['ID', 'First Name', 'Last Name', 'Email', 'Status', 'Actions']
     } %}
 
         {% block rows %}
             {% for customer in customers %}
                 <tr class="hover:bg-row-hover transition-colors group">
-                    <td class="border-y border-border-color px-4 py-3 text-xs font-mono text-gray">
-                        #{{ customer.id }}
-                    </td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
-                        {{ customer.firstName }}
-                    </td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm font-bold text-brand-dark">
-                        {{ customer.lastName }}
-                    </td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm text-gray">
-                        {{ customer.user.email }}
-                    </td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm text-gray truncate max-w-[150px]">
-                        {{ customer.address }}
-                    </td>
-                    <td class="border-y border-border-color px-4 py-3 text-sm text-gray">
-                        {{ customer.city }}
-                    </td>
+                    <td class="px-6 py-4 font-mono text-xs text-gray">#{{ customer.id }}</td>
+                    <td class="px-6 py-4 font-bold text-brand-dark">{{ customer.firstName }}</td>
+                    <td class="px-6 py-4 font-bold text-brand-dark">{{ customer.lastName }}</td>
+                    <td class="px-6 py-4 text-gray">{{ customer.user.email }}</td>
+                    <td class="px-6 py-4">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': customer.user.id}) }}" class="m-0">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ customer.user.id) }}">
 
-                    <td class="border-y border-border-color px-4 py-3 text-center">
-                        <form method="post" action="{{ path('app_admin_user_toggle_status', {'id': customer.user.id}) }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ customer.user.id) }}">
-
-                            <select name="status"
-                                    @change="$dispatch('open-status-modal', {
-                                        url: '{{ path('app_admin_user_toggle_status', {id: customer.user.id}) }}',
-                                        email: '{{ customer.user.email|e('js') }}',
-                                        currentStatus: '{{ customer.user.status.value }}',
-                                        token: '{{ csrf_token('toggle' ~ customer.user.id) }}'
-                                    }); this.value = '{{ customer.user.status.value }}';"
-                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none transition-colors border
-                                    {% if customer.user.status.value == 'Active' %}
+                                <select name="status"
+                                    onchange="window.dispatchEvent(new CustomEvent('open-status-modal', {
+                                        detail: {
+                                            url: '{{ path('app_admin_user_toggle_status', {id: customer.user.id}) }}',
+                                            email: '{{ customer.user.email|e('js') }}',
+                                            currentStatus: '{{ customer.user.status.value }}',
+                                            token: '{{ csrf_token('toggle' ~ customer.user.id) }}'
+                                        }
+                                    })); this.value = '{{ customer.user.status.value }}';"
+                                    class="text-[10px] font-black uppercase tracking-widest py-1.5 px-3 rounded-lg cursor-pointer outline-none transition-colors border shadow-sm
+                                    {% if customer.user.status.value|lower == 'active' %}
                                         text-success bg-success/10 border-success/20 hover:bg-success/20
                                     {% else %}
                                         text-danger bg-danger/10 border-danger/20 hover:bg-danger/20
                                     {% endif %}">
-                                <option value="Active" {% if customer.user.status.value == 'Active' %}selected{% endif %}>Active</option>
-                                <option value="Deactivated" {% if customer.user.status.value != 'Active' %}selected{% endif %}>Deactivated</option>
-                            </select>
-                        </form>
-                    </td>
 
-                    <td class="border-y border-border-color py-3 px-4 text-center">
-                        <div class="flex justify-center items-center gap-2">
-                            <a href="{{ path('app_customer_history', {'id': customer.id}) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all" title="Order History">
-                                {{ ux_icon('lucide:history', {class: 'w-4 h-4'}) }}
-                            </a>
-                            <a href="{{ path('app_customer_show', { id: customer.id }) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+                                    <option value="Active" {% if customer.user.status.value|lower == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="Deactivated" {% if customer.user.status.value|lower != 'active' %}selected{% endif %}>Deactivated</option>
+                                </select>
+                            </form>
+                        {% else %}
+                            <span class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg border
+                                {% if customer.user.status.value|lower == 'active' %}
+                                    text-success bg-success/10 border-success/20
+                                {% else %}
+                                    text-danger bg-danger/10 border-danger/20
+                                {% endif %}">
+                                {{ customer.user.status.value }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <a href="{{ path('app_customer_show', {id: customer.id}) }}"
+                            class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all"
+                            title="View">
                                 {{ ux_icon('lucide:eye', {class: 'w-4 h-4'}) }}
                             </a>
-                            <a href="{{ path('app_customer_edit', { id: customer.id }) }}"
-                               class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all">
+
+                            <a href="{{ path('app_customer_edit', {id: customer.id}) }}"
+                            class="p-2 text-gray hover:text-brand bg-white border border-border-color rounded-lg hover:shadow-sm transition-all"
+                            title="Edit">
                                 {{ ux_icon('lucide:edit-2', {class: 'w-4 h-4'}) }}
                             </a>
+
                             {% if is_granted('ROLE_ADMIN') %}
                                 <button type="button"
-                                    @click="$dispatch('open-delete-modal', {
-                                        url: '{{ path('app_customer_delete', {id: customer.id}) }}',
-                                        name: '{{ customer.firstName|e('js') }} {{ customer.lastName|e('js') }}',
-                                        token: '{{ csrf_token('delete' ~ customer.id) }}'
-                                    })"
-                                    class="p-2 text-terracotta hover:text-danger bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer">
+                                    @click="$dispatch('open-delete-modal', { url: '{{ path('app_customer_delete', {id: customer.id}) }}', name: 'Customer {{ customer.firstName|e('js') }}', token: '{{ csrf_token('delete' ~ customer.id) }}' })"
+                                    class="p-2 text-terracotta hover:text-danger hover:bg-red-50 bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer"
+                                    title="Delete">
                                     {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}
                                 </button>
                             {% endif %}
                         </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray font-medium">
+                        No customers found in the database.
                     </td>
                 </tr>
             {% endfor %}

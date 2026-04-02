@@ -9,6 +9,7 @@ use App\Entity\Enum\OrderStatus;
 use App\Entity\Enum\PaymentStatus;
 use App\Form\CheckoutType;
 use App\Service\CartService;
+use App\Service\RewardManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class CheckoutController extends AbstractController
 {
     #[Route('/checkout', name: 'app_checkout')]
-    public function index(Request $request, EntityManagerInterface $em, CartService $cartService): Response
+    public function index(Request $request, EntityManagerInterface $em, CartService $cartService, RewardManager $rewardManager): Response
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
@@ -74,16 +75,19 @@ class CheckoutController extends AbstractController
             }
 
             $em->persist($order);
-            $em->flush();
+            $em->flush(); // Flush now to trigger PrePersist and generate points
 
-            // FIX 3: Use the service to safely clear the cart
+            if ($customer && $order->getRewardPoints() > 0) {
+                // The service safely handles the Wallet math and the Transaction ledger!
+                $rewardManager->earnPointsFromOrder($customer, $order, $order->getRewardPoints());
+            }
+
             $cartService->clearCart();
 
             $this->addFlash('success', 'Order placed successfully!');
             return $this->redirectToRoute('app_order_success', ['id' => $order->getId()]);
         }
 
-        // FIX 4: The standard Turbo 422 error check
         $status = ($form->isSubmitted() && !$form->isValid()) ? 422 : 200;
 
         return $this->render('frontend/checkout/index.html.twig', [

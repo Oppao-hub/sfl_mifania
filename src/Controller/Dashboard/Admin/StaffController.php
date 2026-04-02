@@ -20,13 +20,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('dashboard/staff')]
 final class StaffController extends AbstractController
 {
-    #[Route(name: 'app_staff_index', methods: ['GET'])]
-    public function index(StaffRepository $staffRepository): Response
+    public function __construct(private readonly StaffRepository $staffRepository)
     {
-        $staffs = $staffRepository->findAll();
+    }
+
+    #[Route(name: 'app_staff_index', methods: ['GET'])]
+    public function index(): Response
+    {
+        $staffs = $this->staffRepository->findAll();
 
         if (empty($staffs)) {
-            $this->addFlash('warning', 'No Staffs found. Please create one first.');
+            $this->addFlash('warning', 'No Staff found. Please create one first.');
             return $this->redirectToRoute('app_staff_new', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -36,40 +40,47 @@ final class StaffController extends AbstractController
     }
 
     #[Route('/new', name: 'app_staff_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, UserPasswordHasherInterface $passwordHasher): Response
     {
         $staff = new Staff();
         $form = $this->createForm(StaffType::class, $staff);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user = new User();
 
-            // 1. Sync unmapped account data
+            $user = new User();
             $user->setEmail($form->get('email')->getData());
             $user->setStatus($form->get('status')->getData());
             $user->setIsVerified($form->get('isVerified')->getData());
             $user->setRoles(['ROLE_STAFF']);
             $user->setStaff($staff);
 
-            // 2. Hash Password
-            $hashedPassword = $passwordHasher->hashPassword($user, $form->get('password')->getData());
-            $user->setPassword($hashedPassword);
+            $plainPassword = $form->get('password')->getData();
+            $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
 
-            // 3. Handle Avatar Upload
             $imageFile = $form->get('avatar')->getData();
+
             if ($imageFile) {
-                $newFileName = $this->handleFileUpload($imageFile, $slugger);
-                $staff->setAvatar($newFileName);
+                $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFileName = $slugger->slug($originalFileName);
+                $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                try {
+                    $imageFile->move($this->getParameter('staff_images_directory'), $newFileName);
+                    $staff->setAvatar($newFileName);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'There was an error uploading the profile picture.');
+                    $staff->setAvatar('default-avatar.jpg');
+                }
             } else {
-                $staff->setAvatar('default-avatar.jpg'); // Fallback default image
+                $staff->setAvatar('default-avatar.jpg');
             }
 
-            $entityManager->persist($staff);
-            $entityManager->persist($user);
-            $entityManager->flush();
+            $em->persist($user);
+            $em->persist($staff);
+            $em->flush();
 
-            $this->addFlash('success', 'Staff record created successfully!');
+            $this->addFlash('success', 'Staff created successfully!');
             return $this->redirectToRoute('app_staff_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -80,42 +91,47 @@ final class StaffController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_staff_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Staff $staff, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function edit(Request $request, Staff $staff, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(StaffType::class, $staff, ['is_edit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user = $staff->getUser();
 
-            // 1. Manually update unmapped User fields
+            $user = $staff->getUser();
             if ($user) {
                 $user->setEmail($form->get('email')->getData());
                 $user->setStatus($form->get('status')->getData());
                 $user->setIsVerified($form->get('isVerified')->getData());
             }
 
-            // 2. Handle Avatar Update & Cleanup
             $imageFile = $form->get('avatar')->getData();
+
             if ($imageFile) {
-                // BUG FIX: Save the old avatar filename before replacing it
                 $oldAvatar = $staff->getAvatar();
+                $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFileName = $slugger->slug($originalFileName);
+                $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-                $newFileName = $this->handleFileUpload($imageFile, $slugger);
-                $staff->setAvatar($newFileName);
+                try {
+                    $imageFile->move($this->getParameter('staff_images_directory'), $newFileName);
 
-                // BUG FIX: Physically delete the old image file (protecting the default image)
-                if ($oldAvatar && $oldAvatar !== 'default-avatar.jpg') {
-                    $oldAvatarPath = $this->getParameter('staff_images_directory') . '/' . $oldAvatar;
-                    if (file_exists($oldAvatarPath)) {
-                        unlink($oldAvatarPath);
+                    if ($oldAvatar && $oldAvatar !== 'default-avatar.jpg') {
+                        $oldAvatarPath = $this->getParameter('staff_images_directory') . '/' . $oldAvatar;
+                        if (file_exists($oldAvatarPath)) {
+                            unlink($oldAvatarPath);
+                        }
                     }
+
+                    $staff->setAvatar($newFileName);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'There was an error uploading the profile picture.');
                 }
             }
 
-            $entityManager->flush();
+            $em->flush();
 
-            $this->addFlash('success', 'Staff record updated successfully!');
+            $this->addFlash('success', 'Staff updated successfully!');
             return $this->redirectToRoute('app_staff_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -123,27 +139,6 @@ final class StaffController extends AbstractController
             'staff' => $staff,
             'form' => $form,
         ]);
-    }
-
-    /**
-     * Helper to process staff avatars
-     */
-    private function handleFileUpload($imageFile, SluggerInterface $slugger): string
-    {
-        $originalFileName = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeFileName = $slugger->slug($originalFileName);
-        $newFileName = $safeFileName . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-        try {
-            $imageFile->move(
-                $this->getParameter('staff_images_directory'), // Ensure this exists in services.yaml
-                $newFileName
-            );
-        } catch (FileException $e) {
-            $this->addFlash('error', 'There was an error uploading the staff profile picture.');
-        }
-
-        return $newFileName;
     }
 
     #[Route('/{id}', name: 'app_staff_show', methods: ['GET'])]
@@ -155,9 +150,10 @@ final class StaffController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_staff_delete', methods: ['POST'])]
-    public function delete(Request $request, Staff $staff, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Staff $staff, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$staff->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $staff->getId(), $request->getPayload()->getString('_token'))) {
+
             $avatar = $staff->getAvatar();
             if ($avatar && $avatar !== 'default-avatar.jpg') {
                 $avatarPath = $this->getParameter('staff_images_directory') . '/' . $avatar;
@@ -166,20 +162,20 @@ final class StaffController extends AbstractController
                 }
             }
 
-            $entityManager->remove($staff);
-            $entityManager->flush();
-            $this->addFlash('success', 'Staff record deleted successfully!');
+            $em->remove($staff);
+            $em->flush();
+            $this->addFlash('success', 'Staff deleted successfully!');
         }
 
         return $this->redirectToRoute('app_staff_index', [], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/user/{id}/reset-password', name: 'app_staff_reset_password')]
-    public function resetPassword(User $user, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    public function resetPassword(User $user, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em): Response
     {
         $tempPassword = 'password123';
         $user->setPassword($passwordHasher->hashPassword($user, $tempPassword));
-        $entityManager->flush();
+        $em->flush();
 
         $this->addFlash('success', 'Password reset to: ' . $tempPassword);
 

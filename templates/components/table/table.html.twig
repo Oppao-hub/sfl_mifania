@@ -1,44 +1,42 @@
-<div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden animate-fadeIn">
+<div class="bg-white rounded-lg shadow-sm border border-border-color overflow-hidden animate-fadeIn">
 
-    <div class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-app-bg border-b border-border-color">
+    <div class="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white border-b border-border-color">
         <div class="flex items-center gap-4">
-            <div class="p-2.5 bg-white rounded-xl text-brand border border-border-color shadow-sm hidden sm:block">
-                {{ ux_icon('lucide:database', {class: 'w-5 h-5'}) }}
+            <div class="p-2.5 bg-app-bg rounded-xl text-brand border border-border-color shadow-sm hidden sm:block">
+                {{ ux_icon(icon|default('lucide:database'), {class: 'w-5 h-5'}) }}
             </div>
             <div>
-                <h1 class="text-2xl md:text-3xl font-black text-brand-dark tracking-tighter uppercase leading-none">
+                <h1 class="text-2xl font-black text-brand-dark tracking-tighter uppercase leading-none">
                     {{ title|default('Records') }}
                 </h1>
-                <p class="text-[10px] text-gray mt-1.5 uppercase font-black tracking-[0.3em]">System Data Overview</p>
             </div>
         </div>
 
         {% if new_path is defined %}
             <a href="{{ path(new_path) }}"
-                class="group px-6 py-3.5 rounded-xl bg-brand text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-dark transition-all flex items-center gap-2 active:scale-95 shadow-md shadow-brand/20 cursor-pointer">
+                class="group px-6 py-3 rounded-xl bg-brand text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-dark transition-all flex items-center gap-2 active:scale-95 shadow-md shadow-brand/20 cursor-pointer">
                 {{ ux_icon('lucide:plus', {class: 'w-4 h-4 transition-transform group-hover:rotate-90'}) }}
-                Add New Record
+                Add New {{ entity_name|default('Record') }}
             </a>
         {% endif %}
     </div>
 
-    {# DataTables will inject search/length inside this wrapper via the 'dom' property #}
-    <div class="p-6 md:p-8">
-        <div class="overflow-x-auto">
-            <table id="{{ id|default('dashboard-table') }}"
-                class="js-datatable w-full border-separate border-spacing-y-2 text-sm text-left">
-                <thead>
-                    <tr class="text-gray uppercase text-[10px] font-black tracking-[0.2em]">
-                        {% for header in headers %}
-                            <th class="pb-4 px-4 whitespace-nowrap">{{ header }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
+    <div class="p-6 w-full overflow-x-auto">
+        <table class="js-datatable w-full text-sm text-left whitespace-nowrap relative">
 
-                <tbody>
-                    {% block rows %}{% endblock %}
-                </tbody>
-            </table>
-        </div>
+            {# 2. Added sticky, top-0, and z-10 so it stays above the rows #}
+            <thead class="bg-app-bg rounded-xl sticky top-0 z-10 shadow-sm">
+                <tr class="text-gray uppercase text-[10px] font-black tracking-[0.15em]">
+                    {% for header in headers %}
+                        {# 3. Added bg-app-bg here to ensure the header isn't transparent when scrolling #}
+                        <th class="py-4 px-6 border-b border-border-color bg-app-bg">{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-border-color">
+                {% block rows %}{% endblock %}
+            </tbody>
+        </table>
     </div>
 </div>

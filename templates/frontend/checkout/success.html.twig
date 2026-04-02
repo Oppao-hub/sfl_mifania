@@ -1,48 +1,92 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Order Successful | Mifania{% endblock %}
+{% block title %}Order Success | Mifania{% endblock %}
 
 {% block main_content %}
-<section class="bg-gray-50 py-16 px-6 md:px-12 min-h-[70vh] flex items-center justify-center">
-    <div class="max-w-2xl mx-auto w-full">
-        <div class="bg-white p-8 md:p-12 rounded-xl shadow-sm text-center border border-gray-100">
-
-            {# Success Icon #}
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
-                {{ ux_icon('lucide:check-circle', { class: 'h-10 w-10 text-green-600' }) }}
-            </div>
-
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Thank you for your order!</h1>
-            <p class="text-gray-500 mb-8">Your order has been placed successfully and is now being processed. We will send you an email confirmation shortly.</p>
-
-            {# Order Details Box #}
-            <div class="bg-gray-50 rounded-lg p-6 text-left mb-8 border border-gray-100">
-                <h2 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Order Summary</h2>
-
-                <div class="grid grid-cols-2 gap-y-4 text-sm">
-                    <div class="text-gray-500">Order Number:</div>
-                    <div class="font-medium text-gray-900 text-right">#{{ order.id }}</div>
-
-                    <div class="text-gray-500">Date:</div>
-                    <div class="font-medium text-gray-900 text-right">{{ order.createdAt|date('F j, Y') }}</div>
-
-                    <div class="text-gray-500">Payment Method:</div>
-                    <div class="font-medium text-gray-900 text-right">{{ order.paymentMethod.value }}</div>
-
-                    <div class="text-gray-500 pt-3 border-t border-gray-200 mt-1">Total Amount:</div>
-                    <div class="font-bold text-brand text-right text-base pt-3 border-t border-gray-200 mt-1">PHP {{ order.totalAmount|number_format(2) }}</div>
-                </div>
-            </div>
-
-            {# Next Steps #}
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                {# Link back to the store #}
-                <a href="{{ path('app_shop') }}" class="px-8 py-3 bg-brand text-white font-bold rounded-md hover:bg-brand-dark transition-all shadow-md hover:shadow-lg">
-                    Continue Shopping
-                </a>
-            </div>
-
-        </div>
+<section class="pt-10 pb-6 bg-light-gray text-center border-b border-gray-200 reveal">
+    <h1 class="text-2xl md:text-4xl font-black tracking-tighter text-brand uppercase">Checkout</h1>
+    <div class="mt-4 flex justify-center">
+        {% include 'components/frontend/breadcrumbs.html.twig' with {
+            items: [
+                { name: 'Home', url: path('app_home') },
+                { name: 'Shopping Cart', url: path('app_cart_show') },
+                { name: 'Checkout', url: path('app_checkout') },
+                { name: 'Confirmation' }
+            ]
+        } %}
     </div>
 </section>
+
+
+<section class="min-h-[70vh] bg-[#FBFBFA] px-4 py-16 sm:px-6 lg:px-8 animate-fadeIn">
+    <div class="max-w-[1440px] mx-auto">
+        {# --- CHECKOUT PROGRESS --- #}
+        <div class="flex items-center justify-center mb-16 gap-4 md:gap-8">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-black border border-brand/20">
+                    {{ ux_icon('lucide:check', {class: 'w-4 h-4'}) }}
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-brand/50">Shopping Cart</span>
+            </div>
+            <div class="w-12 h-px bg-brand/30"></div>
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-black border border-brand/20">
+                    {{ ux_icon('lucide:check', {class: 'w-4 h-4'}) }}
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-brand/50">Checkout</span>
+            </div>
+            <div class="w-12 h-px bg-brand/30"></div>
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center text-xs font-black">03</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-brand">Confirmation</span>
+            </div>
+        </div>
+
+        <div class="max-w-md mx-auto text-center space-y-8 bg-white p-10 rounded-2xl shadow-sm border border-gray-100">
+            {# Success Icon #}
+            <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-50 mb-6">
+                {{ ux_icon('lucide:package-check', {class: 'h-12 w-12 text-green-600'}) }}
+            </div>
+
+        {# Text Content #}
+        <div class="space-y-3">
+            <h1 class="text-3xl font-black text-brand-dark uppercase tracking-tighter">
+                Order Confirmed!
+            </h1>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+                Manifest #{{ order.id }}
+            </p>
+            <p class="text-sm font-medium text-gray-500 tracking-widest leading-relaxed">
+                Thank you for your purchase. We are processing your collection pieces and will notify you once they depart our warehouse.
+            </p>
+        </div>
+
+        {# Order Brief #}
+        <div class="bg-app-bg p-6 rounded-xl border border-gray-100 text-left space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold text-gray-400 uppercase">Total Amount</span>
+                <span class="text-sm font-black text-brand-dark">₱{{ order.totalAmount|number_format(2) }}</span>
+            </div>
+            {% if order.rewardPoints > 0 %}
+                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Loyalty Points Earned</span>
+                    <span class="text-sm font-black text-terracotta">+{{ order.rewardPoints }} PTS</span>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Action Buttons #}
+        <div class="pt-6 space-y-4 flex flex-col items-center">
+            <a href="{{ path('app_account_orders') }}"
+               class="w-full inline-flex justify-center items-center px-6 py-4 border border-transparent text-xs font-black uppercase tracking-[0.2em] rounded-sm shadow-sm text-white bg-brand hover:bg-brand-dark hover:-translate-y-0.5 transition-all duration-200">
+                Track My Order
+            </a>
+
+            <a href="{{ path('app_shop') }}"
+               class="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-brand transition-colors mt-4 inline-block">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}

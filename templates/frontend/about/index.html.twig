@@ -3,19 +3,19 @@
 {% block title %}About Us | Mifania Sustainable Fashion Line{% endblock %}
 
 {% set company_stats = [
-    { 'number': '3+',   'label': 'Years Experience' },
-    { 'number': productCount|default('100') ~ '+',  'label': 'Eco Products' },
-    { 'number': customerCount|default('500') ~ '+', 'label': 'Happy Customers' },
+    { 'number': (yearsExperience|default(0) > 0 ? yearsExperience : '5') ~ '+',   'label': 'Years Experience' },
+    { 'number': (productCount|default(0) > 0 ? productCount : '100') ~ '+',  'label': 'Eco Products' },
+    { 'number': (customerCount|default(0) > 0 ? customerCount : '500') ~ '+', 'label': 'Happy Customers' },
     { 'number': '100%',  'label': 'Carbon Neutral' }
 ] %}
 
 {% block main_content %}
 
     {# Section 1: Page Header #}
-    <section class="py-16 bg-light-gray text-center border-b border-gray-200">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand uppercase">Our Journey</h1>
-        <div class="mt-4">
-            {% include 'components/frontend/breadcrumbs.html.twig' with {
+    <section class="pt-10 pb-6 bg-light-gray text-center border-b border-gray-200 reveal">
+        <h1 class="text-2xl md:text-4xl font-black tracking-tighter text-brand uppercase">Our Journey</h1>
+        <div class="mt-4 flex justify-center">
+            {% include 'components/frontend/breadcrumbs.html.twig' ignore missing with {
                 items: [
                     { name: 'Home', url: path('app_home') },
                     { name: 'About Us' }
@@ -28,21 +28,20 @@
     <section class="bg-white py-16 lg:py-24 overflow-hidden">
         <div class="max-w-[1440px] mx-auto px-6 md:px-12">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
-                <div class="relative">
-                    <div class="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl">
+                <div class="relative reveal">
+                    <div class="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl bg-gray-100">
                         <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover" alt="Mifania Story">
                     </div>
-                    {# Floating Badge #}
                     <div class="absolute -bottom-6 -right-6 bg-brand text-white p-8 rounded-sm hidden md:block shadow-xl">
                         <p class="text-4xl font-bold">100%</p>
                         <p class="text-[10px] uppercase tracking-widest font-bold opacity-80">Sustainable</p>
                     </div>
                 </div>
 
-                <div class="space-y-8">
+                <div class="space-y-8 reveal" style="transition-delay: 150ms;">
                     <p class="text-[10px] font-bold tracking-widest uppercase text-brand">Since 2021</p>
-                    <h2 class="text-4xl lg:text-5xl font-bold text-brand-dark leading-tight">Consciously Crafted: Nature Meets Style</h2>
-                    <p class="text-gray-500 leading-relaxed text-lg">
+                    <h2 class="text-4xl lg:text-5xl font-bold text-brand-dark leading-tight uppercase tracking-tight">Consciously Crafted</h2>
+                    <p class="text-gray-500 leading-relaxed text-lg font-medium">
                         At <span class="text-brand font-bold">MIFANIA</span>, we believe fashion should leave a positive footprint. Born from a desire to merge timeless elegance with environmental responsibility.
                     </p>
                     <div class="pt-6 border-t border-gray-100 flex items-center gap-4">
@@ -58,7 +57,7 @@
             </div>
 
             {# Stats Banner #}
-            <div class="bg-brand-dark py-12 px-6 rounded-sm text-white grid grid-cols-2 md:grid-cols-4 gap-8 text-center shadow-2xl">
+            <div class="bg-brand-dark py-12 px-6 rounded-sm text-white grid grid-cols-2 md:grid-cols-4 gap-8 text-center shadow-2xl reveal">
                 {% for stat in company_stats %}
                     <div class="border-r border-white/10 last:border-0">
                         <h3 class="text-4xl lg:text-5xl font-bold mb-1">{{ stat.number }}</h3>
@@ -70,65 +69,68 @@
     </section>
 
     {# Section 3: Sustainable Delivery #}
-    <section class="py-16 lg:py-24 px-6 md:px-12 bg-white">
-        <div class="max-w-[1440px] mx-auto text-center">
+    <section class="py-16 lg:py-24 px-6 md:px-12 bg-white border-b border-gray-100">
+        <div class="max-w-[1440px] mx-auto text-center reveal">
             <p class="text-[10px] font-bold tracking-widest uppercase text-brand mb-2">Our Promise</p>
             <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark mb-16 uppercase tracking-tight">Sustainable Delivery</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div class="text-center space-y-4">
+                <div class="text-center space-y-4 reveal" style="transition-delay: 100ms;">
                     <div class="mx-auto w-20 h-20 bg-light-gray rounded-full flex items-center justify-center text-brand">
                         {{ ux_icon('lucide:leaf', { class: 'w-10 h-10' }) }}
                     </div>
                     <h3 class="font-bold uppercase tracking-widest text-sm">Eco Packaging</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed px-6">100% compostable mailers made from cornstarch.</p>
+                    <p class="text-xs text-gray-500 leading-relaxed px-6 font-medium">100% compostable mailers made from cornstarch.</p>
                 </div>
-                <div class="text-center space-y-4">
+                <div class="text-center space-y-4 reveal" style="transition-delay: 200ms;">
                     <div class="mx-auto w-20 h-20 bg-light-gray rounded-full flex items-center justify-center text-brand">
                         {{ ux_icon('lucide:truck', { class: 'w-10 h-10' }) }}
                     </div>
                     <h3 class="font-bold uppercase tracking-widest text-sm">Carbon Neutral</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed px-6">Offsetting every delivery through reforestation.</p>
+                    <p class="text-xs text-gray-500 leading-relaxed px-6 font-medium">Offsetting every delivery through reforestation.</p>
                 </div>
-                <div class="text-center space-y-4">
+                <div class="text-center space-y-4 reveal" style="transition-delay: 300ms;">
                     <div class="mx-auto w-20 h-20 bg-light-gray rounded-full flex items-center justify-center text-brand">
                         {{ ux_icon('lucide:package-check', { class: 'w-10 h-10' }) }}
                     </div>
                     <h3 class="font-bold uppercase tracking-widest text-sm">Ethical Sourcing</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed px-6">Fair wages and safe conditions for all workers.</p>
+                    <p class="text-xs text-gray-500 leading-relaxed px-6 font-medium">Fair wages and safe conditions for all workers.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    {# Section 4: Meet Our Team (Fully Dynamic) #}
-    <section class="py-16 lg:py-24 px-6 md:px-12 bg-light-gray">
+    {# Section 4: Meet Our Team #}
+    <section id="team" class="py-16 lg:py-24 px-6 md:px-12 bg-light-gray">
         <div class="max-w-[1440px] mx-auto">
-            <div class="text-center mb-16">
+            <div class="text-center mb-16 reveal">
                 <p class="text-[10px] font-bold tracking-widest uppercase text-brand mb-2">The MIFANIA Family</p>
                 <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark uppercase tracking-tight">Meet Our Team</h2>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {% for member in team %}
-                    <div class="group">
+                    <div class="group reveal" style="transition-delay: {{ loop.index0 * 100 }}ms;">
                         <div class="relative overflow-hidden mb-6 bg-gray-200 rounded-sm aspect-[4/5]">
-                            <img src="{{ member.img }}?q=80&w=600&auto=format&fit=crop"
+                            <img src="{{ asset(member.img) }}"
                                  class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out group-hover:scale-110"
                                  alt="{{ member.name }}">
 
                             {# Social Overlay #}
                             <div class="absolute bottom-4 left-4 right-4 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 flex justify-center gap-3">
-                                <a href="#" class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-all">
+                                <a href="#" class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-all shadow-sm">
                                     {{ ux_icon('lucide:instagram', { class: 'h-5 w-5' }) }}
                                 </a>
-                                <a href="#" class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-all">
+                                <a href="#" class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-all shadow-sm">
                                     {{ ux_icon('lucide:linkedin', { class: 'h-5 w-5' }) }}
                                 </a>
                             </div>
                         </div>
                         <h3 class="font-bold text-lg text-brand-dark group-hover:text-brand transition-colors">{{ member.name }}</h3>
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{{ member.role }}</p>
+                        {% if member.bio is defined %}
+                            <p class="text-xs text-gray-500 mt-4 leading-relaxed font-medium line-clamp-2">{{ member.bio }}</p>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>

@@ -46,10 +46,12 @@ class Customer
 
     // --- CHANGED TO NULLABLE ---
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\NotBlank]
     private ?string $address = null;
 
     // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The city name can only contain letters, spaces, hyphens, and apostrophes.'
@@ -58,6 +60,7 @@ class Customer
 
     // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The country name can only contain letters, spaces, hyphens, and apostrophes.'
@@ -66,6 +69,7 @@ class Customer
 
     // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The state name can only contain letters, spaces, hyphens, and apostrophes.'
@@ -73,6 +77,7 @@ class Customer
     private ?string $state = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Assert\NotBlank]
     #[Assert\Length(
         max: 20,
         maxMessage: 'The postal code cannot be longer than {{ limit }} characters.'
@@ -80,6 +85,11 @@ class Customer
     private ?string $postalCode = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\File(
+        maxSize: '5M',
+        mimeTypes: ['image/jpeg', 'image/png'],
+        mimeTypesMessage: 'Please upload a valid JPEG or PNG image.'
+    )]
     private ?string $avatar = null;
 
     #[ORM\Column]
@@ -145,8 +155,6 @@ class Customer
         }
     }
 
-    // ... [Getters and Setters remain exactly the same as before] ...
-
     public function getId(): ?int
     {
         return $this->id;
@@ -157,7 +165,7 @@ class Customer
         return $this->firstName;
     }
 
-    public function setFirstName(string $firstName): static
+    public function setFirstName(?string $firstName): static
     {
         $this->firstName = $firstName;
         return $this;
@@ -168,7 +176,7 @@ class Customer
         return $this->lastName;
     }
 
-    public function setLastName(string $lastName): static
+    public function setLastName(?string $lastName): static
     {
         $this->lastName = $lastName;
         return $this;

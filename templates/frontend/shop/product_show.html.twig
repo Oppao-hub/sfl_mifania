@@ -59,15 +59,6 @@
                     {% endif %}
                 </div>
 
-                {% if product.ecoInfo %}
-                    <div class="flex items-center gap-3 bg-brand/5 border border-brand/10 px-4 py-3 rounded-sm mb-8 w-fit">
-                        {{ ux_icon('lucide:leaf', {class: 'w-4 h-4 text-brand'}) }}
-                        <span class="text-[10px] font-bold text-brand uppercase tracking-widest">
-                            {{ product.ecoInfo }}
-                        </span>
-                    </div>
-                {% endif %}
-
                 <p class="text-light-brown text-sm leading-relaxed max-w-lg font-medium">
                     {{ product.description|default('Elevate your wardrobe with our signature piece, crafted from ethically sourced materials for lasting comfort and timeless style.') }}
                 </p>

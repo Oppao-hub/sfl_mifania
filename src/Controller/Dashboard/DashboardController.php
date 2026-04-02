@@ -39,48 +39,55 @@ class DashboardController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult() ?? 0;
 
-        // --- 2. MONTHLY PERCENTAGE CALCULATIONS ---
+        // --- 2. PERCENTAGE CALCULATIONS ---
         $startOfCurrentMonth = new \DateTime('first day of this month midnight');
         $startOfLastMonth    = new \DateTime('first day of last month midnight');
         $endOfLastMonth      = new \DateTime('last day of last month 23:59:59');
-
-        $parameters = new ArrayCollection([
-            new Parameter('start', $startOfLastMonth),
-            new Parameter('end', $endOfLastMonth),
-        ]);
 
         $calcChange = function ($current, $previous) {
             if ($previous == 0) return $current > 0 ? 100.0 : 0.0;
             return (($current - $previous) / $previous) * 100;
         };
 
+        // A. VELOCITY METRICS (New activity this month vs Last month)
         // Sales Change
         $salesLastMonth = $orderRepository->createQueryBuilder('o')->select('SUM(o.totalAmount)')
-            ->where('o.createdAt BETWEEN :start AND :end')->setParameters($parameters)->getQuery()->getSingleScalarResult() ?? 0;
+            ->where('o.createdAt BETWEEN :start AND :end')
+            ->setParameter('start', $startOfLastMonth)
+            ->setParameter('end', $endOfLastMonth)
+            ->getQuery()->getSingleScalarResult() ?? 0;
         $salesCurrentMonth = $orderRepository->createQueryBuilder('o')->select('SUM(o.totalAmount)')
-            ->where('o.createdAt >= :start')->setParameter('start', $startOfCurrentMonth)->getQuery()->getSingleScalarResult() ?? 0;
+            ->where('o.createdAt >= :start')
+            ->setParameter('start', $startOfCurrentMonth)
+            ->getQuery()->getSingleScalarResult() ?? 0;
         $salesChange = $calcChange($salesCurrentMonth, $salesLastMonth);
 
         // Orders Change
         $ordersLastMonth = $orderRepository->createQueryBuilder('o')->select('COUNT(o.id)')
-            ->where('o.createdAt BETWEEN :start AND :end')->setParameters($parameters)->getQuery()->getSingleScalarResult() ?? 0;
+            ->where('o.createdAt BETWEEN :start AND :end')
+            ->setParameter('start', $startOfLastMonth)
+            ->setParameter('end', $endOfLastMonth)
+            ->getQuery()->getSingleScalarResult() ?? 0;
         $ordersCurrentMonth = $orderRepository->createQueryBuilder('o')->select('COUNT(o.id)')
-            ->where('o.createdAt >= :start')->setParameter('start', $startOfCurrentMonth)->getQuery()->getSingleScalarResult() ?? 0;
+            ->where('o.createdAt >= :start')
+            ->setParameter('start', $startOfCurrentMonth)
+            ->getQuery()->getSingleScalarResult() ?? 0;
         $ordersChange = $calcChange($ordersCurrentMonth, $ordersLastMonth);
 
-        // Customers Change
-        $customersLastMonth = $customerRepository->createQueryBuilder('c')->select('COUNT(c.id)')
-            ->where('c.createdAt BETWEEN :start AND :end')->setParameters($parameters)->getQuery()->getSingleScalarResult() ?? 0;
-        $customersCurrentMonth = $customerRepository->createQueryBuilder('c')->select('COUNT(c.id)')
-            ->where('c.createdAt >= :start')->setParameter('start', $startOfCurrentMonth)->getQuery()->getSingleScalarResult() ?? 0;
-        $customersChange = $calcChange($customersCurrentMonth, $customersLastMonth);
+        // B. GROWTH METRICS (Total now vs Total at start of month)
+        // Customers Growth
+        $customersAtStartOfMonth = $customerRepository->createQueryBuilder('c')->select('COUNT(c.id)')
+            ->where('c.createdAt < :start')
+            ->setParameter('start', $startOfCurrentMonth)
+            ->getQuery()->getSingleScalarResult() ?? 0;
+        $customersChange = $calcChange($totalCustomers, $customersAtStartOfMonth);
 
-        // Products Change
-        $productsLastMonth = $productRepository->createQueryBuilder('p')->select('COUNT(p.id)')
-            ->where('p.createdAt BETWEEN :start AND :end')->setParameters($parameters)->getQuery()->getSingleScalarResult() ?? 0;
-        $productsCurrentMonth = $productRepository->createQueryBuilder('p')->select('COUNT(p.id)')
-            ->where('p.createdAt >= :start')->setParameter('start', $startOfCurrentMonth)->getQuery()->getSingleScalarResult() ?? 0;
-        $productsChange = $calcChange($productsCurrentMonth, $productsLastMonth);
+        // Products Growth
+        $productsAtStartOfMonth = $productRepository->createQueryBuilder('p')->select('COUNT(p.id)')
+            ->where('p.createdAt < :start')
+            ->setParameter('start', $startOfCurrentMonth)
+            ->getQuery()->getSingleScalarResult() ?? 0;
+        $productsChange = $calcChange($totalProducts, $productsAtStartOfMonth);
 
         $stats = [
             'total_sales'     => $totalSales,

@@ -3,8 +3,10 @@
 namespace App\Controller\Dashboard\Admin;
 
 use App\Entity\ActivityLog;
+use App\Repository\ActivityLogRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -14,18 +16,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ActivityLogController extends AbstractController
 {
     #[Route('', name: 'app_activity_log_index')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(ActivityLogRepository $activityLogRepository, Request $request): Response
     {
-        // Added the '100' limit parameter at the end to ensure the server
-        // doesn't crash trying to load thousands of log records at once.
-        $logs = $entityManager->getRepository(ActivityLog::class)->findBy(
-            [],
-            ['createdAt' => 'DESC'],
-            100
-        );
+        $query = $request->query->get('q');
+
+        $logs = $activityLogRepository->searchLogs($query);
 
         return $this->render('dashboard/activity_log/index.html.twig', [
             'logs' => $logs,
+            'searchQuery' => $query,
         ]);
     }
 

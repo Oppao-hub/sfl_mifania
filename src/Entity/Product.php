@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Enum\Size;
 use App\Entity\Enum\Color;
-use App\Entity\Enum\Gender;
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -54,11 +53,6 @@ class Product
     #[Assert\NotNull(message: 'Please select a color palette.')]
     #[Groups(['product:read'])]
     private ?Color $color = null;
-
-    #[ORM\Column(length: 20, enumType: Gender::class, nullable: false)]
-    #[Assert\NotNull(message: 'Please select a gender/fit.')]
-    #[Groups(['product:read'])]
-    private ?Gender $gender = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Price is required.')]
@@ -113,21 +107,11 @@ class Product
     #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'product')]
     private Collection $cartItems;
 
-    #[ORM\Column]
-    #[Groups(['product:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[Groups(['product:read'])]
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
-
     #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'You must assign this product to a sub-category.')]
     #[Groups(['product:read'])]
     private ?SubCategory $subCategory = null;
-
-    // NOTE: The redundant Category relationship has been completely removed!
 
     /**
      * @var Collection<int, Customer>
@@ -135,8 +119,16 @@ class Product
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'wishlist')]
     private Collection $wishlisted;
 
-    #[ORM\ManyToOne(inversedBy: 'Product')]
+    #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Story $story = null;
+
+    #[ORM\Column]
+    #[Groups(['product:read'])]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[Groups(['product:read'])]
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
@@ -159,43 +151,57 @@ class Product
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    // BUG FIX: Actually set the slug property!
     #[ORM\PrePersist]
     public function generateSlugOnPersist(): void
     {
         if (empty($this->slug) && !empty($this->name)) {
-            $this->slug = $this->generateSlug($this->name);
+            $text = preg_replace('~[^\pL\d]+~u', '-', $this->name);
+            $text = trim($text, '-');
+            $this->slug = strtolower($text);
         }
-    }
-
-    private function generateSlug(string $text): string
-    {
-        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-        $text = trim($text, '-');
-        $text = strtolower($text);
-        return $text;
     }
 
     // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
+
     public function getName(): ?string { return $this->name; }
-    public function setName(string $name): static { $this->name = $name; return $this; }
+
+    // BUG FIX: ? Added to prevent 500 error
+    public function setName(?string $name): static { $this->name = $name; return $this; }
+
     public function getPrice(): ?string { return $this->price; }
-    public function setPrice(string $price): static { $this->price = $price; return $this; }
+
+    public function setPrice(?string $price): static { $this->price = $price; return $this; }
+
     public function getCost(): ?string { return $this->cost; }
-    public function setCost(string $cost): static { $this->cost = $cost; return $this; }
+
+    public function setCost(?string $cost): static { $this->cost = $cost; return $this; }
+
     public function getDescription(): ?string { return $this->description; }
+
     public function setDescription(?string $description): static { $this->description = $description; return $this; }
+
     public function getSize(): ?Size { return $this->size; }
-    public function setSize(Size $size): static { $this->size = $size; return $this; }
+
+    // BUG FIX: ? Added to prevent 500 error
+    public function setSize(?Size $size): static { $this->size = $size; return $this; }
+
     public function getColor(): ?Color { return $this->color; }
+
     public function setColor(?Color $color): static { $this->color = $color; return $this; }
-    public function getGender(): ?Gender { return $this->gender; }
-    public function setGender(?Gender $gender): static { $this->gender = $gender; return $this; }
+
     public function getMaterial(): ?string { return $this->material; }
-    public function setMaterial(string $material): static { $this->material = $material; return $this; }
+
+    // BUG FIX: ? Added to prevent 500 error
+    public function setMaterial(?string $material): static { $this->material = $material; return $this; }
+
     public function getSlug(): ?string { return $this->slug; }
-    public function setSlug(string $slug): static { $this->slug = $slug; return $this; }
+
+    // BUG FIX: ? Added to prevent 500 error
+    public function setSlug(?string $slug): static { $this->slug = $slug; return $this; }
+
     public function getQrTag(): ?QRTag { return $this->qrTag; }
 
     public function setQrTag(?QRTag $qrTag): static
@@ -207,7 +213,10 @@ class Product
     }
 
     public function getImage(): ?string { return $this->image; }
-    public function setImage(string $image): self { $this->image = $image; return $this; }
+
+    // BUG FIX: ? Added to prevent 500 error
+    public function setImage(?string $image): self { $this->image = $image ?: 'default.png'; return $this; }
+
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
@@ -307,6 +316,7 @@ class Product
         return $this->subCategory;
     }
 
+    // BUG FIX: ? Added to prevent 500 error
     public function setSubCategory(?SubCategory $subCategory): static
     {
         $this->subCategory = $subCategory; return $this;

@@ -21,7 +21,6 @@ final class SubCategoryController extends AbstractController
     {
         $subCategories = $subCategoryRepository->findAll();
 
-        // 2. UX FIX: Added empty state handling
         if (empty($subCategories)) {
             $this->addFlash('warning', 'No Sub-categories found. Please create one first.');
             return $this->redirectToRoute('app_sub_category_new', [], Response::HTTP_SEE_OTHER);

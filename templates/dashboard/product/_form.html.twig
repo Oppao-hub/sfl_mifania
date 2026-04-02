@@ -6,7 +6,7 @@
 
 {{ form_start(form, {'attr': {'class': 'relative space-y-8', 'novalidate': 'novalidate'}}) }}
 
-    {# ---  STICKY HEADER --- #}
+    {# --- STICKY HEADER --- #}
     <div class="sticky top-24 z-40 bg-white/90 backdrop-blur-md border border-border-color rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
             <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
@@ -39,16 +39,18 @@
                 <div>
                     {{ form_label(field, null, { label_attr: {'class': label_style} }) }}
                     {{ form_widget(field, {'attr': {'class': field.vars.block_prefixes.1 == 'choice' ? select_style : input_base}}) }}
+                    <div class="mt-2">{{ form_errors(field) }}</div>
                 </div>
             {% endfor %}
         </div>
 
         {# SECTION 2: Physical Attributes #}
         <div class="p-8 md:p-10 bg-app-bg border-b border-border-color grid grid-cols-1 md:grid-cols-4 gap-6">
-            {% for field in [form.material, form.size, form.color, form.gender] %}
+            {% for field in [form.material, form.size, form.color] %}
                 <div>
                     {{ form_label(field, null, { label_attr: {'class': label_style} }) }}
                     {{ form_widget(field, {'attr': {'class': select_style}}) }}
+                    <div class="mt-2">{{ form_errors(field) }}</div>
                 </div>
             {% endfor %}
         </div>
@@ -62,6 +64,7 @@
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray font-black group-focus-within:text-brand transition-colors">₱</span>
                         {{ form_widget(field, {'attr': {'class': input_base ~ ' pl-10'}}) }}
                     </div>
+                    <div class="mt-2">{{ form_errors(field) }}</div>
                 </div>
             {% endfor %}
         </div>
@@ -71,7 +74,7 @@
             <div>
                 {{ form_label(form.description, null, { label_attr: {'class': label_style} }) }}
                 {{ form_widget(form.description, {'attr': {'class': input_base ~ ' min-h-[150px] italic leading-relaxed bg-white', 'placeholder': 'Describe the collection piece...'}}) }}
-                {{ form_errors(form.description) }}
+                <div class="mt-2">{{ form_errors(form.description) }}</div>
             </div>
             <div>
                 {{ form_label(form.ecoInfo, 'Sustainability Impact (Eco Info)', { label_attr: {'class': label_style ~ ' text-brand'} }) }}
@@ -79,7 +82,7 @@
                     <div class="absolute left-4 top-4 text-brand/40">{{ ux_icon('lucide:leaf', {class: 'w-4 h-4'}) }}</div>
                     {{ form_widget(form.ecoInfo, {'attr': {'class': input_base ~ ' pl-12 bg-brand/5 border-brand/20 italic text-brand placeholder:text-brand/50', 'placeholder': 'Materials used, ethical sourcing details...'}}) }}
                 </div>
-                {{ form_errors(form.ecoInfo) }}
+                <div class="mt-2">{{ form_errors(form.ecoInfo) }}</div>
             </div>
             <div>
                 {{ form_label(form.story, 'Transparency Narrative', { label_attr: {'class': label_style ~ ' text-brand'} }) }}
@@ -87,7 +90,7 @@
                     <div class="absolute left-4 top-4 text-brand/40">{{ ux_icon('lucide:book-open', {class: 'w-4 h-4'}) }}</div>
                     {{ form_widget(form.story, {'attr': {'class': select_style ~ ' pl-12 bg-brand/5 border-brand/20 text-brand font-bold'}}) }}
                 </div>
-                {{ form_errors(form.story) }}
+                <div class="mt-2">{{ form_errors(form.story) }}</div>
             </div>
         </div>
 
@@ -106,6 +109,7 @@
                 <label class="{{ label_style }}">Update Imagery</label>
                 <div class="bg-app-bg border-2 border-dashed border-border-color rounded-2xl p-8 hover:border-brand/30 transition-all cursor-pointer">
                     {{ form_widget(form.image, {'attr': {'class': 'text-xs text-gray file:mr-6 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-brand/10 file:text-brand hover:file:bg-brand hover:file:text-white transition-all cursor-pointer'}}) }}
+                    <div class="mt-4">{{ form_errors(form.image) }}</div>
                 </div>
             </div>
         </div>
