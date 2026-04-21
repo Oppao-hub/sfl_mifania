@@ -5,6 +5,8 @@ namespace App\EventSubscriber;
 use App\Entity\Staff;
 use App\Entity\Admin;
 use App\Entity\Customer;
+use App\Entity\Product;
+use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\NotificationPublisher;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
@@ -23,6 +25,10 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Customer::class)]
 #[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Customer::class)]
 #[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Customer::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Product::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Product::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Product::class)]
 class DatabaseNotificationListener
 {
     public function __construct(
@@ -50,44 +56,57 @@ class DatabaseNotificationListener
     private function handleNotification(string $action, object $entity, bool $includeLink = true): void
     {
         $currentUser = $this->security->getUser();
-        if (!$currentUser) return;
+        if (!$currentUser instanceof User) return;
 
         // 1. Identify Entity Type and target Route
         $name = 'Record';
         $route = 'app_dashboard';
         $titlePrefix = 'Registry';
+        $type = 'system';
 
         if ($entity instanceof Staff) {
             $name = $entity->getFirstName() . ' ' . $entity->getLastName();
             $route = 'app_staff_show';
             $titlePrefix = 'Staff';
+            $type = 'staff';
         } elseif ($entity instanceof Admin) {
             $name = $entity->getFirstName() . ' ' . $entity->getLastName();
             $route = 'app_admin_show';
             $titlePrefix = 'Admin';
+            $type = 'admin';
         } elseif ($entity instanceof Customer) {
             $name = $entity->getFirstName() . ' ' . $entity->getLastName();
             $route = 'app_customer_show';
             $titlePrefix = 'Customer';
+            $type = 'customer';
+        } elseif ($entity instanceof Product) {
+            $name = $entity->getName();
+            $route = 'app_product_show';
+            $titlePrefix = 'Product';
+            $type = 'product';
         }
 
-        // 1. Fetch all Admin users
-        $admins = $this->userRepository->findAllAdmins();
+        // 1. Fetch all management users (Admins and Staff)
+        $managers = $this->userRepository->findAllManagement();
 
         // 2. Determine who made the change for the message context
         $actorRole = in_array('ROLE_ADMIN', $currentUser->getRoles()) ? 'An Admin' : 'A Staff Member';
 
-        // 3. Loop through and notify every Admin
-        foreach ($admins as $adminUser) {
-            // Optional: Don't notify the admin if THEY are the one who made the change
-            if ($adminUser === $currentUser) continue;
+        // 3. Loop through and notify every manager
+        /** @var User $managerUser */
+        foreach ($managers as $managerUser) {
+            // Skip the person who actually performed the action
+            if ($managerUser->getId() === $currentUser->getId()) {
+                continue;
+            }
 
             $this->notificationPublisher->send(
-                $adminUser,
+                $managerUser,
                 "$titlePrefix $action",
                 "$actorRole updated the system: $name has been $action.",
                 $includeLink ? $route : 'app_dashboard',
-                $includeLink ? ['id' => $entity->getId()] : []
+                $includeLink ? ['id' => $entity->getId()] : [],
+                $type
             );
         }
     }

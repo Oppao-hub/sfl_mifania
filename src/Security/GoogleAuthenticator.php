@@ -61,47 +61,48 @@ class GoogleAuthenticator extends OAuth2Authenticator
                 $email = $googleUser->getEmail();
 
                 // 1. Check if user already exists
-                $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-                if ($existingUser) {
-                    return $existingUser;
+                $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+                if (!$user) {
+                    // 2. Create new user specifically as Staff (except for the configured admin)
+                    $user = new User();
+                    $user->setEmail($email);
+                    // Use a high-entropy random password
+                    $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));
+
+                    // Assign Roles based on email
+                    if ($email === $_ENV['ADMIN_EMAIL']) {
+                        $user->setRoles(['ROLE_SUPER_ADMIN']);
+                        
+                        // Link Admin profile
+                        $admin = new Admin();
+                        $admin->setFirstName($googleUser->getFirstName());
+                        $admin->setLastName($googleUser->getLastName());
+                        $admin->setUser($user);
+                        $this->entityManager->persist($admin);
+                    } else {
+                        // All other new Google logins are Staff by default for this flow
+                        $user->setRoles(['ROLE_STAFF']);
+                        
+                        // Link Staff profile
+                        $staff = new Staff();
+                        $staff->setFirstName($googleUser->getFirstName());
+                        $staff->setLastName($googleUser->getLastName());
+                        $staff->setUser($user);
+                        $this->entityManager->persist($staff);
+                    }
+
+                    $this->entityManager->persist($user);
                 }
 
-                // 2. Create user and automatically verify them
-                $user = new User();
-                $user->setEmail($email);
-                $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));
-                $user->setRoles(['ROLE_STAFF']);
+                // 3. Mandatory Automatic Verification for Google Sign-ins
                 $user->setIsVerified(true);
-
-                $staff = new Staff();
-                $staff->setFirstName($googleUser->getFirstName());
-                $staff->setLastName($googleUser->getLastName());
-
-                // Grab Google Profile Picture URL
-                // if ($googleUser->getAvatar()) {
-                //     $staff->setAvatar($googleUser->getAvatar());
-                // } else {
-                //     $staff->setAvatar('default-avatar.jpg');
-                // }
-
-                $user->setStaff($staff);
-                $staff->setUser($user);
-
-                $this->entityManager->persist($user);
-                $this->entityManager->persist($staff);
                 $this->entityManager->flush();
-
-                // 3. Trigger Notifications for the new user
-                try {
-                    $this->registerNotifier->sendNewUserNotification($user);
-                    $this->registerNotifier->sendUserWelcomeEmail($user);
-                } catch (\Exception $e) {
-                    // Silently fail if mailer is not configured to avoid blocking login
-                }
 
                 return $user;
             }),
             [
+                // 4. Persistence ensured via RememberMeBadge
                 new RememberMeBadge(),
             ]
         );

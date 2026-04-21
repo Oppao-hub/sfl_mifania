@@ -60,3 +60,25 @@ document.addEventListener("turbo:before-cache", () => {
         }
     });
 });
+
+document.addEventListener('alpine:init', () => {
+    Alpine.data('scrollReveal', (customThreshold = 0.15) => ({
+        shown: false,
+        init() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        this.shown = true;
+                    }
+                    else {
+                        this.shown = false;
+                    }
+                });
+            }, {
+                threshold: [0, customThreshold]
+            });
+
+            observer.observe(this.$el);
+        }
+    }));
+});

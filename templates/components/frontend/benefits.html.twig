@@ -1,31 +1,45 @@
-<section class="bg-white py-12 lg:py-16 px-6 md:px-12 border-t border-gray-100 w-full">
-    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-10 lg:gap-12">
-        <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
-            <div class="text-brand">
-                {{ ux_icon('lucide:truck', { class: 'h-8 w-8 lg:h-10 lg:w-10' }) }}
+{% set benefits = [
+    {
+        'title': 'Gentle on the Earth',
+        'description': 'Dyed exclusively with plant-based and non-toxic inks, our fabrics are breathable, hypoallergenic, and safe for sensitive skin.',
+        'icon': 'lucide:leaf'
+    },
+    {
+        'title': 'Built for Decades',
+        'description': 'We reject fast fashion. Every seam is reinforced and every silhouette is designed to remain relevant long after trends fade.',
+        'icon': 'lucide:infinity'
+    },
+    {
+        'title': 'Carbon-Neutral Delivery',
+        'description': 'From our studio to your doorstep, every shipment is packaged in compostable materials and its carbon footprint is 100% offset.',
+        'icon': 'icon-park-outline:delivery'
+    }
+] %}
+
+<section class="py-16 lg:py-24 px-6 md:px-12 bg-white border-gray-100 overflow-hidden">
+    {# FIXED: Replaced scrollReveal() with x-intersect #}
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16" x-data="{ shown: false }" x-intersect.once="shown = true">
+
+        {% for benefit in benefits %}
+            {% set delay = loop.index0 * 300 %}
+            <div
+                class="flex flex-col items-center text-center group transform transition-all duration-700 ease-out"
+                style="transition-delay: {{ delay }}ms;"
+                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
+            >
+                <div class="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center text-brand mb-6 transition-transform duration-300 group-hover:-translate-y-1">
+                    {{ ux_icon(benefit.icon, { class: 'w-7 h-7' }) }}
+                </div>
+
+                <h3 class="font-black text-brand-dark text-sm lg:text-base mb-3 uppercase tracking-[0.15em]">
+                    {{ benefit.title }}
+                </h3>
+
+                <p class="text-sm text-gray-500 leading-relaxed font-medium max-w-sm">
+                    {{ benefit.description }}
+                </p>
             </div>
-            <div>
-                <h3 class="font-bold text-brand text-md lg:text-lg mb-1 uppercase tracking-wider">Free Shipping</h3>
-                <p class="text-xs lg:text-sm text-gray-500">Free shipping for orders above PHP 1500.</p>
-            </div>
-        </div>
-        <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
-            <div class="text-brand">
-                {{ ux_icon('lucide:credit-card', { class: 'h-8 w-8 lg:h-10 lg:w-10' }) }}
-            </div>
-            <div>
-                <h3 class="font-bold text-brand text-md lg:text-lg mb-1 uppercase tracking-wider">Flexible Payment</h3>
-                <p class="text-xs lg:text-sm text-gray-500">Multiple secure payment options.</p>
-            </div>
-        </div>
-        <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
-            <div class="text-brand">
-                {{ ux_icon('lucide:headset', { class: 'h-8 w-8 lg:h-10 lg:w-10' }) }}
-            </div>
-            <div>
-                <h3 class="font-bold text-brand text-md lg:text-lg mb-1 uppercase tracking-wider">24x7 Support</h3>
-                <p class="text-xs lg:text-sm text-gray-500">We support online all days.</p>
-            </div>
-        </div>
+        {% endfor %}
+
     </div>
 </section>

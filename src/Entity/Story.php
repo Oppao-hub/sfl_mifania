@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+
 use App\Repository\StoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,8 +16,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ],
     normalizationContext: ['groups' => ['story:read']],
-    denormalizationContext: ['groups' => ['story:write']]
 )]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: StoryRepository::class)]
@@ -28,23 +34,23 @@ class Story
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['story:read', 'story:write', 'product:read'])]
+    #[Groups(['story:read', 'product:read'])]
     #[Assert\NotBlank(message: 'The story headline cannot be empty.')]
     #[Assert\Length(max: 100, maxMessage: 'The headline cannot be longer than {{ limit }} characters.')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['story:read', 'story:write', 'product:read'])]
+    #[Groups(['story:read', 'product:read'])]
     #[Assert\NotBlank(message: 'Please describe the raw materials origin.')]
     private ?string $materialContent = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['story:read', 'story:write', 'product:read'])]
+    #[Groups(['story:read', 'product:read'])]
     #[Assert\NotBlank(message: 'Please describe the ethical craft and artisans.')]
     private ?string $artisanContent = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['story:read', 'story:write', 'product:read'])]
+    #[Groups(['story:read', 'product:read'])]
     #[Assert\NotBlank(message: 'Please describe the eco-dyeing process.')]
     private ?string $dyeingContent = null;
 
@@ -75,8 +81,6 @@ class Story
         $this->createdAt ??= new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
-
-    // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
 

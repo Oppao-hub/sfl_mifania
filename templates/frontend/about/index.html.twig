@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="space-y-8 reveal" style="transition-delay: 150ms;">
-                    <p class="text-[10px] font-bold tracking-widest uppercase text-brand">Since 2021</p>
+                    <p class="text-[10px] font-bold tracking-widest uppercase text-brand">Since {{ "now"|date("Y") - yearsExperience|default(5) }}</p>
                     <h2 class="text-4xl lg:text-5xl font-bold text-brand-dark leading-tight uppercase tracking-tight">Consciously Crafted</h2>
                     <p class="text-gray-500 leading-relaxed text-lg font-medium">
                         At <span class="text-brand font-bold">MIFANIA</span>, we believe fashion should leave a positive footprint. Born from a desire to merge timeless elegance with environmental responsibility.
@@ -49,7 +49,7 @@
                              {{ ux_icon('lucide:quote', { class: 'h-6 w-6' }) }}
                         </div>
                         <div>
-                            <p class="text-xl text-brand font-medium italic" style="font-family: 'Dancing Script', cursive;">Paolo Mifania</p>
+                            <p class="text-xl text-brand font-medium italic" style="font-family: 'Dancing Script', cursive;">{{ team[0].name|default('Jane Doe') }}</p>
                             <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Founder & CEO</p>
                         </div>
                     </div>
@@ -68,40 +68,39 @@
         </div>
     </section>
 
-    {# Section 3: Sustainable Delivery #}
-    <section class="py-16 lg:py-24 px-6 md:px-12 bg-white border-b border-gray-100">
-        <div class="max-w-[1440px] mx-auto text-center reveal">
-            <p class="text-[10px] font-bold tracking-widest uppercase text-brand mb-2">Our Promise</p>
-            <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark mb-16 uppercase tracking-tight">Sustainable Delivery</h2>
+    {# Section 3: Vision & Mission #}
+    <section class="bg-white pb-16 lg:pb-24 overflow-hidden">
+        <div class="max-w-[1440px] mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div class="text-center space-y-4 reveal" style="transition-delay: 100ms;">
-                    <div class="mx-auto w-20 h-20 bg-light-gray rounded-full flex items-center justify-center text-brand">
-                        {{ ux_icon('lucide:leaf', { class: 'w-10 h-10' }) }}
+                {# Mission #}
+                <div class="bg-light-gray p-10 lg:p-14 rounded-sm shadow-sm reveal flex flex-col items-start border-t-4 border-brand">
+                    <div class="h-14 w-14 bg-white rounded-full flex items-center justify-center text-brand mb-6 shadow-sm">
+                        {{ ux_icon('lucide:target', { class: 'h-7 w-7' }) }}
                     </div>
-                    <h3 class="font-bold uppercase tracking-widest text-sm">Eco Packaging</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed px-6 font-medium">100% compostable mailers made from cornstarch.</p>
+                    <h3 class="text-2xl font-bold text-brand-dark uppercase tracking-widest mb-4">Our Mission</h3>
+                    <p class="text-gray-500 leading-relaxed font-medium">
+                        To redefine the fashion industry by creating high-quality, timeless garments through ethical practices and sustainable materials. We aim to prove that impeccable style and environmental responsibility can beautifully coexist.
+                    </p>
                 </div>
-                <div class="text-center space-y-4 reveal" style="transition-delay: 200ms;">
-                    <div class="mx-auto w-20 h-20 bg-light-gray rounded-full flex items-center justify-center text-brand">
-                        {{ ux_icon('lucide:truck', { class: 'w-10 h-10' }) }}
+
+                {# Vision #}
+                <div class="bg-light-gray p-10 lg:p-14 rounded-sm shadow-sm reveal flex flex-col items-start border-t-4 border-brand" style="transition-delay: 150ms;">
+                    <div class="h-14 w-14 bg-white rounded-full flex items-center justify-center text-brand mb-6 shadow-sm">
+                        {{ ux_icon('lucide:globe-2', { class: 'h-7 w-7' }) }}
                     </div>
-                    <h3 class="font-bold uppercase tracking-widest text-sm">Carbon Neutral</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed px-6 font-medium">Offsetting every delivery through reforestation.</p>
+                    <h3 class="text-2xl font-bold text-brand-dark uppercase tracking-widest mb-4">Our Vision</h3>
+                    <p class="text-gray-500 leading-relaxed font-medium">
+                        To lead the global transition towards a fully circular fashion economy. We envision a future where every thread serves a purpose, fashion waste is eliminated, and nature is preserved for generations to come.
+                    </p>
                 </div>
-                <div class="text-center space-y-4 reveal" style="transition-delay: 300ms;">
-                    <div class="mx-auto w-20 h-20 bg-light-gray rounded-full flex items-center justify-center text-brand">
-                        {{ ux_icon('lucide:package-check', { class: 'w-10 h-10' }) }}
-                    </div>
-                    <h3 class="font-bold uppercase tracking-widest text-sm">Ethical Sourcing</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed px-6 font-medium">Fair wages and safe conditions for all workers.</p>
-                </div>
+
             </div>
         </div>
     </section>
 
     {# Section 4: Meet Our Team #}
-    <section id="team" class="py-16 lg:py-24 px-6 md:px-12 bg-light-gray">
+    <section id="team" class="py-16 lg:py-24 px-6 md:px-12 bg-light-gray border-t border-gray-200">
         <div class="max-w-[1440px] mx-auto">
             <div class="text-center mb-16 reveal">
                 <p class="text-[10px] font-bold tracking-widest uppercase text-brand mb-2">The MIFANIA Family</p>
@@ -112,7 +111,7 @@
                 {% for member in team %}
                     <div class="group reveal" style="transition-delay: {{ loop.index0 * 100 }}ms;">
                         <div class="relative overflow-hidden mb-6 bg-gray-200 rounded-sm aspect-[4/5]">
-                            <img src="{{ asset(member.img) }}"
+                            <img src="{{ asset('uploads/about/' ~ member.img) }}"
                                  class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out group-hover:scale-110"
                                  alt="{{ member.name }}">
 

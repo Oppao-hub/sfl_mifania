@@ -17,7 +17,7 @@ class NotificationPublisher
         private UrlGeneratorInterface $router
     ) {}
 
-    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = []): void
+    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system'): void
     {
         $targetUrl = $this->router->generate($routeName, $routeParams);
 
@@ -26,6 +26,7 @@ class NotificationPublisher
         $notification->setMessage($message);
         $notification->setTargetUrl($targetUrl);
         $notification->setIsRead(false);
+        $notification->setType($type);
         // createdAt is handled by the constructor in your entity!
 
         // 1. Universal Recipient Mapping
@@ -41,6 +42,7 @@ class NotificationPublisher
             'title' => $title,
             'message' => $message,
             'targetUrl' => $targetUrl,
+            'type' => $type,
         ]);
 
         $this->hub->publish(new Update($topic, $payload));

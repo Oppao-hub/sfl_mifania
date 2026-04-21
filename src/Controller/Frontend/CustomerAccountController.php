@@ -97,7 +97,7 @@ class CustomerAccountController extends AbstractController
             }
 
             $em->flush();
-            $this->addFlash('success', 'Customer profile updated.');
+            $this->addFlash('success', 'Your profile has been updated.');
             return $this->redirectToRoute('app_account');
         }
 

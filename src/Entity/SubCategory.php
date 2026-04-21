@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+
 use App\Repository\SubCategoryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,8 +16,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ],
     normalizationContext: ['groups' => ['subcategory:read']],
-    denormalizationContext: ['groups' => ['subcategory:write']]
 )]
 #[ORM\Entity(repositoryClass: SubCategoryRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -39,13 +45,13 @@ class SubCategory
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['subcategory:read', 'subcategory:write'])]
+    #[Groups(['subcategory:read'])]
     #[Assert\NotBlank(message: 'A brief description is required to provide context.')]
     #[Assert\Length(max: 500, maxMessage: 'The description cannot exceed {{ limit }} characters.')]
     private ?string $description = null;
 
     #[ORM\Column(length: 100, unique: true)]
-    #[Groups(['subcategory:read', 'subcategory:write', 'category:read'])]
+    #[Groups(['subcategory:read', 'category:read'])]
     #[Assert\Regex(
         pattern: '/^[a-z0-9\-]+$/',
         message: 'The slug can only contain lowercase letters, numbers, and hyphens (e.g., maxi-dresses).'
@@ -54,7 +60,7 @@ class SubCategory
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'subCategories')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['subcategory:read', 'subcategory:write'])]
+    #[Groups(['subcategory:read'])]
     #[Assert\NotNull(message: 'You must assign this to a parent category.')]
     private ?Category $category = null;
 
@@ -72,8 +78,6 @@ class SubCategory
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'subCategory')]
     #[Groups(['subcategory:read'])]
     private Collection $products;
-
-    // --- LIFECYCLE CALLBACKS ---
 
     public function __construct()
     {

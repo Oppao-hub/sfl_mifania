@@ -5,8 +5,6 @@ namespace App\Controller\Dashboard;
 use App\Repository\CustomerRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
-use Doctrine\ORM\Query\Parameter;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +18,7 @@ class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_dashboard')]
     public function index(
+        Request $request,
         OrderRepository $orderRepository,
         CustomerRepository $customerRepository,
         ProductRepository $productRepository,
@@ -102,18 +101,37 @@ class DashboardController extends AbstractController
             ]
         ];
 
-        // --- 3. TOP SELLING PRODUCTS ---
-        $topSellingProducts = $productRepository->findTopSellingProducts(5);
+        // --- 3. TOP SELLING PRODUCTS WITH FILTER ---
+        $range = $request->query->get('range', 'this_year');
+        $startDate = null;
+
+        switch ($range) {
+            case 'today':
+                $startDate = new \DateTime('today midnight');
+                break;
+            case 'this_week':
+                $startDate = new \DateTime('monday this week midnight');
+                break;
+            case 'this_month':
+                $startDate = new \DateTime('first day of this month midnight');
+                break;
+            case 'this_year':
+                $startDate = new \DateTime('first day of January this year midnight');
+                break;
+        }
+
+        $topSellingProducts = $productRepository->findTopSellingProducts(5, $startDate);
         $topProducts = array_map(function ($row) {
             return [
-                'name'      => $row['name'] ?? 'Unknown',
-                'unitsSold' => $row['unitsSold'] ?? 0,
-                'revenue'   => $row['revenue'] ?? 0.0,
+                'product'   => $row['product'],
+                'name'      => $row['product']->getName(),
+                'price'     => $row['product']->getPrice(),
+                'image'     => $row['product']->getImage(),
+                'unitsSold' => (int) ($row['unitsSold'] ?? 0),
+                'revenue'   => (float) ($row['revenue'] ?? 0.0),
             ];
         }, $topSellingProducts);
 
-
-        // --- 4. CHART.JS GENERATION ---
         // 1. Fetch the real dynamic data from the database
         $monthlySalesData = $orderRepository->getMonthlySalesData(6);
 
@@ -162,7 +180,7 @@ class DashboardController extends AbstractController
             'totalProducts'      => $totalProducts,
             'totalOrders'        => $totalOrders,
             'totalSales'         => $totalSales,
-            'topSellingProducts' => $topProducts,
+            'topProducts' => $topProducts,
             'chart'              => $chart,
         ]);
     }

@@ -27,12 +27,16 @@ id: 'dashboard-table'
                             class="w-5 h-5 text-brand"
                             label="Edit"
                         />
-                        <twig:ActionIcon
-                            path="#"
-                            onclick="openDeleteModal({{ wallet.id }}, '{{ wallet.customer.firstName|e('js') }} {{ wallet.customer.lastName|e('js') }} Wallet', '{{ csrf_token('delete' ~ wallet.id) }}')"
-                            svgPath="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 7V4a1 1 0 011-1h2a1 1 0 011 1v3" class="w-5 h-5 text-red-600"
-                            label="Delete"
-                        />
+                        <button type="button"
+                            @click="$dispatch('open-delete-modal', {
+                                url: '{{ path('app_dashboard_wallet_delete', {id: wallet.id}) }}',
+                                name: '{{ wallet.customer.firstName|e('js') }} {{ wallet.customer.lastName|e('js') }} Wallet',
+                                token: '{{ csrf_token('delete' ~ wallet.id) }}'
+                            })"
+                            class="p-2 text-red-600 hover:text-danger hover:bg-red-50 bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer"
+                            title="Delete">
+                            {{ ux_icon('lucide:trash-2', {class: 'w-5 h-5'}) }}
+                        </button>
                     </div>
                 </td>
             </tr>

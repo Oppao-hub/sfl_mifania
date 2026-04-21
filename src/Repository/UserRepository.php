@@ -36,8 +36,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findAdmin(): ?User
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.roles LIKE :role')
+            ->andWhere('u.roles LIKE :role OR u.roles LIKE :super')
             ->setParameter('role', '%"ROLE_ADMIN"%')
+            ->setParameter('super', '%"ROLE_SUPER_ADMIN"%')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -51,9 +52,24 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         return $this->createQueryBuilder('u')
             // Use LIKE instead of JSON_CONTAINS
-            ->andWhere('u.roles LIKE :role')
+            ->andWhere('u.roles LIKE :role OR u.roles LIKE :super')
             // Wrap the role in quotes and wildcard % signs to match the JSON string
             ->setParameter('role', '%"ROLE_ADMIN"%')
+            ->setParameter('super', '%"ROLE_SUPER_ADMIN"%')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return User[] Returns an array of Admin and Staff users
+     */
+    public function findAllManagement(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.roles LIKE :admin OR u.roles LIKE :staff OR u.roles LIKE :super')
+            ->setParameter('admin', '%"ROLE_ADMIN"%')
+            ->setParameter('staff', '%"ROLE_STAFF"%')
+            ->setParameter('super', '%"ROLE_SUPER_ADMIN"%')
             ->getQuery()
             ->getResult();
     }

@@ -1,0 +1,22 @@
+<div style="font-family: 'Playfair Display', sans-serif; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.6; padding: 20px;">
+    <h2 style="color: #4A5D23; text-transform: uppercase; letter-spacing: 1px;">Welcome to the Circle.</h2>
+    <p style="font-size: 16px;">We’re thrilled you’re here.</p>
+    <p style="font-size: 16px;">At Mifania, we believe you shouldn't have to choose between flawless style and respecting the planet. Every piece we make is 100% organic, ethically crafted, and designed to last decades—not seasons.</p>
+
+    <p style="font-size: 16px; margin-top: 30px;">As a thank you for joining our community, use the code below at checkout for <strong>10% off your first purchase</strong>:</p>
+
+    <div style="text-align: center; margin: 30px 0; background-color: #f9f9f9; padding: 24px; border: 2px dashed #4A5D23; border-radius: 4px;">
+        <span style="font-size: 28px; font-weight: bold; color: #4A5D23; letter-spacing: 4px;">{{ discount_code }}</span>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="{{ url('app_shop') }}" style="background-color: #4A5D23; color: white; padding: 14px 28px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 2px; border-radius: 2px; display: inline-block;">Shop Collection</a>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 40px 0;">
+
+    <p style="font-size: 11px; color: #999; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
+        You are receiving this because you subscribed to the Mifania Newsletter.<br><br>
+        © {{ 'now'|date('Y') }} Mifania Sustainable Fashion Line.
+    </p>
+</div>

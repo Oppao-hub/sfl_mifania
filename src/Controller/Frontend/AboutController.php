@@ -17,7 +17,7 @@ class AboutController extends AbstractController
         // Dynamic counts for the stats banner
         $yearsExperience = 5;
         $productCount = $productRepo->count([]);
-        
+
         // Fix: Use LIKE for roles stored as JSON array
         $customerCount = $userRepo->createQueryBuilder('u')
             ->select('COUNT(u.id)')
@@ -26,30 +26,29 @@ class AboutController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
-        // Dynamic Team Data
         $team = [
             [
                 'name' => 'Paolo Mifania',
                 'role' => 'Founder & CEO',
-                'img' => 'uploads/about/ceo.png',
+                'img' => 'ceo.png',
                 'bio' => 'Visionary behind the sustainable movement at Mifania.'
             ],
             [
                 'name' => 'Vienna Paola Salazar',
                 'role' => 'Fashion Designer',
-                'img' => 'uploads/about/designer.png',
+                'img' => 'designer.png',
                 'bio' => 'Crafting elegance with every recycled fiber.'
             ],
             [
-                'name' => 'Oppao Imnida',
+                'name' => 'Oppao Gomez',
                 'role' => 'Lead Artisan',
-                'img' => 'uploads/about/lead-artisan.png',
+                'img' => 'lead-artisan.png',
                 'bio' => 'Mastering the craft of eco-friendly craftsmanship.'
             ],
             [
-                'name' => 'Paowikan Islander',
+                'name' => 'Bien Eltanal',
                 'role' => 'Operations Manager',
-                'img' => 'uploads/about/op-manager.png',
+                'img' => 'op-manager.png',
                 'bio' => 'Ensuring our carbon footprint stays as light as our linen.'
             ]
         ];
@@ -58,7 +57,7 @@ class AboutController extends AbstractController
             'yearsExperience' => $yearsExperience,
             'productCount' => $productCount,
             'customerCount' => (int) $customerCount,
-            'team' => $team
+            'team' => $team,
         ]);
     }
 }

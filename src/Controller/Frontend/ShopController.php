@@ -20,20 +20,20 @@ final class ShopController extends AbstractController
         $maxPrice = $request->query->getInt('maxPrice', 5000);
         $selectedColors = $request->query->all('colors');
 
-        // Grab the new parameters from the URL (e.g., /shop?department=women  OR  /shop?category=blazers)
         $department = $request->query->get('department');
         $categorySlug = $request->query->get('category');
 
-        // Always join the categories so we can filter by them safely
         $queryBuilder = $productRepository->createQueryBuilder('p')
             ->leftJoin('p.subCategory', 'sc')
             ->leftJoin('sc.category', 'c')
             ->where('p.price <= :maxPrice')
             ->setParameter('maxPrice', $maxPrice);
 
+        // Track breadcrumb name dynamically
+        $currentCategory = 'All Collection';
+
         // 1. Filter by Master Category (Department)
         if ($department) {
-            // Map simple URL strings to your exact Database Master Categories
             $categoryMap = [
                 'women' => 'Women',
                 'men' => 'Men',
@@ -42,6 +42,7 @@ final class ShopController extends AbstractController
             ];
 
             $mappedDepartment = $categoryMap[strtolower($department)] ?? ucfirst($department);
+            $currentCategory = $mappedDepartment;
 
             $queryBuilder->andWhere('c.name = :department')
                          ->setParameter('department', $mappedDepartment);
@@ -49,12 +50,16 @@ final class ShopController extends AbstractController
 
         // 2. Filter by Specific Sub-Category
         if ($categorySlug) {
+            // Replace hyphens with spaces and capitalize for a clean breadcrumb (e.g., 'maxi-dresses' -> 'Maxi Dresses')
+            $currentCategory = ucwords(str_replace('-', ' ', $categorySlug));
+
             $queryBuilder->andWhere('sc.slug = :categorySlug')
                          ->setParameter('categorySlug', $categorySlug);
         }
 
         // 3. Filter by Search Query
         if ($searchTerm) {
+            $currentCategory = 'Search Results';
             $queryBuilder->andWhere('(p.name LIKE :searchTerm OR p.description LIKE :searchTerm)')
                          ->setParameter('searchTerm', '%' . $searchTerm . '%');
         }
@@ -73,44 +78,33 @@ final class ShopController extends AbstractController
             9
         );
 
-        // Determine what to show in the Breadcrumbs/Header
-        $currentCategory = 'All';
-        if ($department) {
-            $currentCategory = $mappedDepartment ?? ucfirst($department);
-        } elseif ($categorySlug) {
-            $currentCategory = $categorySlug;
-        }
-
         return $this->render('frontend/shop/index.html.twig', [
             'currentMaxPrice' => $maxPrice,
             'selectedColors'  => $selectedColors,
             'pagination'      => $pagination,
             'searchTerm'      => $searchTerm,
-            'currentCategory' => $currentCategory, // Passes clean text to your Twig breadcrumbs!
+            'currentCategory' => $currentCategory,
         ]);
     }
 
+    // FIX: Renamed route to 'app_product_show' to match your Homepage Twig links
     #[Route('/product/{slug}', name: 'app_product_details')]
     public function show(string $slug, ProductRepository $productRepository): Response
     {
-        // Fetch specifically by the slug from the URL
         $product = $productRepository->findOneBy(['slug' => $slug]);
 
         if (!$product) {
-            throw $this->createNotFoundException('Product not found.');
+            throw $this->createNotFoundException('This sustainable piece could not be found.');
         }
 
         return $this->render('frontend/shop/product_show.html.twig', [
             'product' => $product,
-            // We still pass the slug if you want Alpine for secondary interactions
-            'slug' => $slug
         ]);
     }
 
     #[Route('/journey/{slug}', name: 'app_product_journey', methods: ['GET'])]
     public function journey(Product $product): Response
     {
-        // You can fetch extra 'Transparency' data from your database here
         return $this->render('frontend/shop/transparency_journey.html.twig', [
             'product' => $product,
         ]);

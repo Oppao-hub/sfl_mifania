@@ -21,10 +21,10 @@ class ContactMailerService
     public function sendContactMessage(string $name, string $customerEmail, string $subject, string $message): void
     {
         $email = (new TemplatedEmail())
-            ->from('Mifania SFL <mifaniapaolo0012@gmail.com>')
+            ->from('Mifania Sustainable Fashion Line <mifaniapaolo0012@gmail.com>')
             ->replyTo($customerEmail)
             ->to($this->adminEmail)
-            ->subject('Mifania SFL - New Contact Inquiry: ' . $subject)
+            ->subject('Mifania Sustainable Fashion Line - New Contact Inquiry: ' . $subject)
             ->htmlTemplate('email/contact_message.html.twig')
             ->context([
                 'name' => $name,

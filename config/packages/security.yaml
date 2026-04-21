@@ -5,17 +5,16 @@ security:
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
 
     role_hierarchy:
-        ROLE_STAFF: ROLE_USER
-        ROLE_ADMIN: ROLE_STAFF
-        ROLE_SUPER_ADMIN: ROLE_ADMIN
+        ROLE_STAFF: [ROLE_CUSTOMER]
+        ROLE_ADMIN: [ROLE_STAFF, ROLE_ALLOWED_TO_SWITCH]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
 
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
-        # used to reload user from session & other features (e.g. switch_user)
+
     firewalls:
         login:
             pattern: ^/api/login
@@ -51,24 +50,21 @@ security:
                 secret: "%kernel.secret%"
                 lifetime: 604800
                 path: /
-            # by default, the feature is enabled by checking a checkbox in the
-            # login form, uncomment the following line to always enable it.
-            #always_remember_me: true
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            switch_user: true
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
        # 1. API Rules
+        - { path: ^/api/verify-email, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login/google, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/sub_categories, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: IS_AUTHENTICATED }
+        - { path: ^/api/stories, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
         # 2. Admin & Staff Rules
         - { path: ^/admin/account, roles: ROLE_ADMIN }
@@ -77,6 +73,7 @@ security:
 
         # 3.Authenticated Rules
         - { path: ^/google/connect, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/chat, roles: ROLE_CUSTOMER }
         - { path: ^/cart, roles: PUBLIC_ACCESS }
         - { path: ^/wishlist, roles: PUBLIC_ACCESS }
         - { path: ^/checkout, roles: ROLE_CUSTOMER }

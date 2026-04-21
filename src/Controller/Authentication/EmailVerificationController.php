@@ -7,7 +7,6 @@ use App\Service\EmailVerificationService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -33,10 +32,7 @@ final class EmailVerificationController extends AbstractController
             return $this->redirectToRoute('app_resend_verification');
         }
 
-
-        $this->addFlash('success', 'Your email has been verified! You can now log in.');
-
-        return $this->redirectToRoute('app_login');
+        return $this->render('auth/verification/verification_success.html.twig');
     }
 
     #[Route('/resend-verification', name: 'app_resend_verification')]

@@ -31,6 +31,7 @@
                                             email: '{{ staff.user.email|e('js') }}',
                                             currentStatus: '{{ staff.user.status.value }}',
                                             newStatus: this.value,
+                                            fieldName: 'status',
                                             token: '{{ csrf_token('toggle' ~ staff.user.id) }}'
                                         }
                                     })); this.value = '{{ staff.user.status.value }}';"

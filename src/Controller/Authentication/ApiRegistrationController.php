@@ -70,6 +70,7 @@ class ApiRegistrationController extends AbstractController
         // Create new user
         $user = new User();
         $user->setEmail($data['email']);
+        $user->setRoles(['ROLE_CUSTOMER']);
 
         // Hash password
         $hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
@@ -125,7 +126,7 @@ class ApiRegistrationController extends AbstractController
 
         // Generate verification URL
         $verificationUrl = $this->generateUrl(
-            'api_verify_email',
+            'app_email_verification',
             ['token' => $verificationToken],
             UrlGeneratorInterface::ABSOLUTE_URL
         );

@@ -128,14 +128,20 @@
         {# SECTION 3: ACCOUNT SECURITY (Reset Actions) #}
         {% if admin.id is defined and admin.id %}
             <div class="p-8 border-t border-border-color flex justify-start bg-white">
-                <a href="{{ path('app_admin_reset_password', {'id': admin.user.id}) }}"
-                   class="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-warning hover:text-warning transition-all"
-                   onclick="return confirm('Send archival credential reset to this administrator?');">
+                <button type="button"
+                    @click="$dispatch('open-confirm', {
+                        title: 'Reset Credentials',
+                        message: 'Are you sure you want to send an archival credential reset to this administrator? They will receive an email to reset their password.',
+                        actionUrl: '{{ path('app_admin_reset_password', {'id': admin.user.id}) }}',
+                        confirmText: 'Confirm Reset',
+                        isDanger: false
+                    })"
+                    class="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-warning hover:text-warning transition-all cursor-pointer">
                     <div class="p-2.5 bg-warning/10 rounded-xl group-hover:bg-warning group-hover:text-white transition-all shadow-sm">
                         {{ ux_icon('lucide:refresh-cw', {class: 'w-4 h-4'}) }}
                     </div>
                     Reset Password
-                </a>
+                </button>
             </div>
         {% endif %}
     </div>

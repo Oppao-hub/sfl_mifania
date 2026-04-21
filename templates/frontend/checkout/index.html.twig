@@ -40,7 +40,8 @@
             </div>
         </div>
 
-        {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-16', novalidate: 'novalidate' } }) }}
+        <turbo-frame id="checkout-form">
+            {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-16', novalidate: 'novalidate' } }) }}
 
             <div class="lg:col-span-2 space-y-12">
 
@@ -88,20 +89,29 @@
 
                     <div class="grid grid-cols-1 gap-4">
                         {% for child in checkoutForm.paymentMethod %}
-                            <label class="group relative flex items-center p-6 border border-gray-200 rounded-sm hover:border-brand transition-all cursor-pointer bg-app-bg/30 peer-checked:bg-white peer-checked:shadow-sm">
+                            <div class="relative">
                                 {{ form_widget(child, { attr: { class: 'peer hidden' } }) }}
-                                <div class="w-5 h-5 rounded-full border-2 border-gray-200 mr-4 flex items-center justify-center peer-checked:border-brand peer-checked:bg-brand transition-all relative z-10">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+
+                                {# Visual Radio Circle (Sibling of peer) #}
+                                <div class="absolute left-6 top-[32px] w-5 h-5 rounded-full border-2 border-gray-200 flex items-center justify-center transition-all pointer-events-none peer-checked:border-brand peer-checked:bg-brand z-20">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></div>
                                 </div>
-                                <div class="flex flex-col relative z-10">
-                                    <span class="text-[11px] font-black text-brand-dark uppercase tracking-widest">{{ child.vars.label }}</span>
-                                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                                        {% if child.vars.label == 'CASH' %} Pay securely upon delivery {% else %} Encrypted electronic payment {% endif %}
-                                    </span>
-                                </div>
-                                <div class="absolute inset-0 border-2 border-transparent peer-checked:border-brand rounded-sm transition-all pointer-events-none"></div>
-                            </label>
+
+                                <label for="{{ child.vars.id }}" class="group relative flex items-center p-6 border border-gray-200 rounded-sm hover:border-brand transition-all cursor-pointer bg-app-bg/30 peer-checked:bg-white peer-checked:border-brand peer-checked:shadow-sm">
+                                    <div class="w-5 h-5 mr-4 flex-shrink-0"></div> {# Spacer for the absolute circle #}
+
+                                    <div class="flex flex-col relative z-10">
+                                        <span class="text-[11px] font-black text-brand-dark uppercase tracking-widest">{{ child.vars.label }}</span>
+                                        <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                            {% if child.vars.label == 'CASH' %} Pay securely upon delivery {% else %} Encrypted electronic payment {% endif %}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
                         {% endfor %}
+                        <div class="mt-2">
+                            {{ form_errors(checkoutForm.paymentMethod) }}
+                        </div>
                     </div>
                 </div>
 
@@ -184,6 +194,7 @@
             </div>
 
         {{ form_end(checkoutForm) }}
+        </turbo-frame>
     </div>
 </section>
 {% endblock %}

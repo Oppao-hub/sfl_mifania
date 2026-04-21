@@ -4,8 +4,6 @@ namespace App\Entity\Enum;
 
 enum Color: string
 {
-    // These values will be stored in the database/form submission
-    case RED = 'Red';
     case BLUE = 'Blue';
     case GREEN = 'Green';
     case BLACK = 'Black';
@@ -20,7 +18,6 @@ enum Color: string
     public function getHexCode(): string
     {
         return match ($this) {
-            self::RED => '#FF0000',
             self::BLUE => '#0000FF',
             self::GREEN => '#008000',
             self::BLACK => '#000000',

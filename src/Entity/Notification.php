@@ -20,10 +20,13 @@ class Notification
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $message = null;
 
+    #[ORM\Column(length: 50)]
+    private ?string $type = 'system';
+
     #[ORM\Column]
     private ?bool $isRead = null;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'notifications')]
@@ -35,6 +38,7 @@ class Notification
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->isRead = false;
     }
 
     public function getId(): ?int
@@ -47,7 +51,7 @@ class Notification
         return $this->title;
     }
 
-    public function setTitle(string $title): static
+    public function setTitle(?string $title): static
     {
         $this->title = $title;
 
@@ -66,7 +70,24 @@ class Notification
         return $this;
     }
 
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
     public function isRead(): ?bool
+    {
+        return $this->isRead;
+    }
+
+    public function getIsRead(): ?bool
     {
         return $this->isRead;
     }
@@ -107,7 +128,7 @@ class Notification
         return $this->targetUrl;
     }
 
-    public function setTargetUrl(string $targetUrl): static
+    public function setTargetUrl(?string $targetUrl): static
     {
         $this->targetUrl = $targetUrl;
 

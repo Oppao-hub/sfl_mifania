@@ -17,41 +17,34 @@ class NotificationRepository extends ServiceEntityRepository
         parent::__construct($registry, Notification::class);
     }
 
-    /**
-     * Return recent notifications for a given user (most recent first).
-     *
-     * @param User|null $user
-     * @param int $limit
-     * @return Notification[]
-     */
     public function findRecent(?User $user, int $limit = 5): array
     {
-        if (!$user) {
+        if (!$user || !$user->getId()) {
             return [];
         }
 
         return $this->createQueryBuilder('n')
-            ->andWhere('n.recipient = :user')
-            ->setParameter('user', $user)
+            ->where('IDENTITY(n.recipient) = :userId')
+            ->setParameter('userId', $user->getId())
             ->orderBy('n.createdAt', 'DESC')
+            ->addOrderBy('n.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
-    public function countUnread(object $user): int
+    public function countUnread(User $user): int
     {
-        $qb = $this->createQueryBuilder('n')
-            ->select('COUNT(n.id)')
-            ->andWhere('n.isRead = false');
-
-        if ($user instanceof Admin) {
-            $qb->andWhere('n.admin = :user');
-        } else {
-            $qb->andWhere('n.recipient = :user');
+        if (!$user || !$user->getId()) {
+            return 0;
         }
 
-        return (int) $qb->setParameter('user', $user)
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->where('IDENTITY(n.recipient) = :userId')
+            ->andWhere('n.isRead = :isRead')
+            ->setParameter('userId', $user->getId())
+            ->setParameter('isRead', false)
             ->getQuery()
             ->getSingleScalarResult();
     }

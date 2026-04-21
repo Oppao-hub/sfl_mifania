@@ -12,7 +12,8 @@ class EmailVerificationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private MailerInterface $mailer
+        private MailerInterface $mailer,
+        private string $adminEmail,
     ) {}
 
     /**
@@ -29,7 +30,7 @@ class EmailVerificationService
     public function sendVerificationEmail(User $user, string $verificationUrl): void
     {
         $email = (new TemplatedEmail())
-            ->from(new Address('mifaniapaolo0012@gmail.com', 'Mifania Sustainable Fashion Line'))
+            ->from(new Address($this->adminEmail, 'Mifania Sustainable Fashion Line'))
             ->to(new Address($user->getEmail()))
             ->subject('Mifania Sustainable Fashion Line - Account Email Verification')
             ->htmlTemplate('email/verification.html.twig')

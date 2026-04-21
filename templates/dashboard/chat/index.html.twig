@@ -1,0 +1,409 @@
+{% extends 'dashboard/dashboard.html.twig' %}
+
+{% block title %}Chat | Mifania Dashboard{% endblock %}
+
+{% block main_content %}
+    <div x-data="chatComponent()" 
+         x-init="initMercure()"
+         class="bg-white rounded-2xl shadow-sm border border-border-color flex h-[calc(100vh-140px)] min-h-[600px] overflow-hidden animate-fadeIn">
+
+        {# --- LEFT SIDEBAR: Contact List --- #}
+        <div class="w-full md:w-80 lg:w-96 flex flex-col border-r border-border-color bg-white shrink-0"
+             :class="selectedContact ? 'hidden md:flex' : 'flex'">
+
+            {# Tabs #}
+            <div class="flex items-center px-6 pt-6 border-b border-border-color" x-data="{ totalUnread: 0 }" 
+                 @chat-message-received.window="if(!selectedContact || $event.detail.sender.id !== selectedContact.id) totalUnread++">
+                <button @click="activeTab = 'messages'; totalUnread = 0" 
+                        class="flex-1 pb-4 text-sm font-black text-center transition-colors border-b-2 relative"
+                        :class="activeTab === 'messages' ? 'text-brand-dark border-brand' : 'text-gray hover:text-brand-dark border-transparent'">
+                    Messages
+                    <template x-if="totalUnread > 0">
+                        <span class="absolute top-0 right-4 w-2 h-2 bg-brand rounded-full animate-pulse"></span>
+                    </template>
+                </button>
+                <button @click="activeTab = 'active'" 
+                        class="flex-1 pb-4 text-sm font-bold text-center transition-colors border-b-2"
+                        :class="activeTab === 'active' ? 'text-brand-dark border-brand' : 'text-gray hover:text-brand-dark border-transparent'">
+                    Active
+                    {% if activeUsers|length > 0 %}
+                        <span class="ml-1 bg-success text-white text-[9px] px-1.5 py-0.5 rounded-full">{{ activeUsers|length }}</span>
+                    {% endif %}
+                </button>
+            </div>
+
+            {# Search #}
+            <div class="p-4">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        {{ ux_icon('lucide:search', {class: 'w-4 h-4 text-gray/50'}) }}
+                    </div>
+                    <input type="text" x-model="searchQuery" placeholder="Searching.." class="w-full pl-10 pr-4 py-2.5 bg-app-bg border-none rounded-full text-sm focus:ring-2 focus:ring-brand/20 outline-none placeholder:text-gray/50 transition-all">
+                </div>
+            </div>
+
+            {# Contacts List #}
+            <div class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+                
+                {# Messages Tab Content #}
+                <div x-show="activeTab === 'messages'" class="space-y-2">
+                    {% for contact in contacts %}
+                        {% set profile = contact.admin ?? contact.staff ?? contact.customer %}
+                        {% set name = profile ? profile.firstName ~ ' ' ~ profile.lastName : contact.email %}
+                        {% set folder = contact.admin ? 'admin' : (contact.staff ? 'staff' : 'customer') %}
+                        {% set avatar = profile and profile.avatar ? asset('uploads/' ~ folder ~ '/avatars/' ~ profile.avatar) : asset('uploads/default/default-avatar.jpg') %}
+                        
+                        <div @click="selectContact({{ contact.id }}, '{{ name|e('js') }}', '{{ avatar|e('js') }}')"
+                             class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent"
+                             :class="selectedContact && selectedContact.id === {{ contact.id }} ? 'bg-white border-border-color shadow-sm' : 'hover:bg-app-bg'"
+                             x-show="'{{ name|lower|e('js') }}'.includes(searchQuery.toLowerCase())">
+
+                            {# Avatar #}
+                            <div class="relative shrink-0">
+                                <img src="{{ avatar }}" alt="{{ name }}" class="w-12 h-12 rounded-full object-cover border border-border-color">
+                                {% if contact.isActiveNow %}
+                                    <div class="absolute bottom-0.5 right-0.5 w-3 h-3 bg-success border-2 border-white rounded-full"></div>
+                                {% endif %}
+                            </div>
+
+                            {# Contact Info #}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <h3 class="text-sm font-bold text-brand-dark truncate pr-2">{{ name }}</h3>
+                                    <template x-if="unreadCounts[{{ contact.id }}] > 0">
+                                        <span class="bg-brand text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-bounce" x-text="unreadCounts[{{ contact.id }}]"></span>
+                                    </template>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-xs text-gray truncate pr-2" :class="unreadCounts[{{ contact.id }}] > 0 ? 'font-bold text-brand-dark' : ''">
+                                        <span x-text="lastMessages[{{ contact.id }}] || '{{ contact.email|e('js') }}'"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+
+                {# Active Tab Content #}
+                <div x-show="activeTab === 'active'" class="space-y-2">
+                    {% for contact in activeUsers %}
+                        {% set profile = contact.admin ?? contact.staff ?? contact.customer %}
+                        {% set name = profile ? profile.firstName ~ ' ' ~ profile.lastName : contact.email %}
+                        {% if contact.id == app.user.id %}{% set name = name ~ ' (You)' %}{% endif %}
+                        {% set folder = contact.admin ? 'admin' : (contact.staff ? 'staff' : 'customer') %}
+                        {% set avatar = profile and profile.avatar ? asset('uploads/' ~ folder ~ '/avatars/' ~ profile.avatar) : asset('uploads/default/default-avatar.jpg') %}
+                        
+                        <div {% if contact.id != app.user.id %}@click="selectContact({{ contact.id }}, '{{ name|e('js') }}', '{{ avatar|e('js') }}')"{% endif %}
+                             class="flex items-center gap-3 p-3 rounded-xl transition-all border border-transparent"
+                             :class="[
+                                selectedContact && selectedContact.id === {{ contact.id }} ? 'bg-white border-border-color shadow-sm' : 'hover:bg-app-bg',
+                                {{ contact.id == app.user.id ? 'cursor-default' : 'cursor-pointer' }}
+                             ]"
+                             x-show="'{{ name|lower|e('js') }}'.includes(searchQuery.toLowerCase())">
+
+                            {# Avatar #}
+                            <div class="relative shrink-0">
+                                <img src="{{ avatar }}" alt="{{ name }}" class="w-12 h-12 rounded-full object-cover border border-border-color">
+                                <div class="absolute bottom-0.5 right-0.5 w-3 h-3 bg-success border-2 border-white rounded-full"></div>
+                            </div>
+
+                            {# Contact Info #}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <h3 class="text-sm font-bold text-brand-dark truncate pr-2">{{ name }}</h3>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-success">Active Now</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="py-10 text-center space-y-3 opacity-40">
+                            {{ ux_icon('lucide:users-2', {class: 'w-10 h-10 mx-auto text-gray'}) }}
+                            <p class="text-xs font-bold uppercase tracking-widest">No active users</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# --- RIGHT SIDEBAR: Active Chat --- #}
+        <div class="flex-1 flex flex-col bg-[#fcfcfc]"
+             :class="!selectedContact ? 'hidden md:flex items-center justify-center' : 'flex'">
+
+            <template x-if="!selectedContact">
+                <div class="text-center space-y-4 opacity-40">
+                    <div class="mx-auto w-20 h-20 bg-app-bg rounded-full flex items-center justify-center">
+                        {{ ux_icon('lucide:messages-square', {class: 'w-10 h-10 text-brand'}) }}
+                    </div>
+                    <p class="text-sm font-bold uppercase tracking-widest text-brand-dark">Select a contact to start chatting</p>
+                </div>
+            </template>
+
+            <template x-if="selectedContact">
+                <div class="flex flex-col h-full w-full">
+                    {# Chat Header #}
+                    <div class="h-20 px-6 border-b border-border-color bg-white flex items-center justify-between shrink-0">
+                        <div class="flex items-center gap-4">
+                            <button @click="selectedContact = null" class="md:hidden p-2 -ml-2 text-gray hover:text-brand">
+                                {{ ux_icon('lucide:chevron-left', {class: 'w-6 h-6'}) }}
+                            </button>
+                            <img :src="selectedContact.avatar" :alt="selectedContact.name" class="w-10 h-10 rounded-full object-cover border border-border-color">
+                            <div>
+                                <h2 class="text-base font-bold text-brand-dark" x-text="selectedContact.name"></h2>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full" :class="mercureConnected ? 'bg-success' : 'bg-gray/30'"></span>
+                                    <p class="text-[10px] font-bold uppercase tracking-wide" 
+                                       :class="mercureConnected ? 'text-success' : 'text-gray/50'"
+                                       x-text="mercureConnected ? 'Real-time active' : 'Connecting...'"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            {# Claim Feature #}
+                            <template x-if="isCustomer">
+                                <div class="flex items-center gap-3">
+                                    <template x-if="!assignedSupport">
+                                        <button @click="claimChat()" class="px-4 py-2 bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-brand hover:text-white transition-all cursor-pointer">
+                                            Claim this chat
+                                        </button>
+                                    </template>
+                                    <template x-if="assignedSupport">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[9px] font-bold text-gray uppercase tracking-tighter">
+                                                Handling by: <span class="text-brand-dark" x-text="assignedSupport.id === {{ app.user.id }} ? 'You' : assignedSupport.name"></span>
+                                            </span>
+                                            <template x-if="assignedSupport.id === {{ app.user.id }}">
+                                                <button @click="unclaimChat()" class="text-[9px] font-black text-danger uppercase hover:underline cursor-pointer">Release</button>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <div class="w-px h-6 bg-border-color mx-1 hidden lg:block"></div>
+                            <div class="flex items-center gap-2 text-gray/50">
+                                <button class="hover:text-brand transition-colors p-2">{{ ux_icon('lucide:phone', {class: 'w-5 h-5'}) }}</button>
+                                <button class="hover:text-brand transition-colors p-2">{{ ux_icon('lucide:video', {class: 'w-5 h-5'}) }}</button>
+                                <button class="hover:text-brand-dark transition-colors p-2">{{ ux_icon('lucide:info', {class: 'w-5 h-5'}) }}</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Chat Messages Area #}
+                    <div id="chat-window" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" x-ref="chatWindow">
+                        <template x-for="msg in messages" :key="msg.id">
+                            <div>
+                                {# Incoming Message (Left) #}
+                                <template x-if="msg.sender.id !== {{ app.user.id }}">
+                                    <div class="flex items-end gap-3 max-w-[80%] animate-fadeIn">
+                                        <div class="flex flex-col gap-1">
+                                            <div class="bg-white border border-border-color shadow-sm text-sm text-gray-800 px-5 py-3 rounded-2xl rounded-bl-none">
+                                                <span x-text="msg.content"></span>
+                                            </div>
+                                            <span class="text-[9px] font-bold text-gray/40 ml-1" x-text="formatDate(msg.createdAt)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {# Outgoing Message (Right) #}
+                                <template x-if="msg.sender.id === {{ app.user.id }}">
+                                    <div class="flex items-end justify-end gap-3 w-full animate-fadeIn">
+                                        <div class="flex flex-col gap-1 items-end max-w-[80%]">
+                                            <div class="bg-brand text-white shadow-sm text-sm px-5 py-3 rounded-2xl rounded-br-none">
+                                                <span x-text="msg.content"></span>
+                                            </div>
+                                            <span class="text-[9px] font-bold text-gray/40 mr-1" x-text="formatDate(msg.createdAt)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    {# Chat Input Area #}
+                    <div class="p-4 bg-white border-t border-border-color shrink-0">
+                        <form @submit.prevent="sendMessage()" class="flex items-center gap-3 bg-app-bg border border-border-color rounded-full px-2 py-2">
+                            <button type="button" class="p-2 text-gray/50 hover:text-brand transition-colors rounded-full hover:bg-white shrink-0">
+                                {{ ux_icon('lucide:smile', {class: 'w-5 h-5'}) }}
+                            </button>
+                            <input type="text" x-model="newMessage" placeholder="Type a message..." class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 px-2 outline-none">
+                            <button type="submit" 
+                                    :disabled="!newMessage.trim() || sending"
+                                    class="w-10 h-10 bg-brand text-white rounded-full flex items-center justify-center hover:bg-brand-dark transition-colors shadow-sm shrink-0 disabled:opacity-50">
+                                <template x-if="!sending">
+                                    {{ ux_icon('lucide:send', {class: 'w-4 h-4 ml-0.5'}) }}
+                                </template>
+                                <template x-if="sending">
+                                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                </template>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <script>
+        function chatComponent() {
+            return {
+                selectedContact: null,
+                messages: [],
+                newMessage: '',
+                sending: false,
+                searchQuery: '',
+                activeTab: 'messages',
+                assignedSupport: null,
+                isCustomer: false,
+                mercureConnected: false,
+                unreadCounts: {{ initialUnread|json_encode|raw }},
+                lastMessages: {{ initialLastMsgs|json_encode|raw }},
+                
+                async selectContact(id, name, avatar) {
+                    this.selectedContact = { id, name, avatar };
+                    this.messages = [];
+                    this.assignedSupport = null;
+                    this.isCustomer = false;
+                    this.unreadCounts[id] = 0;
+                    await this.loadMessages();
+                    this.scrollToBottom();
+                },
+
+                async loadMessages() {
+                    if (!this.selectedContact) return;
+                    try {
+                        const response = await fetch(`/dashboard/chat/messages/${this.selectedContact.id}`);
+                        const data = await response.json();
+                        this.messages = data.messages;
+                        this.assignedSupport = data.assignedSupport;
+                        this.isCustomer = data.isCustomer;
+                    } catch (error) {
+                        console.error('Failed to load messages:', error);
+                    }
+                },
+
+                async claimChat() {
+                    if (!this.selectedContact || !this.isCustomer) return;
+                    try {
+                        const response = await fetch(`/dashboard/chat/claim/${this.selectedContact.id}`, { method: 'POST' });
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.assignedSupport = { id: {{ app.user.id }}, name: data.name };
+                        }
+                    } catch (error) {
+                        console.error('Failed to claim chat:', error);
+                    }
+                },
+
+                async unclaimChat() {
+                    if (!this.selectedContact || !this.isCustomer) return;
+                    try {
+                        const response = await fetch(`/dashboard/chat/unclaim/${this.selectedContact.id}`, { method: 'POST' });
+                        if (response.ok) {
+                            this.assignedSupport = null;
+                        }
+                    } catch (error) {
+                        console.error('Failed to unclaim chat:', error);
+                    }
+                },
+
+                async sendMessage() {
+                    if (!this.newMessage.trim() || !this.selectedContact || this.sending) return;
+                    
+                    const content = this.newMessage;
+                    this.newMessage = '';
+                    this.sending = true;
+
+                    try {
+                        const response = await fetch('/dashboard/chat/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                recipientId: this.selectedContact.id,
+                                content: content
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const sentMessage = await response.json();
+                            // Optimistic update: Add to list immediately if not already there
+                            if (!this.messages.find(m => m.id === sentMessage.id)) {
+                                this.messages.push(sentMessage);
+                                this.$nextTick(() => this.scrollToBottom());
+                            }
+                        } else {
+                            // Restore message if send failed
+                            this.newMessage = content;
+                            console.error('Failed to send message');
+                        }
+                    } catch (error) {
+                        this.newMessage = content;
+                        console.error('Error sending message:', error);
+                    } finally {
+                        this.sending = false;
+                    }
+                },
+
+                initMercure() {
+                    try {
+                        const url = new URL('{{ mercure("/chat/user/" ~ app.user.id)|escape("js") }}');
+                        console.log('Chat: Attempting to connect to Mercure at', url.toString());
+                        const eventSource = new EventSource(url);
+
+                        eventSource.onopen = () => {
+                            console.log('Chat: Mercure connection established! Real-time active.');
+                            this.mercureConnected = true;
+                        };
+
+                        eventSource.onmessage = (event) => {
+                            const message = JSON.parse(event.data);
+                            console.log('Chat: New message received:', message);
+                            
+                            const senderId = message.sender.id;
+                            
+                            // 1. Update unread counts and last message preview
+                            if (!this.selectedContact || senderId !== this.selectedContact.id) {
+                                if (senderId !== {{ app.user.id }}) {
+                                    this.unreadCounts[senderId] = (this.unreadCounts[senderId] || 0) + 1;
+                                }
+                            }
+                            this.lastMessages[senderId] = message.content;
+
+                            // 2. If part of current active conversation, add to window
+                            const isCurrentChat = this.selectedContact && (senderId === this.selectedContact.id || senderId === {{ app.user.id }});
+                            if (isCurrentChat) {
+                                if (!this.messages.find(m => m.id === message.id)) {
+                                    this.messages.push(message);
+                                    this.$nextTick(() => this.scrollToBottom());
+                                }
+                            }
+                        };
+
+                        eventSource.onerror = (error) => {
+                            this.mercureConnected = false;
+                            console.error('Chat: Mercure error. Check if Hub is running or CORS settings.', error);
+                        };
+                    } catch (e) {
+                        console.error('Chat: Failed to initialize Mercure:', e);
+                    }
+                },
+
+                scrollToBottom() {
+                    const el = this.$refs.chatWindow;
+                    if (el) {
+                        el.scrollTop = el.scrollHeight;
+                    }
+                },
+
+                formatDate(dateStr) {
+                    const date = new Date(dateStr);
+                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+            }
+        }
+    </script>
+{% endblock %}

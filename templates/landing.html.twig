@@ -3,11 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mifania | Conscious Craftsmanship{% endblock %}</title>
+    <title>{% block title %}Mifania | Sustainable Fashion Line{% endblock %}</title>
 
     {{ encore_entry_link_tags('app') }}
     {{ encore_entry_script_tags('app') }}
 </head>
+
+{% macro format_count(num) %}
+    {% if num >= 1000 %}
+        {{ (num // 1000) * 1000 }}+
+    {% elseif num >= 100 %}
+        {{ (num // 100) * 100 }}+
+    {% elseif num >= 10 %}
+        {{ (num // 10) * 10 }}+
+    {% elseif num > 0 %}
+        {{ num }}
+    {% else %}
+        Coming Soon
+    {% endif %}
+{% endmacro %}
+
+{% import _self as display %}
 
 <body class="bg-app-bg text-brand-dark antialiased flex flex-col min-h-screen animate-page-intro">
 
@@ -17,25 +33,331 @@
         <div class="flex flex-shrink-0 items-center relative opacity-85">
             <div>
                 <a href="{{ path('app_home') }}">
-                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 transition-transform hover:scale-105" />
+                    <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-10 md:h-12 transition-transform hover:scale-105" />
                 </a>
             </div>
         </div>
 
         {# Primary Call to Action #}
         <div class="flex items-center opacity-85">
-            <a href="{{ path('app_shop') }}" class="border-2 border-brand text-brand px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-brand hover:text-white transition-all">
+            <a href="{{ path('app_shop') }}" class="border-2 border-brand text-brand px-6 py-2 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-brand hover:text-white transition-all">
                 Shop Collection
             </a>
         </div>
     </nav>
 
-    {# 2. MAIN CONTENT AREA #}
-    <main class="min-h-[70vh] flex flex-col text-left flex-grow">
-        <div class="flex-grow animation-fadeIn">
-            {% block main_content %}{% endblock %}
+    <section
+            class="relative bg-gray-200 overflow-hidden min-h-[500px] lg:h-[85vh] flex items-center transform transition-all duration-700 ease-out delay-300"
+            style="background-image: url('{{ asset('uploads/home/hero/home-hero.png') }}'); background-size: cover; background-position: center;"
+            x-data="scrollReveal()"
+            :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'"
+    >
+        <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 w-full">
+            <div x-data="{ shown: false }"
+                 x-init="setTimeout(() => shown = true, 150)"
+                 class="flex flex-col justify-center px-6 md:px-12 lg:px-20 py-16 order-2 md:order-1 bg-white/40 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none mt-auto md:mt-0 transform transition-all duration-1000 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8 text-brand-dark">
+                    <span class="text-gray-800">Fashion that</span>
+                    <span class="text-brand">respects our planet</span>
+                </h1>
+                <p class="text-base lg:text-lg text-gray-800 mb-10 max-w-lg font-medium leading-relaxed">
+                    100% organic, ethically crafted, and designed to last decades—not seasons.
+                </p>
+                <div>
+                    <a href="{{ path('app_shop') }}" class="bg-brand hover:bg-brand-dark text-white px-7 py-3 text-xs lg:text-sm font-bold tracking-widest rounded-sm shadow-sm transition-all duration-300 inline-block uppercase cursor-pointer">
+                        Shop Collection
+                    </a>
+                </div>
+            </div>
         </div>
-    </main>
+    </section>
+
+    {% include 'components/frontend/benefits.html.twig' ignore missing %}
+
+    <section id="categories" class="bg-light-gray py-16 lg:pb-16 px-6 md:px-12">
+        <div class="max-w-[1440px] mx-auto" x-data="scrollReveal()">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <div class="relative overflow-hidden h-[400px] lg:h-[600px] group rounded-sm cursor-pointer shadow-sm transform transition-all duration-700 ease-out"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'"
+                     onclick="window.location.href='{{ path('app_shop', { department: 'women' }) }}'">
+                    <img src="{{ asset('uploads/home/category/women.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-transparent z-0"></div>
+
+                    <div class="absolute top-8 left-8 lg:top-12 lg:left-12 z-10 max-w-[60%]">
+                        <span class="bg-brand text-white px-3 py-1 text-[10px] font-bold rounded-sm mb-4 inline-block shadow-sm uppercase tracking-widest">
+                            {{ display.format_count(women_count|default(0)) }} Items
+                        </span>
+                        <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark mb-4 uppercase tracking-tight">Women</h2>
+                            <ul class="text-xs lg:text-sm text-gray-800 space-y-2 font-bold">
+                                {% if women_categories and women_categories.subCategories %}
+                                    {% for subCategory in women_categories.subCategories %}
+                                        <li>{{ subCategory.name }}</li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li>Ready-to-wear</li>
+                                    <li>Sustainability First</li>
+                                {% endif %}
+                            </ul>
+                    </div>
+                </div>
+
+                {# Men & Accessories: Slide second with a delay #}
+                <div class="flex flex-col gap-6 h-[600px] lg:h-[600px] transform transition-all duration-700 ease-out delay-300"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+
+                    <div class="flex-1 relative overflow-hidden group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop', { department: 'men' }) }}'">
+                        <img src="{{ asset('uploads/home/category/men.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-transparent z-0"></div>
+
+                        <div class="absolute top-8 left-8 lg:top-10 lg:left-10 z-10 max-w-[60%]">
+                            <span class="bg-brand text-white px-3 py-1 text-[10px] font-bold rounded-sm mb-3 inline-block shadow-sm uppercase tracking-widest">
+                             {{ display.format_count(men_count|default(0)) }} Items
+                            </span>
+                            <h2 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">Men</h2>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 relative overflow-hidden group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop', { department: 'accessories' }) }}'">
+                        <img src="{{ asset('uploads/home/category/accessories.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-transparent z-0"></div>
+
+                        <div class="absolute top-8 left-8 lg:top-10 lg:left-10 z-10 max-w-[60%]">
+                            <span class="bg-brand text-white px-3 py-1 text-[10px] font-bold rounded-sm mb-3 inline-block shadow-sm uppercase tracking-widest">
+                                {{ display.format_count(acc_count|default(0)) }} Items
+                            </span>
+                            <h2 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">Accessories</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# 4. STORY SECTION #}
+    <section id="story" class="py-16 lg:py-24 px-6 md:px-12 bg-white">
+        <div class="max-w-7xl mx-auto" x-data="scrollReveal()">
+
+            <h2 class="text-3xl lg:text-4xl font-bold text-brand text-center mb-12 lg:mb-16 uppercase tracking-tight transform transition-all duration-700 ease-out"
+                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">Our Story & Values</h2>
+
+            <div class="relative rounded-sm overflow-hidden h-[400px] lg:h-[300px] mb-12 lg:mb-16 transform transition-all duration-700 ease-out delay-200"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+                 <img src="{{ asset('uploads/home/story/story-values.png') }}" class="w-full h-full object-cover">
+                 <div class="absolute inset-0 bg-black/40 lg:bg-black/20"></div>
+                 <div class="absolute inset-0 flex items-center p-6 lg:p-12">
+                     <div class="max-w-lg text-white">
+                         <h3 class="text-2xl lg:text-3xl font-bold mb-4 uppercase tracking-wide">Weaving Nature In Every Thread</h3>
+                         <p class="text-sm leading-relaxed font-medium">At MIFANIA, we prove that timeless style shouldn't cost the planet.</p>
+                     </div>
+                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+                <div class="flex flex-col h-full transform transition-all duration-700 ease-out"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+                    <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Consciously Crafted</h3>
+                    <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">Crafted from GOTS-certified organic cotton and recycled materials, our toxic-free garments are safe for both you and the ecosystem.</p>
+                    <img src="{{ asset('uploads/home/story/crafted.jpg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
+                </div>
+
+                <div class="flex flex-col h-full transform transition-all duration-700 ease-out delay-300"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+                    <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Ethically Made</h3>
+                    <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">We partner exclusively with SA8000-certified factories to ensure fair wages, safety, and dignity for the hands that craft our clothes.</p>
+                    <img src="{{ asset('uploads/home/story/ethically-made.jpg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
+                </div>
+
+                <div class="flex flex-col h-full transform transition-all duration-700 ease-out delay-500"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+                    <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Circular By Design</h3>
+                    <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">Through the MIFANIA Circle program, we design for longevity and offer a recycling path to ensure our clothes never end up in a landfill.</p>
+                    <img src="{{ asset('uploads/home/story/circular-design.jpeg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team" class="py-16 lg:py-24 px-6 md:px-12 bg-light-gray">
+        <div class="max-w-[1440px] mx-auto">
+            <div class="text-center mb-16 reveal">
+                <p class="text-[10px] font-bold tracking-widest uppercase text-brand mb-2">The MIFANIA Family</p>
+                <h2 class="text-3xl lg:text-4xl font-bold text-brand-dark uppercase tracking-tight">Meet Our Team</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {% for member in team %}
+                    <div class="group reveal" style="transition-delay: {{ loop.index0 * 100 }}ms;">
+                        <div class="relative overflow-hidden mb-6 bg-gray-200 rounded-sm aspect-[4/5]">
+                            <img src="{{ asset('uploads/about/' ~ member.img) }}"
+                                 class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out group-hover:scale-110"
+                                 alt="{{ member.name }}">
+
+                            {# Social Overlay #}
+                            <div class="absolute bottom-4 left-4 right-4 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 flex justify-center gap-3">
+                                <a href="#" class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-all shadow-sm">
+                                    {{ ux_icon('lucide:instagram', { class: 'h-5 w-5' }) }}
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-all shadow-sm">
+                                    {{ ux_icon('lucide:linkedin', { class: 'h-5 w-5' }) }}
+                                </a>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-brand-dark group-hover:text-brand transition-colors">{{ member.name }}</h3>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{{ member.role }}</p>
+                        {% if member.bio is defined %}
+                            <p class="text-xs text-gray-500 mt-4 leading-relaxed font-medium line-clamp-2">{{ member.bio }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# 5. TESTIMONIAL SECTION #}
+    <section id="testimonial" class="py-16 bg-brand-dark text-white px-6 md:px-12 text-center" x-data="scrollReveal()">
+
+        {# Child handles the slider #}
+        <div x-data="{
+                 activeSlide: 0,
+                 totalSlides: {{ testimonials|length }},
+                 timer: null,
+                 init() {
+                     this.startTimer();
+                 },
+                 startTimer() {
+                     this.timer = setInterval(() => {
+                         this.activeSlide = (this.activeSlide + 1) % this.totalSlides
+                     }, 6000);
+                 },
+                 setSlide(index) {
+                     this.activeSlide = index;
+                     clearInterval(this.timer);
+                     this.startTimer();
+                 }
+             }">
+
+            <div class="max-w-3xl mx-auto relative min-h-[180px] flex items-center justify-center transform transition-all duration-700 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+                {% for index, testimonial in testimonials %}
+                    <div x-show="activeSlide === {{ index }}"
+                         x-transition:enter="transition ease-out duration-700"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-300 absolute inset-0"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="space-y-5 w-full"
+                         style="display: none;">
+
+                        <div class="flex justify-center gap-1 text-yellow-500">
+                            {% for i in 1..testimonial.rating %}
+                                {{ ux_icon('lucide:star', {class: 'w-4 h-4 fill-current'}) }}
+                            {% endfor %}
+                        </div>
+
+                        <blockquote class="text-lg md:text-xl lg:text-2xl font-medium leading-relaxed font-serif">
+                            "{{ testimonial.quote }}"
+                        </blockquote>
+
+                        <div class="pt-2">
+                            <p class="font-black tracking-[0.15em] uppercase text-[10px]">{{ testimonial.author }}</p>
+                            <p class="text-white/60 text-[9px] uppercase tracking-wider mt-1 font-bold">
+                                {{ testimonial.details }}
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex justify-center gap-2 mt-6 z-10 relative transform transition-all duration-700 ease-out delay-300"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
+                {% for index in 0..(testimonials|length - 1) %}
+                    <button @click="setSlide({{ index }})"
+                            aria-label="Go to testimonial {{ index + 1 }}"
+                            class="w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+                            :class="activeSlide === {{ index }} ? 'bg-white scale-125' : 'bg-white/30 hover:bg-white/50'">
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# 6. FAQ SECTION #}
+    {# Parent handles the scroll reveal #}
+    <section id="faq" class="bg-light-gray py-24 px-6" x-data="scrollReveal()">
+
+        {# Child handles the accordion #}
+        <div class="max-w-4xl mx-auto" x-data="{ active: null }">
+            <div class="text-center mb-12 transform transition-all duration-700 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+                <h2 class="text-3xl font-bold text-brand mb-4">Frequently Asked Questions</h2>
+                <p class="text-gray-500">Transparency is our policy. Here is everything you need to know about our materials and process.</p>
+            </div>
+
+            <div class="space-y-3 transform transition-all duration-700 ease-out delay-200"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+                {% for faq, item in faqs %}
+                    <div class="bg-white rounded shadow-sm overflow-hidden transition-all duration-300 border border-gray-100"
+                        :class="{ 'bg-brand text-white border-brand': active === {{ faq }}, 'bg-white text-gray-700': active !== {{ faq }} }">
+
+                        <button @click="active = active === {{ faq }} ? null : {{ faq }}"
+                                class="flex justify-between items-center w-full px-6 py-4 text-left font-bold text-sm hover:opacity-90 transition-colors cursor-pointer">
+                            <span>{{ item.q }}</span>
+                            <span class="text-xl font-normal" x-text="active === {{ faq }} ? '-' : '+'"></span>
+                        </button>
+
+                        <div x-show="active === {{ faq }}" x-collapse style="display: none;">
+                            <div class="px-6 pb-4 text-xs opacity-90 leading-relaxed">
+                                <p>{{ item.a }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# 7. NEWSLETTER SECTION #}
+    {# 7. NEWSLETTER SECTION #}
+    {% set newsletter_errors = app.flashes('error') %}
+
+    <section id="newsletter" class="bg-white py-24 px-6 text-center">
+        <div class="max-w-2xl mx-auto transform transition-all duration-700 ease-out"
+             x-data="scrollReveal(0.3)"
+             :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+
+            <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">The Mifania Circle</p>
+
+            <h2 class="text-3xl font-bold text-brand mb-4">Join the Circle. Get 10% Off.</h2>
+            <p class="text-sm text-gray-500 mb-8">Subscribe to receive 10% off your first purchase, plus exclusive access to new arrivals and sustainable living tips. You can opt out anytime.</p>
+
+            <form action="{{ path('app_newsletter_subscribe') }}#newsletter" method="POST" class="flex flex-col gap-3 max-w-md mx-auto w-full" novalidate
+                  {% if newsletter_errors|length > 0 %}
+                      x-data
+                      x-init="setTimeout(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)"
+                  {% endif %}
+            >
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('newsletter_submit') }}">
+
+                {# The Error Message is now stacked neatly ON TOP of the input field #}
+                {% for message in newsletter_errors %}
+                    <div class="bg-red-50 text-red-600 p-4 rounded-sm text-xs font-bold tracking-widest border border-red-100 flex items-center justify-center gap-3">
+                        {{ ux_icon('si:error-line', {class: 'w-4 h-4 shrink-0'}) }}
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+
+                <div class="flex flex-col sm:flex-row">
+                    <input type="email" name="email" required placeholder="Enter your email address" class="flex-1 px-6 py-3 border border-gray-200 focus:outline-none focus:border-brand text-sm rounded-md sm:rounded-r-none transition-colors">
+                    <button type="submit" class="bg-brand hover:bg-brand-dark text-white px-8 py-3 text-sm font-bold transition-colors rounded-md sm:rounded-l-none uppercase tracking-widest cursor-pointer whitespace-nowrap">
+                        Subscribe
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
 
     {# 3. POLISHED FOOTER #}
     <footer class="bg-light-gray border-t border-border-color mt-auto pt-16 pb-8 px-6 md:px-12 text-left overflow-hidden">
@@ -138,5 +460,7 @@
 
     {% include 'components/frontend/back_to_top.html.twig' ignore missing %}
     {% include 'components/frontend/flash/flash_messages.html.twig' ignore missing %}
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>

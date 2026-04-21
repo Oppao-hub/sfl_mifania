@@ -31,6 +31,8 @@
                                             url: '{{ path('app_admin_user_toggle_status', {id: customer.user.id}) }}',
                                             email: '{{ customer.user.email|e('js') }}',
                                             currentStatus: '{{ customer.user.status.value }}',
+                                            newStatus: this.value,
+                                            fieldName: 'status',
                                             token: '{{ csrf_token('toggle' ~ customer.user.id) }}'
                                         }
                                     })); this.value = '{{ customer.user.status.value }}';"
@@ -72,7 +74,7 @@
 
                             {% if is_granted('ROLE_ADMIN') %}
                                 <button type="button"
-                                    @click="$dispatch('open-delete-modal', { url: '{{ path('app_customer_delete', {id: customer.id}) }}', name: 'Customer {{ customer.firstName|e('js') }}', token: '{{ csrf_token('delete' ~ customer.id) }}' })"
+                                    @click="$dispatch('open-confirm', { url: '{{ path('app_customer_delete', {id: customer.id}) }}', name: 'Customer {{ customer.firstName|e('js') }}', token: '{{ csrf_token('delete' ~ customer.id) }}' })"
                                     class="p-2 text-terracotta hover:text-danger hover:bg-red-50 bg-white border border-border-color rounded-lg hover:shadow-sm transition-all cursor-pointer"
                                     title="Delete">
                                     {{ ux_icon('lucide:trash-2', {class: 'w-4 h-4'}) }}

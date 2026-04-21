@@ -1,8 +1,8 @@
-{% extends 'dashboard/dashboard.html.twig' %}
+{% extends 'dashboard/account/index.html.twig' %}
 
 {% block title %}System Activity Logs | Mifania{% endblock %}
 
-{% block main_content %}
+{% block account_content %}
     {% embed 'components/table/table.html.twig' with {
         title: 'Activity Logs',
         icon: 'tabler:logs',

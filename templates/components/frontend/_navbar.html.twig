@@ -1,23 +1,21 @@
 <nav class="flex items-center justify-between px-4 md:px-8 lg:px-12 bg-white sticky top-0 z-50 shadow-sm h-20">
 
     <div class="flex flex-shrink-0 items-center">
-        {% if app.user %}
-            <a href="{{ path('app_shop') }}">
-                <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 transition-transform hover:scale-105" />
-            </a>
-        {% else %}
-            <a href="{{ path('app_home') }}">
-                <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 transition-transform hover:scale-105" />
-            </a>
-        {% endif %}
+        <a href="{{ path('app_home') }}">
+            <img src="{{ asset('uploads/logo/logo.svg') }}" alt="Mifania Logo" class="w-auto h-8 md:h-10 transition-transform hover:scale-105" />
+        </a>
     </div>
 
     {# DESKTOP MEGA MENUS (Center) #}
     <div class="hidden lg:flex items-center h-full gap-8 text-sm font-semibold text-brand animation-fadeIn">
-
+        <a href="{{ path('app_home') }}" class="group relative inline-block py-1 hover:text-brand-dark transition-colors duration-300">
+            Home
+            <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand origin-bottom-right scale-x-0 transition-transform duration-300 ease-out group-hover:origin-bottom-left group-hover:scale-x-100"></span>
+        </a>
         <div class="group h-full flex items-center static">
-            <a href="{{ path('app_shop') }}" class="h-full flex items-center hover:text-brand-dark transition-colors cursor-pointer">
+            <a href="{{ path('app_shop') }}" class="group relative inline-block py-1 hover:text-brand-dark transition-colors duration-300">
                 Shop
+                <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand origin-bottom-right scale-x-0 transition-transform duration-300 ease-out group-hover:origin-bottom-left group-hover:scale-x-100"></span>
             </a>
 
             <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[900px] bg-white shadow-2xl border-b-4 border-brand opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 flex pointer-events-none group-hover:pointer-events-auto text-left">
@@ -53,8 +51,9 @@
         {% for category in categories %}
             <div class="group h-full flex items-center static">
                 {# FIXED: Uses app_shop with the department parameter #}
-                <a href="{{ path('app_shop', {department: category.name|lower}) }}" class="h-full flex items-center hover:text-brand-dark transition-colors cursor-pointer">
+                <a href="{{ path('app_shop', {department: category.name|lower}) }}" class="group relative inline-block py-1 hover:text-brand-dark transition-colors duration-300">
                     {{ category.name }}
+                    <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand origin-bottom-right scale-x-0 transition-transform duration-300 ease-out group-hover:origin-bottom-left group-hover:scale-x-100"></span>
                 </a>
 
                 <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] bg-white shadow-2xl border-b-4 border-brand opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 flex pointer-events-none group-hover:pointer-events-auto text-left">
@@ -87,8 +86,15 @@
             </div>
         {% endfor %}
 
-        <a href="{{ path('app_about') }}" class="h-full flex items-center hover:text-brand-dark transition-colors">About Us</a>
-        <a href="{{ path('app_contact') }}" class="h-full flex items-center hover:text-brand-dark transition-colors">Contact Us</a>
+        <a href="{{ path('app_about') }}" class="group relative inline-block py-1 hover:text-brand-dark transition-colors duration-300">
+            About Us
+            <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand origin-bottom-right scale-x-0 transition-transform duration-300 ease-out group-hover:origin-bottom-left group-hover:scale-x-100"></span>
+        </a>
+
+        <a href="{{ path('app_contact') }}" class="group relative inline-block py-1 hover:text-brand-dark transition-colors duration-300">
+            Contact Us
+            <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand origin-bottom-right scale-x-0 transition-transform duration-300 ease-out group-hover:origin-bottom-left group-hover:scale-x-100"></span>
+        </a>
     </div>
 
     {# RIGHT ICONS & AUTH (Right) #}
@@ -122,13 +128,24 @@
                         {% endif %}
 
                         <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-brand transition-colors">My Profile</a>
-                        <a href="{{ path('app_logout') }}" data-turbo="false" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors">Logout</a>
+                        <a href="#"
+                            @click="$dispatch('open-confirm', {
+                                title: 'Sign Out?',
+                                message: 'Are you sure you want to log out of your Mifania account?',
+                                actionUrl: '{{ path('app_logout') }}',
+                                confirmText: 'Sign Out',
+                                isDanger: false
+                            })"
+                            data-turbo="false"
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors">
+                            Sign out
+                        </a>
                     </div>
                 </div>
             {% else %}
                 <div class="pl-4 ml-2 border-l border-gray-200">
                     <a href="{{ path('app_login') }}" class="bg-brand text-white hover:bg-brand-dark flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-300">
-                        <span class="text-xs font-bold uppercase tracking-widest">Login</span>
+                        <span class="text-xs font-bold uppercase tracking-widest">Sign in</span>
                     </a>
                 </div>
             {% endif %}
@@ -197,10 +214,11 @@
             <div class="flex flex-col space-y-6 text-lg font-medium text-gray-900 text-left">
                 <a href="{{ path('app_home') }}" class="hover:text-brand transition-colors">Home</a>
                 <a href="{{ path('app_shop') }}" class="hover:text-brand transition-colors">Shop</a>
-
                 {% for category in categories %}
                     <a href="{{ path('app_shop', {department: category.name|lower}) }}" class="hover:text-brand transition-colors">{{ category.name }}</a>
                 {% endfor %}
+                <a href="{{ path('app_about') }}" class="hover:text-brand transition-colors">About Us</a>
+                <a href="{{ path('app_contact') }}" class="hover:text-brand transition-colors">Contact Us</a>
             </div>
 
             <div class="pt-8 border-t border-gray-100">
@@ -218,15 +236,25 @@
                             {{ ux_icon('lucide:user-check', { class: 'h-5 w-5' }) }}
                             <span class="font-bold">My Account</span>
                         </a>
-                        <a href="{{ path('app_logout') }}" data-turbo="false" class="flex items-center gap-3 text-red-600">
+                        <button
+                            type="button"
+                            data-turbo="false"
+                            @click="$dispatch('open-confirm', {
+                                title: 'Sign Out?',
+                                message: 'Are you sure you want to log out of your Mifania account?',
+                                actionUrl: '{{ path('app_logout') }}',
+                                confirmText: 'Sign Out',
+                                isDanger: false
+                            })"
+                            class="flex items-center gap-3 text-red-600">
                             {{ ux_icon('lucide:log-out', { class: 'h-5 w-5' }) }}
-                            <span class="font-bold">Logout</span>
-                        </a>
+                            <span class="font-bold">Sign out</span>
+                        </button>
                     </div>
             {% else %}
 
                     <a href="{{ path('app_login') }}" class="flex justify-center w-full bg-brand text-white px-4 py-3.5 rounded-lg font-bold uppercase tracking-widest hover:bg-brand-dark transition-colors shadow-sm">
-                        Login / Register
+                        Sign in / Register
                     </a>
                 {% endif %}
             </div>

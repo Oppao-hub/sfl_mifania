@@ -2,14 +2,14 @@
 
 namespace App\Controller\Frontend;
 
+use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
+use App\Service\NewsletterService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\Response;
-use App\Entity\NewsletterSubscriber;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -18,17 +18,74 @@ class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(Request $request, ProductRepository $productRepo, CategoryRepository $categoryRepo): Response
     {
-        // 1. Get the current Master Category from Session (Default to 'Women' if not set)
         $currentCategory = $request->getSession()->get('shop_category', 'Women');
 
-        // 2. Fetch the Products (Filtered by Master Category)
         $products = $productRepo->findByMasterCategory($currentCategory);
-
-        // Fetch the newest/top products
         $topProducts = $productRepo->findTopSellers(3);
+        $featuredProducts = $productRepo->findBy([], ['createdAt' => 'DESC'], 4);
 
-        // 3. Send to your Template
-        return $this->render('frontend/home/index.html.twig', [
+        $team = [
+            [
+                'name' => 'Paolo Mifania',
+                'role' => 'Founder & CEO',
+                'img' => 'ceo.png',
+                'bio' => 'Visionary behind the sustainable movement at Mifania.'
+            ],
+            [
+                'name' => 'Vienna Paola Salazar',
+                'role' => 'Fashion Designer',
+                'img' => 'designer.png',
+                'bio' => 'Crafting elegance with every recycled fiber.'
+            ],
+            [
+                'name' => 'Oppao Gomez',
+                'role' => 'Lead Artisan',
+                'img' => 'lead-artisan.png',
+                'bio' => 'Mastering the craft of eco-friendly craftsmanship.'
+            ],
+            [
+                'name' => 'Bien Eltanal',
+                'role' => 'Operations Manager',
+                'img' => 'op-manager.png',
+                'bio' => 'Ensuring our carbon footprint stays as light as our linen.'
+            ]
+        ];
+
+        $testimonials = [
+            [
+                'quote'   => "Finding clothes that align with my values usually means compromising on style or fit. Mifania is the first brand where I didn't have to choose. The craftsmanship is flawless.",
+                'author'  => 'Elena R.',
+                'details' => 'Verified Buyer • Wearing Size S',
+                'rating'  => 5,
+                'image' => 'Elena.jpeg',
+            ],
+            [
+                'quote'   => "I was worried the organic linen would be scratchy, but it is incredibly soft and drapes perfectly. I've washed it five times and it still looks brand new.",
+                'author'  => 'Sarah T.',
+                'details' => 'Verified Buyer • Wearing Size M',
+                'rating'  => 5,
+                'image' => 'Sarah.jpeg',
+            ],
+            [
+                'quote'   => "Finally, a brand that actually backs up its sustainability claims. The carbon-neutral shipping and zero-waste packaging are just the cherry on top of a beautiful coat.",
+                'author'  => 'Marcus J.',
+                'details' => 'Verified Buyer • Wearing Size L',
+                'rating'  => 5,
+                'image' => 'Marcus.jpeg',
+            ],
+        ];
+
+        $faqs = [
+            ['q' => 'How do you source your materials?', 'a' => 'We source directly from GOTS certified farms in India and Turkey.'],
+            ['q' => 'Is your packaging plastic-free?', 'a' => 'Yes! Every order ships in 100% compostable mailers made from cornstarch, and we use soy-based inks for all our tags.'],
+            ['q' => 'What is your return policy?', 'a' => 'We offer a 30-day window for circular exchanges.'],
+            ['q' => 'Do you ship international?', 'a' => 'Currently we ship to 15 countries with carbon-neutral carriers.'],
+            ['q' => 'How should I care for my organic garments?', 'a' => 'Wash cold, hang dry.'],
+            ['q' => 'Are your workers paid fair wages?', 'a' => 'Yes, we are SA8000 certified.'],
+            ['q' => 'Do you have a recycling program for old clothes?', 'a' => 'Yes, check our Circle program.']
+        ];
+
+        return $this->render('frontend/home/index.html.twig',[
             'women_count'      => $productRepo->countByMasterCategory('Women'),
             'men_count'        => $productRepo->countByMasterCategory('Men'),
             'acc_count'        => $productRepo->countByMasterCategory('Accessories'),
@@ -39,42 +96,34 @@ class HomeController extends AbstractController
             'active_category'  => $currentCategory,
             'products'         => $products,
             'topProducts'      => $topProducts,
+            'newArrivals'      => $featuredProducts,
+            'categories'       => $categoryRepo->findBy([], null, 3),
+            'testimonials'     => $testimonials,
+            'team'             => $team,
+            'faqs'             => $faqs,
         ]);
     }
 
     #[Route('/newsletter/subscribe', name: 'app_newsletter_subscribe', methods: ['POST'])]
-    public function subscribe(Request $request, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function subscribe(Request $request, ValidatorInterface $validator, NewsletterService $newsletterService): Response
     {
-        // 1. Validate CSRF Token
         $token = $request->request->get('_csrf_token');
         if (!$this->isCsrfTokenValid('newsletter_submit', $token)) {
-            $this->addFlash('error', 'Invalid security token. Please try again.');
+            $this->addFlash('error', 'Invalid security token.');
             return $this->redirectToRoute('app_home');
         }
 
-        // 2. Grab the email from the form
         $email = $request->request->get('email');
+        $errors = $validator->validate($email, new Assert\Email());
 
-        // 3. Validate the email format
-        $emailConstraint = new Assert\Email();
-        $errors = $validator->validate($email, $emailConstraint);
-
-        if (count($errors) > 0 || empty($email)) {
+        if (\count($errors) > 0 || empty($email)) {
             $this->addFlash('error', 'Please enter a valid email address.');
             return $this->redirectToRoute('app_home');
         }
 
-        // 4. TODO: Save to Database OR Send to Brevo API
-        // Example:
-        $subscriber = new NewsletterSubscriber();
-        $subscriber->setEmail($email);
-        $em->persist($subscriber);
-        $em->flush();
+        $newsletterService->processNewSubscription($email);
 
-        // 5. Send Success Message and Redirect
-        $this->addFlash('success', 'Welcome to the circle! You have successfully subscribed.');
-
-        // Redirect back to the page they came from (or homepage)
+        $this->addFlash('success', 'Welcome to the circle! Check your email for your 10% discount code.');
         return $this->redirect($request->headers->get('referer') ?? $this->generateUrl('app_home'));
     }
 }

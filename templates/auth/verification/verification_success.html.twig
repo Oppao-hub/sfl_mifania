@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verified | Mifania</title>
+
+    {# CRITICAL: Since you aren't extending base.html.twig, you must load your Tailwind CSS here! #}
+    {# Use whatever method your app uses (AssetMapper, Webpack Encore, or Vite) #}
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+        {# If using AssetMapper in Symfony 7, it might be: <link rel="stylesheet" href="{{ asset('styles/app.css') }}"> #}
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+</head>
+<body class="bg-gray-50 antialiased font-sans">
+
+    <section class="min-h-screen flex items-center justify-center px-6 py-20">
+        <div class="max-w-md w-full bg-white p-10 rounded-sm shadow-sm text-center border border-gray-100">
+
+            {# Success Icon #}
+            <div class="w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-6">
+                {{ ux_icon('lucide:check-circle-2', { class: 'w-10 h-10 text-brand' }) }}
+            </div>
+
+            <h1 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">
+                Welcome to the Circle
+            </h1>
+
+            <p class="text-sm text-gray-500 mb-8 leading-relaxed font-medium">
+                Your email has been successfully verified. You now have full access to your account, exclusive drops, and sustainable living resources.
+            </p>
+
+            <a href="{{ path('app_login') }}"
+               class="block w-full bg-brand hover:bg-brand-dark text-white px-8 py-4 text-sm font-bold tracking-widest rounded-sm transition-colors uppercase cursor-pointer">
+                Log In Now
+            </a>
+
+            <div class="mt-6 text-xs text-gray-400 font-bold tracking-widest uppercase">
+                <a href="{{ path('app_home') }}" class="hover:text-brand transition-colors">Return to Homepage</a>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

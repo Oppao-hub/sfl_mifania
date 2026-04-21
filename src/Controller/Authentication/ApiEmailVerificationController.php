@@ -26,7 +26,6 @@ class ApiEmailVerificationController extends AbstractController
     #[Route('/verify-email', name: 'api_verify_email', methods: ['POST', 'GET'])]
     public function verifyEmail(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
         $token = $request->query->get('token');
 
         if(!$token && $request->getContent()){

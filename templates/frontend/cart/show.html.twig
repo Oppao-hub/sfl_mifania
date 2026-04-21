@@ -63,7 +63,7 @@
                             onclick="window.dispatchEvent(new CustomEvent('open-confirm', {
                                 detail: {
                                     title: 'Empty Bag?',
-                                    message: 'Remove all items from your collection?',
+                                    message: 'Remove all items from your cart?',
                                     actionUrl: '{{ path('app_cart_clear') }}',
                                     confirmText: 'Empty Bag',
                                     csrfToken: '{{ csrf_token('clear_cart') }}',
@@ -105,7 +105,7 @@
                                     <button type="button"
                                         onclick="window.dispatchEvent(new CustomEvent('open-confirm', {
                                             detail: {
-                                                title: 'Remove Article?',
+                                                title: 'Remove Product?',
                                                 message: 'Remove {{ cartItem.product.name|e('js') }} from your bag?',
                                                 actionUrl: '{{ path('app_cart_remove', { id: cartItem.id }) }}',
                                                 confirmText: 'Remove',

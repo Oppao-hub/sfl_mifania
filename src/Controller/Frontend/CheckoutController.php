@@ -16,13 +16,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+
 class CheckoutController extends AbstractController
 {
     #[Route('/checkout', name: 'app_checkout')]
-    public function index(Request $request, EntityManagerInterface $em, CartService $cartService, RewardManager $rewardManager): Response
+    public function index(Request $request, EntityManagerInterface $em, CartService $cartService, RewardManager $rewardManager, #[CurrentUser] ?User $user): Response
     {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
+        if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
@@ -61,9 +62,20 @@ class CheckoutController extends AbstractController
 
             // FIX 2: Actually create the Order Items!
             foreach ($cart->getCartItems() as $cartItem) {
+                $product = $cartItem->getProduct();
+                $quantity = $cartItem->getQuantity();
+
+                // Deduct Stock
+                try {
+                    $product->deductStockQuantity($quantity);
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Sorry, ' . $product->getName() . ' is out of stock.');
+                    return $this->redirectToRoute('app_cart_show');
+                }
+
                 $orderItem = new OrderItem();
-                $orderItem->setProduct($cartItem->getProduct());
-                $orderItem->setQuantity($cartItem->getQuantity());
+                $orderItem->setProduct($product);
+                $orderItem->setQuantity($quantity);
                 $orderItem->setPrice($cartItem->getPrice());
                 $orderItem->setSubtotal($cartItem->getSubtotal());
 
@@ -97,10 +109,9 @@ class CheckoutController extends AbstractController
     }
 
     #[Route('/checkout/success/{id}', name: 'app_order_success')]
-    public function success(Order $order): Response
+    public function success(Order $order, #[CurrentUser] ?User $user): Response
     {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
+        if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 

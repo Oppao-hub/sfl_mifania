@@ -23,8 +23,10 @@
                             <select name="payment_method"
                                     @change="$dispatch('open-status-modal', {
                                         url: '{{ path('app_order_change_payment_method', {id: order.id}) }}',
-                                        email: 'Order #{{ order.id }}',
+                                        name: 'Order #{{ order.id }} Payment Method',
                                         currentStatus: '{{ order.paymentMethod.value }}',
+                                        newStatus: $event.target.value,
+                                        fieldName: 'payment_method',
                                         token: '{{ csrf_token('change_payment_method' ~ order.id) }}'
                                     }); this.value = '{{ order.paymentMethod.value }}';"
                                     class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border border-border-color bg-app-bg text-dark-gray w-full">
@@ -40,8 +42,10 @@
                             <select name="payment_status"
                                     @change="$dispatch('open-status-modal', {
                                         url: '{{ path('app_order_change_payment_status', {id: order.id}) }}',
-                                        email: 'Order #{{ order.id }}',
+                                        name: 'Order #{{ order.id }} Payment Status',
                                         currentStatus: '{{ order.paymentStatus.value }}',
+                                        newStatus: $event.target.value,
+                                        fieldName: 'payment_status',
                                         token: '{{ csrf_token('change_payment_status' ~ order.id) }}'
                                     }); this.value = '{{ order.paymentStatus.value }}';"
                                     class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border-none w-full
@@ -60,8 +64,10 @@
                             <select name="status"
                                     @change="$dispatch('open-status-modal', {
                                         url: '{{ path('app_order_change_status', {id: order.id}) }}',
-                                        email: 'Order #{{ order.id }}',
+                                        name: 'Order #{{ order.id }} Status',
                                         currentStatus: '{{ order.orderStatus.value }}',
+                                        newStatus: $event.target.value,
+                                        fieldName: 'status',
                                         token: '{{ csrf_token('change_status' ~ order.id) }}'
                                     }); this.value = '{{ order.orderStatus.value }}';"
                                     class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border-none w-full

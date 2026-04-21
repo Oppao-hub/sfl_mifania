@@ -30,6 +30,8 @@
                                                 url: '{{ path('app_admin_user_toggle_status', {id: admin.user.id}) }}',
                                                 email: '{{ admin.user.email|e('js') }}',
                                                 currentStatus: '{{ admin.user.status.value }}',
+                                                newStatus: this.value,
+                                                fieldName: 'status',
                                                 token: '{{ csrf_token('toggle' ~ admin.user.id) }}'
                                             }
                                         })); this.value = '{{ admin.user.status.value }}';"

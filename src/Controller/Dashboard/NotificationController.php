@@ -3,12 +3,14 @@
 namespace App\Controller\Dashboard;
 
 use App\Entity\Notification;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/dashboard/notifications')]
 class NotificationController extends AbstractController
@@ -17,7 +19,7 @@ class NotificationController extends AbstractController
      * Handles the "Mark Read" button click in the dropdown via AJAX
      */
     #[Route('/mark-read', name: 'app_notifications_mark_read', methods: ['POST'])]
-    public function markAllAsRead(Request $request, EntityManagerInterface $em): JsonResponse
+    public function markAllAsRead(Request $request, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
     {
         // 1. Verify the CSRF token for security
         $token = $request->headers->get('X-CSRF-TOKEN');
@@ -26,12 +28,11 @@ class NotificationController extends AbstractController
         }
 
         // 2. Get the currently logged-in user
-        $user = $this->getUser();
-        if (!$user) {
+        if (!$user || !$user->getId()) {
             return new JsonResponse(['error' => 'Unauthorized'], 401);
         }
 
-        // 3. Fast Bulk Update (Fixed the 'n.recipient' property mapping!)
+        // 3. Fast Bulk Update
         $em->createQuery('
             UPDATE App\Entity\Notification n
             SET n.isRead = true
@@ -47,10 +48,10 @@ class NotificationController extends AbstractController
      * Intercepts a notification click, marks it as read, and redirects to the target
      */
     #[Route('/{id}/read', name: 'app_notification_read_and_redirect', methods: ['GET'])]
-    public function readAndRedirect(Notification $notification, EntityManagerInterface $em): Response
+    public function readAndRedirect(Notification $notification, EntityManagerInterface $em, #[CurrentUser] ?User $user): Response
     {
         // Security check: ensure the notification actually belongs to the logged in user
-        if ($notification->getRecipient() !== $this->getUser()) {
+        if (!$user || $notification->getRecipient()->getId() !== $user->getId()) {
             throw $this->createAccessDeniedException();
         }
 
@@ -61,7 +62,6 @@ class NotificationController extends AbstractController
         }
 
         // 2. Get the target URL
-        // (Make sure you generated the targetUrl string property on your entity!)
         $targetUrl = $notification->getTargetUrl();
 
         // 3. Redirect the user
@@ -74,10 +74,16 @@ class NotificationController extends AbstractController
     }
 
     #[Route('/{id}/dismiss', name: 'app_notification_dismiss', methods: ['POST'])]
-    public function dismiss(Notification $notification, EntityManagerInterface $em): JsonResponse
+    public function dismiss(Request $request, Notification $notification, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
     {
+        // Verify CSRF token
+        $token = $request->headers->get('X-CSRF-TOKEN');
+        if (!$this->isCsrfTokenValid('dismiss_notification', $token)) {
+            return new JsonResponse(['error' => 'Invalid CSRF token'], 403);
+        }
+
         // Clean, universal security check!
-        if ($notification->getRecipient() !== $this->getUser()) {
+        if (!$user || $notification->getRecipient()->getId() !== $user->getId()) {
             return new JsonResponse(['error' => 'Unauthorized'], 403);
         }
 

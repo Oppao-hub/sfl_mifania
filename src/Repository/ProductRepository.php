@@ -52,16 +52,22 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findTopSellingProducts(int $limit = 10): array
+    public function findTopSellingProducts(int $limit = 10, ?\DateTimeInterface $startDate = null): array
     {
-        return $this->createQueryBuilder('p')
-            ->select('p.name as name', 'SUM(oi.quantity) as unitsSold', 'SUM(oi.quantity * p.price) as revenue')
+        $qb = $this->createQueryBuilder('p')
+            ->select('p as product', 'SUM(oi.quantity) as unitsSold', 'SUM(oi.quantity * p.price) as revenue')
             ->leftJoin('p.orderItems', 'oi')
+            ->leftJoin('oi.order', 'o')
             ->groupBy('p.id')
             ->orderBy('unitsSold', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults($limit);
+
+        if ($startDate) {
+            $qb->andWhere('o.createdAt >= :startDate')
+                ->setParameter('startDate', $startDate);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

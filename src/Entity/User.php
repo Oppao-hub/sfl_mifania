@@ -21,7 +21,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'chat:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
@@ -63,6 +63,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $verificationToken = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastActiveAt = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    private ?self $assignedSupport = null;
 
     public function __construct()
     {
@@ -223,6 +229,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setVerificationToken(?string $verificationToken): static
     {
         $this->verificationToken = $verificationToken;
+        return $this;
+    }
+
+    public function getLastActiveAt(): ?\DateTimeImmutable
+    {
+        return $this->lastActiveAt;
+    }
+
+    public function setLastActiveAt(?\DateTimeImmutable $lastActiveAt): static
+    {
+        $this->lastActiveAt = $lastActiveAt;
+        return $this;
+    }
+
+    public function isActiveNow(): bool
+    {
+        if (null === $this->lastActiveAt) {
+            return false;
+        }
+
+        return $this->lastActiveAt > new \DateTimeImmutable('-5 minutes');
+    }
+
+    public function getAssignedSupport(): ?self
+    {
+        return $this->assignedSupport;
+    }
+
+    public function setAssignedSupport(?self $assignedSupport): static
+    {
+        $this->assignedSupport = $assignedSupport;
         return $this;
     }
 }

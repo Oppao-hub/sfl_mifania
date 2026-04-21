@@ -70,4 +70,16 @@ class OrderRepository extends ServiceEntityRepository
 
         return $salesData;
     }
+
+    public function getTopSpenders(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('o')
+            ->select('c.firstName, c.lastName, SUM(o.totalAmount) as totalSpent')
+            ->innerJoin('o.customer', 'c')
+            ->groupBy('c.id')
+            ->orderBy('totalSpent', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

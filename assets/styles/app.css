@@ -10,7 +10,6 @@
     --color-light-brown: #8A7363;
 
     /* --- 🩶 UI Neutrals & Shades --- */
-    --color-white: #FFFFFF;
     --color-app-bg: #FBFBFA;
     --color-light-gray: #F3F4F6;
     --color-gray: #6A7282;
@@ -23,6 +22,47 @@
     --color-danger: #DC3545;
     --color-warning: #D97706;
     --color-terracotta: #B45239;
+
+    /* --- 📏 Custom Sizes --- */
+    --font-size-xxs: 0.5rem; /* 8px */
+}
+
+/* --- Dark Mode Utilities --- */
+.dark {
+    --color-app-bg: #1A1D14;
+    --color-white: #24291E;
+    --color-border-color: #343A2F;
+    --color-row-hover: #2D3426;
+    --color-brand-dark: #EAE8E3;
+    --color-gray: #9CA3AF;
+    --color-dark-gray: #D1D5DB;
+}
+
+.dark aside {
+    background-color: #1A1D14 !important;
+}
+
+.dark header {
+    background-color: rgba(26, 29, 20, 0.8) !important;
+    border-color: #343A2F !important;
+}
+
+.dark .bg-white {
+    background-color: #24291E !important;
+}
+
+.dark .text-brand-dark {
+    color: #EAE8E3 !important;
+}
+
+.dark .border-border-color {
+    border-color: #343A2F !important;
+}
+
+.dark input, .dark select, .dark textarea {
+    background-color: #1A1D14 !important;
+    border-color: #343A2F !important;
+    color: #EAE8E3 !important;
 }
 
 /* --- Base Styles --- */

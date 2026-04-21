@@ -61,7 +61,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_order_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_order_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Order $order): Response
     {
         return $this->render('dashboard/order/show.html.twig', [
@@ -69,7 +69,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_order_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_order_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Request $request, Order $order, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(OrderType::class, $order);
@@ -88,7 +88,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_order_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_order_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Order $order, EntityManagerInterface $entityManager): Response
     {

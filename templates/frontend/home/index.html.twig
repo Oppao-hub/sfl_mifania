@@ -1,4 +1,4 @@
-{% extends 'landing.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Mifania | Sustainable Fashion Line{% endblock %}
 
@@ -19,40 +19,41 @@
 {% import _self as display %}
 
 {% block main_content %}
-    {# Hero Section  #}
+    {# 1. HERO #}
     <section class="relative bg-gray-200 overflow-hidden min-h-[500px] lg:h-[85vh] flex items-center"
-            style="background-image: url('{{ asset('uploads/home/hero/home-hero.png') }}'); background-size: cover; background-position: center;">
+             style="background-image: url('{{ asset('uploads/home/hero/home-hero.png') }}'); background-size: cover; background-position: center;">
         <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 w-full">
-            <div class="flex flex-col justify-center px-6 md:px-12 lg:px-20 py-16 order-2 md:order-1 bg-white/40 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none mt-auto md:mt-0">
+            <div x-data="{ shown: false }"
+                 x-init="setTimeout(() => shown = true, 150)"
+                 class="flex flex-col justify-center px-6 md:px-12 lg:px-20 py-16 order-2 md:order-1 bg-white/40 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none mt-auto md:mt-0 transform transition-all duration-1000 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8 text-brand-dark">
-                    <span class="text-gray-800">Fashion that</span><br>
+                    <span class="text-gray-800">Fashion that</span>
                     <span class="text-brand">respects our planet</span>
                 </h1>
+                <p class="text-base lg:text-lg text-gray-800 mb-10 max-w-lg font-medium leading-relaxed">
+                    100% organic, ethically crafted, and designed to last decades—not seasons.
+                </p>
                 <div>
-                    <a href="{{ path('app_shop') }}" class="bg-brand hover:bg-brand-dark text-white px-8 py-4 text-xs lg:text-sm font-bold tracking-widest rounded-sm shadow-sm hover:-translate-0.5 transition-all duration-300 inline-block uppercase cursor-pointer">
-                        Explore The Collection
+                    <a href="{{ path('app_shop') }}" class="bg-brand hover:bg-brand-dark text-white px-7 py-3 text-xs lg:text-sm font-bold tracking-widest rounded-sm shadow-sm transition-all duration-300 inline-block uppercase cursor-pointer">
+                        Shop Collection
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
+    {% include 'components/frontend/benefits.html.twig' ignore missing %}
 
-    {# Benefits Section #}
-    {% include 'components/frontend/benefits.html.twig' %}
-
-    {# category Section #}
-    <section id="categories" class="bg-white pb-12 lg:pb-16 px-6 md:px-12 border-b border-gray-100">
-        {# Categories Grid #}
-        <div class="max-w-[1440px] mx-auto">
+    {# 2. CATEGORIES #}
+    <section id="categories" class="bg-white px-6 md:px-12">
+        <div class="max-w-[1440px] mx-auto" x-data="{ shown: false }" x-intersect.once="shown = true">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {# Left Column (Women) #}
-                <div class="relative overflow-hidden h-[400px] lg:h-[600px] group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop', { department: 'women' }) }}'">
-                    {# 1. Image now fills the ENTIRE box #}
+                <div class="relative overflow-hidden h-[400px] lg:h-[600px] group rounded-sm cursor-pointer shadow-sm transform transition-all duration-700 ease-out"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'"
+                     onclick="window.location.href='{{ path('app_shop', { department: 'women' }) }}'">
                     <img src="{{ asset('uploads/home/category/women.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700">
-
-                    {# 2. The sleek white gradient overlay for readable text #}
                     <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/60 to-transparent z-0"></div>
 
                     <div class="absolute top-8 left-8 lg:top-12 lg:left-12 z-10 max-w-[60%]">
@@ -73,10 +74,9 @@
                     </div>
                 </div>
 
-                {# Right Column #}
-                <div class="flex flex-col gap-6 h-[600px] lg:h-[600px]">
+                <div class="flex flex-col gap-6 h-[600px] lg:h-[600px] transform transition-all duration-700 ease-out delay-300"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
 
-                    {# Men's #}
                     <div class="flex-1 relative overflow-hidden group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop', { department: 'men' }) }}'">
                         <img src="{{ asset('uploads/home/category/men.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700">
                         <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-transparent z-0"></div>
@@ -86,20 +86,9 @@
                              {{ display.format_count(men_count|default(0)) }} Items
                             </span>
                             <h2 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">Men</h2>
-                            <ul class="text-xs lg:text-sm text-gray-800 space-y-1 font-bold">
-                                {% if men_categories and men_categories.subCategories %}
-                                    {% for subCategory in men_categories.subCategories %}
-                                        <li>{{ subCategory.name }}</li>
-                                    {% endfor %}
-                                {% else %}
-                                    <li>Essentials</li>
-                                    <li>Eco-friendly</li>
-                                {% endif %}
-                            </ul>
                         </div>
                     </div>
 
-                    {# Accessories #}
                     <div class="flex-1 relative overflow-hidden group rounded-sm cursor-pointer shadow-sm" onclick="window.location.href='{{ path('app_shop', { department: 'accessories' }) }}'">
                         <img src="{{ asset('uploads/home/category/accessories.jpeg') }}" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700">
                         <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-transparent z-0"></div>
@@ -109,45 +98,37 @@
                                 {{ display.format_count(acc_count|default(0)) }} Items
                             </span>
                             <h2 class="text-2xl lg:text-3xl font-bold text-brand-dark mb-3 uppercase tracking-tight">Accessories</h2>
-                            <ul class="text-xs lg:text-sm text-gray-800 space-y-1 font-bold">
-                                {% if acc_categories and acc_categories.subCategories %}
-                                    {% for subCategory in acc_categories.subCategories %}
-                                        <li>{{ subCategory.name }}</li>
-                                    {% endfor %}
-                                {% else %}
-                                    <li>Bags</li>
-                                    <li>Ethical Goods</li>
-                                {% endif %}
-                            </ul>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </section>
 
-    {# Top Selling Products - Using the new Component and Pure White Background Wrapper #}
-    <section id="top-products" class="w-full bg-light-gray border-t border-gray-100">
-        <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-16 lg:py-24">
-            <div class="mb-10 lg:mb-12 text-center lg:text-left">
+    {# 3. TOP SELLERS #}
+    <section class="w-full bg-white" x-data="{ shown: false }" x-intersect.once="shown = true">
+        <div class="max-w-[1440px] mx-auto py-16 lg:pb-16 px-6 md:px-12">
+            <div class="mb-10 lg:mb-12 text-center lg:text-left transform transition-all duration-700 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
                 <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Our Products</p>
                 <h2 class="text-3xl lg:text-4xl font-bold text-brand uppercase tracking-tight">Top Sellers</h2>
             </div>
 
-            {# Responsive Grid for Products #}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {% for product in topProducts %}
-                    {% include 'components/frontend/product_card.html.twig' with {
-                        'image': product.image != 'default.png'
-                            ? asset('uploads/products/' ~ product.image)
-                            : 'https://placehold.co/400x500?text=No+Image',
-                        'category': product.subCategory ? product.subCategory.name : 'Uncategorized',
-                        'name': product.name,
-                        'price': product.price,
-                        'slug': product.slug,
-                        'product': product
-                    } %}
+                    <div class="transform transition-all duration-700 ease-out"
+                         style="transition-delay: {{ loop.index0 * 150 }}ms;"
+                         :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+                        {% include 'components/frontend/product_card.html.twig' with {
+                            'image': product.image != 'default.png'
+                                ? asset('uploads/products/' ~ product.image)
+                                : 'https://placehold.co/400x500?text=No+Image',
+                            'category': product.subCategory ? product.subCategory.name : product.gender.value,
+                            'name': product.name,
+                            'price': product.price,
+                            'slug': product.slug
+                        } %}
+                    </div>
                 {% else %}
                     <div class="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12 text-gray-400">
                         <p>New products arriving soon!</p>
@@ -157,36 +138,43 @@
         </div>
     </section>
 
-    {# Story Section #}
-    <section id="story" class="py-16 lg:py-24 px-6 md:px-12 bg-white border-t border-gray-100">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl lg:text-4xl font-bold text-brand text-center mb-12 lg:mb-16 uppercase tracking-tight">Our Story & Values</h2>
+    {# 4. STORY #}
+    <section id="story" class="py-16 lg:py-24 px-6 md:px-12 bg-light-gray">
+        {# FIXED: Replaced scrollReveal() with Alpine x-intersect #}
+        <div class="max-w-7xl mx-auto" x-data="{ shown: false }" x-intersect.once="shown = true">
 
-            {# Banner Image - Adjusted heights for mobile #}
-            <div class="relative rounded-sm overflow-hidden h-[400px] lg:h-[300px] mb-12 lg:mb-16">
+            <h2 class="text-3xl lg:text-4xl font-bold text-brand text-center mb-12 lg:mb-16 uppercase tracking-tight transform transition-all duration-700 ease-out"
+                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">Our Story & Values</h2>
+
+            <div class="relative rounded-sm overflow-hidden h-[400px] lg:h-[300px] mb-12 lg:mb-16 transform transition-all duration-700 ease-out delay-200"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
                  <img src="{{ asset('uploads/home/story/story-values.png') }}" class="w-full h-full object-cover">
                  <div class="absolute inset-0 bg-black/40 lg:bg-black/20"></div>
                  <div class="absolute inset-0 flex items-center p-6 lg:p-12">
                      <div class="max-w-lg text-white">
                          <h3 class="text-2xl lg:text-3xl font-bold mb-4 uppercase tracking-wide">Weaving Nature In Every Thread</h3>
-                         <p class="text-sm leading-relaxed font-medium">At MIFANIA, we prove that timeless style shouldn't cost the planet. We reject fast fashion, creating sustainable pieces designed to last.</p>
+                         <p class="text-sm leading-relaxed font-medium">At MIFANIA, we prove that timeless style shouldn't cost the planet.</p>
                      </div>
                  </div>
             </div>
 
-            {# Fixed Grid: Added aspect ratio classes to the images instead of hardcoded heights! #}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
-                <div class="flex flex-col h-full">
+                <div class="flex flex-col h-full transform transition-all duration-700 ease-out"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
                     <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Consciously Crafted</h3>
                     <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">Crafted from GOTS-certified organic cotton and recycled materials, our toxic-free garments are safe for both you and the ecosystem.</p>
                     <img src="{{ asset('uploads/home/story/crafted.jpg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
                 </div>
-                <div class="flex flex-col h-full">
+
+                <div class="flex flex-col h-full transform transition-all duration-700 ease-out delay-300"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
                     <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Ethically Made</h3>
                     <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">We partner exclusively with SA8000-certified factories to ensure fair wages, safety, and dignity for the hands that craft our clothes.</p>
                     <img src="{{ asset('uploads/home/story/ethically-made.jpg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
                 </div>
-                <div class="flex flex-col h-full">
+
+                <div class="flex flex-col h-full transform transition-all duration-700 ease-out delay-500"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
                     <h3 class="text-lg lg:text-xl font-bold text-brand mb-3 uppercase tracking-wider">Circular By Design</h3>
                     <p class="text-xs lg:text-sm text-gray-500 leading-relaxed mb-6">Through the MIFANIA Circle program, we design for longevity and offer a recycling path to ensure our clothes never end up in a landfill.</p>
                     <img src="{{ asset('uploads/home/story/circular-design.jpeg') }}" class="w-full aspect-[4/3] object-cover rounded-sm mt-auto">
@@ -195,55 +183,170 @@
         </div>
     </section>
 
-    <section id="faq" class="bg-light-gray py-24 px-6" x-data="{ active: null }">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-brand mb-4">Frequently Asked Questions</h2>
-                <p class="text-gray-500">Transparency is our policy. Here is everything you need to know about our materials and process.</p>
-            </div>
+    {# 5. TESTIMONIAL #}
+    {# 5. REFINED TESTIMONIAL SECTION #}
+    <section id="testimonial" class="py-16 lg:py-24 bg-white border-y border-gray-100" x-data="{ shown: false }" x-intersect="shown = true" x-intersect:leave="shown = false">
 
-            <div class="space-y-3">
-                <template x-for="(item, index) in [
-                    { q: 'How do you source your materials?', a: 'We source directly from GOTS certified farms in India and Turkey.' },
-                    { q: 'Is your packaging plastic-free?', a: 'Yes! Every order ships in 100% compostable mailers made from cornstarch, and we use soy-based inks for all our tags.' },
-                    { q: 'What is your return policy?', a: 'We offer a 30-day window for circular exchanges.' },
-                    { q: 'Do you ship international?', a: 'Currently we ship to 15 countries with carbon-neutral carriers.' },
-                    { q: 'How should I care for my organic garments?', a: 'Wash cold, hang dry.' },
-                    { q: 'Are your workers paid fair wages?', a: 'Yes, we are SA8000 certified.' },
-                    { q: 'Do you have a recycling program for old clothes?', a: 'Yes, check our Circle program.' }
-                ]">
-                    <div class="bg-white rounded shadow-sm overflow-hidden transition-all duration-300 border border-gray-100"
-                        :class="{ 'bg-brand text-white border-brand': active === index, 'bg-white text-gray-700': active !== index }">
-                        <button @click="active = active === index ? null : index"
-                                class="flex justify-between items-center w-full px-6 py-4 text-left font-bold text-sm hover:opacity-90 transition-colors cursor-pointer">
-                            <span x-text="item.q"></span>
-                            <span class="text-xl font-normal" x-text="active === index ? '-' : '+'"></span>
-                        </button>
-                        <div x-show="active === index" x-collapse class="px-6 pb-4 text-xs opacity-90 leading-relaxed">
-                            <p x-text="item.a"></p>
+        <div class="max-w-6xl mx-auto px-6 md:px-12" x-data="{
+                 activeSlide: 0,
+                 totalSlides: {{ testimonials|length }},
+                 timer: null,
+                 init() {
+                     this.startTimer();
+                 },
+                 startTimer() {
+                     this.timer = setInterval(() => {
+                         this.activeSlide = (this.activeSlide + 1) % this.totalSlides
+                     }, 8000); // Slower interval so users can read the quote
+                 },
+                 setSlide(index) {
+                     this.activeSlide = index;
+                     clearInterval(this.timer);
+                     this.startTimer();
+                 }
+             }">
+
+            {# The Slider Container #}
+            <div class="relative min-h-[400px] lg:min-h-[350px] flex items-center transform transition-all duration-700 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+
+                {% for index, testimonial in testimonials %}
+                    <div x-show="activeSlide === {{ index }}"
+                         x-transition:enter="transition ease-out duration-700"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-300 absolute inset-0"
+                         x-transition:leave-start="opacity-100 translate-x-0"
+                         x-transition:leave-end="opacity-0 -translate-x-8"
+                         class="w-full flex flex-col md:flex-row items-center gap-12 lg:gap-20"
+                         style="display: none;">
+
+                        {# Left Side: Portrait & Design Elements #}
+                        <div class="w-2/3 max-w-[300px] md:w-2/5 shrink-0 relative mt-8 md:mt-0">
+                            {# The offset brand-colored shadow/shape #}
+                            <div class="absolute inset-0 bg-brand/10 translate-x-4 -translate-y-4 rounded-sm"></div>
+
+                            {# The Portrait Image #}
+                            <div class="relative aspect-square md:aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm shadow-sm">
+                                <img src="{{ asset('uploads/home/testimonial/' ~ testimonial.image) }}"
+                                    class="w-full h-full object-cover"
+                                    alt="{{ testimonial.author }}">
+                            </div>
+
+                            {# The Overlapping Quote Box (Top Right) #}
+                            <div class="absolute -top-6 -right-6 bg-brand text-white w-14 h-14 flex items-center justify-center shadow-lg rounded-sm transform rotate-3">
+                                {{ ux_icon('lucide:quote', { class: 'w-7 h-7 fill-current' }) }}
+                            </div>
+                        </div>
+
+                        {# Right Side: Content & Rating #}
+                        <div class="w-full md:w-3/5 space-y-6 pt-6 md:pt-0">
+
+                            {# Stars & Numeric Rating #}
+                            <div class="flex items-center gap-3">
+                                <div class="flex gap-1 text-yellow-500">
+                                    {% for i in 1..testimonial.rating %}
+                                        {{ ux_icon('si:star-fill', {class: 'w-5 h-5 fill-current'}) }}
+                                    {% endfor %}
+                                </div>
+                                <span class="font-bold text-brand-dark text-lg">{{ testimonial.rating }}.0</span>
+                            </div>
+
+                            {# The Quote (with faint decorative background marks) #}
+                            <blockquote class="text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-gray-700 relative z-10">
+                                <span class="absolute -top-10 -left-6 text-8xl text-brand/5 font-serif select-none -z-10">"</span>
+                                {{ testimonial.quote }}
+                            </blockquote>
+
+                            {# Author Information #}
+                            <div class="pt-6 border-t border-gray-100 inline-block w-full">
+                                <p class="text-base font-bold text-brand-dark uppercase tracking-wide">{{ testimonial.author }}</p>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mt-1 font-medium">{{ testimonial.details }}</p>
+                            </div>
                         </div>
                     </div>
-                </template>
+                {% endfor %}
+            </div>
+
+            {# Slider Navigation Dots #}
+            <div class="flex justify-center md:justify-end gap-3 mt-12 z-10 relative transform transition-all duration-700 ease-out delay-300"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
+                {% for index in 0..(testimonials|length - 1) %}
+                    <button @click="setSlide({{ index }})"
+                            aria-label="Go to testimonial {{ index + 1 }}"
+                            class="w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer"
+                            :class="activeSlide === {{ index }} ? 'bg-brand scale-125' : 'bg-gray-300 hover:bg-brand/50'">
+                    </button>
+                {% endfor %}
             </div>
         </div>
     </section>
 
-    <section id="newsletter" class="bg-light-gray pb-24 px-6 text-center">
-        <div class="max-w-2xl mx-auto">
-            <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Our Newsletter</p>
-            <h2 class="text-3xl font-bold text-brand mb-4">Join Our Sustainable Community</h2>
-            <p class="text-sm text-gray-500 mb-8">Receive exclusive offers, eco-tips, and new arrival updates directly to your inbox.</p>
+    {# 6. FAQ #}
+    <section id="faq" class="bg-light-gray py-24 px-6" x-data="{ shown: false }" x-intersect.once="shown = true">
+        <div class="max-w-4xl mx-auto" x-data="{ active: null }">
+            <div class="text-center mb-12 transform transition-all duration-700 ease-out"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'">
+                <h2 class="text-3xl font-bold text-brand mb-4">Frequently Asked Questions</h2>
+                <p class="text-gray-500">Transparency is our policy. Here is everything you need to know about our materials and process.</p>
+            </div>
 
-            <form action="{{ path('app_newsletter_subscribe') }}" method="POST" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                {# Add CSRF token for security #}
+            <div class="space-y-3 transform transition-all duration-700 ease-out delay-200"
+                 :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+                {% for faq, item in faqs %}
+                    <div class="bg-white rounded shadow-sm overflow-hidden transition-all duration-300 border border-gray-100"
+                        :class="{ 'bg-brand text-white border-brand': active === {{ faq }}, 'bg-white text-gray-700': active !== {{ faq }} }">
+
+                        <button @click="active = active === {{ faq }} ? null : {{ faq }}"
+                                class="flex justify-between items-center w-full px-6 py-4 text-left font-bold text-sm hover:opacity-90 transition-colors cursor-pointer">
+                            <span>{{ item.q }}</span>
+                            <span class="text-xl font-normal" x-text="active === {{ faq }} ? '-' : '+'"></span>
+                        </button>
+
+                        <div x-show="active === {{ faq }}" x-collapse style="display: none;">
+                            <div class="px-6 pb-4 text-xs opacity-90 leading-relaxed">
+                                <p>{{ item.a }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# 7. NEWSLETTER #}
+    {% set newsletter_errors = app.flashes('error') %}
+
+    {# FIXED: Replaced scrollReveal() with Alpine x-intersect #}
+    <section id="newsletter" class="bg-white py-24 px-6 text-center" x-data="{ shown: false }" x-intersect.once="shown = true">
+        <div class="max-w-2xl mx-auto transform transition-all duration-700 ease-out"
+             :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'">
+
+            <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">The Mifania Circle</p>
+
+            <h2 class="text-3xl font-bold text-brand mb-4">Join the Circle. Get 10% Off.</h2>
+            <p class="text-sm text-gray-500 mb-8">Subscribe to receive 10% off your first purchase, plus exclusive access to new arrivals and sustainable living tips. You can opt out anytime.</p>
+
+            <form action="{{ path('app_newsletter_subscribe') }}#newsletter" method="POST" class="flex flex-col gap-3 max-w-md mx-auto w-full" novalidate
+                  {% if newsletter_errors|length > 0 %}
+                      x-init="setTimeout(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)"
+                  {% endif %}
+            >
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('newsletter_submit') }}">
 
-                {# ADDED name="email" AND required HERE 👇 #}
-                <input type="email" name="email" required placeholder="Enter your email address" class="flex-1 px-6 py-3 border border-gray-200 focus:outline-none focus:border-brand text-sm rounded-md sm:rounded-r-none transition-colors">
+                {% for message in newsletter_errors %}
+                    <div class="bg-red-50 text-red-600 p-4 rounded-sm text-xs font-bold tracking-widest border border-red-100 flex items-center justify-center gap-3">
+                        {{ ux_icon('si:error-line', {class: 'w-4 h-4 shrink-0'}) }}
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
 
-                <button type="submit" class="bg-brand hover:bg-brand-dark text-white px-8 py-3 text-sm font-bold transition-colors rounded-md sm:rounded-l-none uppercase tracking-widest cursor-pointer">
-                    Subscribe
-                </button>
+                <div class="flex flex-col sm:flex-row">
+                    <input type="email" name="email" required placeholder="Enter your email address" class="flex-1 px-6 py-3 border border-gray-200 focus:outline-none focus:border-brand text-sm rounded-md sm:rounded-r-none transition-colors">
+                    <button type="submit" class="bg-brand hover:bg-brand-dark text-white px-8 py-3 text-sm font-bold transition-colors rounded-md sm:rounded-l-none uppercase tracking-widest cursor-pointer whitespace-nowrap">
+                        Subscribe
+                    </button>
+                </div>
             </form>
         </div>
     </section>

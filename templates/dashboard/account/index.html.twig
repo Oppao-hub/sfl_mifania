@@ -1,6 +1,6 @@
 {% extends 'dashboard/dashboard.html.twig' %}
 
-{% block title %}My Account{% endblock %}
+{% block title %}User Profile | Mifania Dashboard{% endblock %}
 
 {% block main_content %}
 
@@ -8,16 +8,22 @@
 {% set avatarPath = 'uploads/default/default-avatar.jpg' %}
 {% set userRole = 'User' %}
 {% set profileName = app.user.userIdentifier %}
+{% set firstName = '' %}
+{% set lastName = '' %}
 
 {% if is_granted('ROLE_ADMIN') and app.user.admin %}
     {% set userRole = 'Administrator' %}
-    {% set profileName = app.user.admin.firstName ~ ' ' ~ app.user.admin.lastName %}
+    {% set firstName = app.user.admin.firstName %}
+    {% set lastName = app.user.admin.lastName %}
+    {% set profileName = firstName ~ ' ' ~ lastName %}
     {% if app.user.admin.avatar %}
         {% set avatarPath = 'uploads/admin/avatars/' ~ app.user.admin.avatar %}
     {% endif %}
 {% elseif is_granted('ROLE_STAFF') and app.user.staff %}
     {% set userRole = 'Staff' %}
-    {% set profileName = app.user.staff.firstName ~ ' ' ~ app.user.staff.lastName %}
+    {% set firstName = app.user.staff.firstName %}
+    {% set lastName = app.user.staff.lastName %}
+    {% set profileName = firstName ~ ' ' ~ lastName %}
     {% if app.user.staff.avatar %}
         {% set avatarPath = 'uploads/staff/avatars/' ~ app.user.staff.avatar %}
     {% endif %}
@@ -26,88 +32,191 @@
 {# --- 2. ROUTING HELPERS --- #}
 {% set current_route = app.request.attributes.get('_route') %}
 {% set is_profile_active = current_route in ['app_account_admin', 'app_staff_account'] %}
+{% set is_edit_active = current_route in ['app_account_admin_edit', 'app_staff_account_edit'] %}
 {% set is_security_active = current_route in ['app_account_admin_password', 'app_staff_account_password'] %}
 {% set is_logs_active = current_route == 'app_activity_log_index' %}
 
-{# --- 3. LAYOUT --- #}
-<div class="animate-fadeIn max-w-7xl mx-auto">
-    <div class="flex flex-col lg:flex-row gap-8 items-stretch">
-        {# Left Sidebar Navigation #}
-        <aside class="w-full h-auto lg:w-80 bg-white p-8 rounded-lg shadow-sm border border-border-color lg:sticky lg:top-24 shrink-0">
+<div class="space-y-6 animate-fadeIn">
 
-            {# PROFILE HEADER #}
-            <div class="flex flex-col items-center text-center mb-8 pb-8 border-b border-border-color">
-                <div class="relative w-24 h-24 mb-5">
-                    <img
-                        src="{{ asset(avatarPath) }}"
-                        alt="Profile Picture"
-                        class="w-full h-full rounded-2xl object-cover border border-border-color shadow-sm"
-                    >
-                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-success border-2 border-white rounded-full shadow-sm"></span>
+    {# Page Header #}
+    <div class="mb-8">
+        <h1 class="text-2xl font-black text-brand-dark tracking-tighter uppercase">My Profile</h1>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray mt-1">Mifania » Account » {{ userRole }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        
+        {# ========================================== #}
+        {# LEFT COLUMN: Profile Info & Details        #}
+        {# ========================================== #}
+        <div class="xl:col-span-1 space-y-6">
+            
+            {# 1. Main Profile Card #}
+            <div class="bg-white rounded-2xl shadow-sm border border-border-color overflow-hidden">
+                {# Banner #}
+                <div class="h-32 bg-brand/10 relative overflow-hidden flex items-center justify-center">
+                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover mix-blend-overlay opacity-60" alt="Banner">
                 </div>
+                
+                {# Avatar & Actions #}
+                <div class="px-6 pb-6 relative">
+                    <div class="flex justify-between items-end mb-4">
+                        <div class="relative -mt-12 shrink-0">
+                            <img src="{{ asset(avatarPath) }}" alt="{{ profileName }}" class="w-20 h-20 rounded-full border-4 border-white object-cover shadow-sm bg-white">
+                            <div class="absolute bottom-1 right-1 w-4 h-4 bg-success border-2 border-white rounded-full"></div>
+                        </div>
+                    </div>
 
-                <h2 class="text-xl font-black text-brand-dark uppercase tracking-tighter">
-                    {{ profileName }}
-                </h2>
-                <p class="text-xs font-bold text-gray mb-3">
-                    {{ app.user.email }}
-                </p>
-                <span class="inline-block px-3 py-1 text-[9px] font-black text-brand bg-brand/10 rounded-sm border border-brand/20 uppercase tracking-[0.2em]">
-                    {{ userRole }}
-                </span>
+                    <div>
+                        <h2 class="text-lg font-black text-brand-dark tracking-tighter uppercase">{{ profileName }}</h2>
+                        <p class="text-xs font-bold text-gray uppercase tracking-widest mt-0.5">@{{ app.user.userIdentifier|split('@')[0] }}</p>
+                    </div>
+
+                    <div class="mt-6 space-y-3">
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                            {{ ux_icon('lucide:shield', {class: 'w-4 h-4 text-brand'}) }}
+                            <span class="text-xs font-bold uppercase tracking-widest text-gray/70">Role: {{ userRole }}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                            {{ ux_icon('lucide:mail', {class: 'w-4 h-4 text-brand'}) }}
+                            <a href="mailto:{{ app.user.email }}" class="text-xs font-bold text-gray/70 hover:text-brand transition-colors">{{ app.user.email }}</a>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                            {{ ux_icon('lucide:calendar', {class: 'w-4 h-4 text-brand'}) }}
+                            <span class="text-xs font-bold text-gray/70 uppercase tracking-widest">Joined: {{ app.user.admin ? app.user.admin.createdAt|date('M Y') : (app.user.staff ? app.user.staff.createdAt|date('M Y') : 'N/A') }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {# NAVIGATION MENU #}
-            <nav>
-                <div class="mb-4 px-2">
-                    <h3 class="text-[9px] font-black text-gray uppercase tracking-[0.3em]">Account Settings</h3>
+            {# 2. Personal Information Card #}
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-border-color">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest">About Me</h3>
+                    <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin_edit') : path('app_staff_account_edit') }}" class="text-gray hover:text-brand transition-colors">
+                        {{ ux_icon('lucide:pencil', {class: 'w-4 h-4'}) }}
+                    </a>
                 </div>
 
-                <ul class="space-y-2">
-                    {# Profile Link #}
-                    <li>
-                        <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin') : path('app_staff_account') }}"
-                           class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all text-xs font-bold uppercase tracking-widest border
-                                  {{ is_profile_active ? 'bg-brand/10 text-brand border-brand/20 shadow-sm' : 'text-gray border-transparent hover:bg-row-hover hover:text-brand-dark hover:border-border-color' }}">
-                            {{ ux_icon('lucide:user-circle', {class: 'w-4 h-4'}) }}
-                            Profile Information
-                        </a>
-                    </li>
+                <p class="text-xs text-gray leading-relaxed font-medium mb-6">
+                    Professional {{ userRole }} at Mifania Sustainable Fashion Line. Committed to operational excellence and sustainable growth.
+                </p>
 
-                    {# Security Link #}
-                    <li>
-                        <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin_password') : path('app_staff_account_password') }}"
-                           class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all text-xs font-bold uppercase tracking-widest border
-                                  {{ is_security_active ? 'bg-brand/10 text-brand border-brand/20 shadow-sm' : 'text-gray border-transparent hover:bg-row-hover hover:text-brand-dark hover:border-border-color' }}">
-                            {{ ux_icon('lucide:shield-check', {class: 'w-4 h-4'}) }}
-                            Security Settings
-                        </a>
-                    </li>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="px-2.5 py-1 bg-app-bg text-brand text-[10px] font-bold uppercase tracking-widest rounded-md border border-border-color">Symfony</span>
+                    <span class="px-2.5 py-1 bg-app-bg text-brand text-[10px] font-bold uppercase tracking-widest rounded-md border border-border-color">Tailwind</span>
+                    <span class="px-2.5 py-1 bg-app-bg text-brand text-[10px] font-bold uppercase tracking-widest rounded-md border border-border-color">E-commerce</span>
+                </div>
 
-                    {# Admin Only: System Logs #}
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <li class="pt-6 mt-6 border-t border-border-color">
-                             <div class="mb-4 px-2">
-                                <h3 class="text-[9px] font-black text-gray uppercase tracking-[0.3em]">System</h3>
-                            </div>
-                        </li>
-                        <li>
-                             <a href="{{ path('app_activity_log_index') }}"
-                                class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all text-xs font-bold uppercase tracking-widest border
-                                       {{ is_logs_active ? 'bg-brand/10 text-brand border-brand/20 shadow-sm' : 'text-gray border-transparent hover:bg-row-hover hover:text-brand-dark hover:border-border-color' }}">
-                                {{ ux_icon('lucide:clipboard-list', {class: 'w-4 h-4'}) }}
-                                Activity Logs
-                            </a>
-                        </li>
-                    {% endif %}
+                <ul class="space-y-4">
+                    <li class="grid grid-cols-3 gap-2 text-xs">
+                        <span class="font-bold text-brand-dark uppercase tracking-widest">Status:</span>
+                        <span class="col-span-2 text-gray font-black uppercase tracking-widest text-success">Active</span>
+                    </li>
+                    <li class="grid grid-cols-3 gap-2 text-xs">
+                        <span class="font-bold text-brand-dark uppercase tracking-widest">Position:</span>
+                        <span class="col-span-2 text-gray font-bold uppercase tracking-widest">{{ userRole }}</span>
+                    </li>
+                    <li class="grid grid-cols-3 gap-2 text-xs">
+                        <span class="font-bold text-brand-dark uppercase tracking-widest">Language:</span>
+                        <span class="col-span-2 text-gray font-bold uppercase tracking-widest">English, Tagalog</span>
+                    </li>
                 </ul>
-            </nav>
-        </aside>
 
-        {# Right Content Area #}
-        <main class="w-full flex-1 flex flex-col">
-            {% block account_content %}{% endblock %}
-        </main>
+                {# Social Stats #}
+                <div class="mt-8 flex justify-center gap-12 border-t border-border-color pt-6">
+                    <div class="text-center group cursor-pointer">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            {{ ux_icon('lucide:facebook', {class: 'w-5 h-5'}) }}
+                        </div>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray mt-1">Facebook</p>
+                    </div>
+                    <div class="text-center group cursor-pointer">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-slate-50 text-slate-800 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            {{ ux_icon('lucide:github', {class: 'w-5 h-5 fill-current'}) }}
+                        </div>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray mt-1">GitHub</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        {# ========================================== #}
+        {# RIGHT COLUMN: Dynamic Content Area         #}
+        {# ========================================== #}
+        <div class="xl:col-span-2 space-y-6">
+            
+            {# Top Alert Bar #}
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center gap-3 shadow-sm">
+                <div class="p-1.5 bg-white rounded-full text-indigo-500 shadow-sm">
+                    {{ ux_icon('lucide:zap', {class: 'w-4 h-4'}) }}
+                </div>
+                <p class="text-sm font-bold text-indigo-800 tracking-tight">{{ profileName }}'s Account Performance</p>
+            </div>
+
+            {# Stats Row (Placeholder real counts if available) #}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-border-color flex items-center gap-4 transition-all hover:shadow-md">
+                    <div class="w-10 h-10 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center shrink-0">
+                        {{ ux_icon('lucide:activity', {class: 'w-5 h-5'}) }}
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray mb-0.5">Activities</p>
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-xl font-black text-brand-dark">1,240</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-border-color flex items-center gap-4 transition-all hover:shadow-md">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                        {{ ux_icon('lucide:shield-check', {class: 'w-5 h-5'}) }}
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray mb-0.5">Security Score</p>
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-xl font-black text-brand-dark">100%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-border-color flex items-center gap-4 transition-all hover:shadow-md">
+                    <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                        {{ ux_icon('lucide:clock', {class: 'w-5 h-5'}) }}
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray mb-0.5">Login Time</p>
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-xl font-black text-brand-dark">{{ "now"|date('H:i') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Tabs Navigation #}
+            <div class="border-b border-border-color flex gap-8 px-2 overflow-x-auto no-scrollbar">
+                <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin') : path('app_staff_account') }}" 
+                   class="pb-3 text-sm font-bold tracking-tight transition-colors border-b-2 {{ is_profile_active ? 'text-brand-dark font-black border-brand' : 'text-gray hover:text-brand border-transparent' }} whitespace-nowrap">Overview</a>
+                
+                <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin_edit') : path('app_staff_account_edit') }}" 
+                   class="pb-3 text-sm font-bold tracking-tight transition-colors border-b-2 {{ is_edit_active ? 'text-brand-dark font-black border-brand' : 'text-gray hover:text-brand border-transparent' }} whitespace-nowrap">Edit Profile</a>
+                
+                <a href="{{ is_granted('ROLE_ADMIN') ? path('app_account_admin_password') : path('app_staff_account_password') }}" 
+                   class="pb-3 text-sm font-bold tracking-tight transition-colors border-b-2 {{ is_security_active ? 'text-brand-dark font-black border-brand' : 'text-gray hover:text-brand border-transparent' }} whitespace-nowrap">Settings</a>
+                
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_activity_log_index') }}" 
+                       class="pb-3 text-sm font-bold tracking-tight transition-colors border-b-2 {{ is_logs_active ? 'text-brand-dark font-black border-brand' : 'text-gray hover:text-brand border-transparent' }} whitespace-nowrap">Audit Logs</a>
+                {% endif %}
+            </div>
+
+            {# Dynamic Account Content #}
+            <div class="min-h-[400px]">
+                {% block account_content %}{% endblock %}
+            </div>
+
+        </div>
     </div>
 </div>
 {% endblock %}
