@@ -3,11 +3,15 @@
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Cart;
 use App\Entity\User;
 use App\Service\CartService;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class CartProcessor implements ProcessorInterface
 {
@@ -18,6 +22,7 @@ class CartProcessor implements ProcessorInterface
     public function __construct(
         CartService $cartService, 
         Security $security, 
+        #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         ProcessorInterface $persistProcessor
     ) {
         $this->cartService = $cartService;
@@ -39,7 +44,7 @@ class CartProcessor implements ProcessorInterface
         }
 
         // Handle POST (Create new cart)
-        if ($operation->getMethod() === 'POST') {
+        if ($operation instanceof Post) {
             $data->setCustomer($customer);
             // Default isMain to false for new collections created via API
             if ($data->isMain()) {
@@ -48,7 +53,7 @@ class CartProcessor implements ProcessorInterface
         }
 
         // Handle PATCH (Update or Switch main)
-        if ($operation->getMethod() === 'PATCH' && isset($context['item_operation_name']) || $operation instanceof \ApiPlatform\Metadata\Patch) {
+        if ($operation instanceof Patch) {
              if ($data->isMain()) {
                  $this->cartService->switchMainCart($data);
              }
