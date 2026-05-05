@@ -18,6 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
@@ -406,5 +407,13 @@ class Product
     {
         $this->story = $story;
         return $this;
+    }
+
+    #[Groups(['product:read'])]
+    #[SerializedName('imageUrl')]
+    public function getImageUrl(): string
+    {
+        // Replace with your local IP or domain in React Native
+        return '/uploads/products/' . ($this->image ?: 'default.png');
     }
 }
