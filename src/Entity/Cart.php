@@ -49,6 +49,14 @@ class Cart
     #[Groups(['cart:read'])]
     private ?int $totalQuantity = 0;
 
+    #[ORM\Column(length: 255)]
+    #[Groups(['cart:read'])]
+    private string $name = 'Main Cart';
+
+    #[ORM\Column]
+    #[Groups(['cart:read'])]
+    private bool $isMain = true;
+
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Groups(['cart:read'])]
     private ?string $totalPrice = '0.00';
@@ -134,6 +142,30 @@ class Cart
     public function setTotalQuantity(int $totalQuantity): static
     {
         $this->totalQuantity = $totalQuantity;
+
+        return $this;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function isMain(): bool
+    {
+        return $this->isMain;
+    }
+
+    public function setIsMain(bool $isMain): static
+    {
+        $this->isMain = $isMain;
 
         return $this;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Controller\Frontend;
 
+use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Entity\Product;
 use App\Service\CartService;
@@ -86,6 +87,77 @@ final class CartController extends AbstractController
     {
         $cartService->clearCart();
         $this->addFlash('info', 'Your shopping cart has been cleared.');
+
+        return $this->redirectToRoute('app_cart_show');
+    }
+
+    #[Route('/switch/{id}', name: 'app_cart_switch', methods: ['POST'])]
+    public function switchCart(Cart $cart, CartService $cartService): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        if ($cart->getCustomer() !== $this->getUser()->getCustomer()) {
+            throw $this->createAccessDeniedException('This cart does not belong to you.');
+        }
+
+        $cartService->switchMainCart($cart);
+        $this->addFlash('success', sprintf('Switched to collection: %s', $cart->getName()));
+
+        return $this->redirectToRoute('app_cart_show');
+    }
+
+    #[Route('/create', name: 'app_cart_create', methods: ['POST'])]
+    public function create(Request $request, CartService $cartService): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $name = $request->request->get('name', 'New Collection');
+        $customer = $this->getUser()->getCustomer();
+        
+        $cart = $cartService->createCart($customer, $name, false);
+        
+        $this->addFlash('success', sprintf('Collection "%s" created!', $cart->getName()));
+
+        return $this->redirectToRoute('app_cart_show');
+    }
+
+    #[Route('/rename/{id}', name: 'app_cart_rename', methods: ['POST'])]
+    public function rename(Cart $cart, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        if ($cart->getCustomer() !== $this->getUser()->getCustomer()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $newName = $request->request->get('name');
+        if ($newName) {
+            $cart->setName($newName);
+            $em->flush();
+            $this->addFlash('success', 'Collection renamed.');
+        }
+
+        return $this->redirectToRoute('app_cart_show');
+    }
+
+    #[Route('/remove-collection/{id}', name: 'app_cart_remove_collection', methods: ['POST'])]
+    public function removeCollection(Cart $cart, CartService $cartService, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        if ($cart->getCustomer() !== $this->getUser()->getCustomer()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($cart->isMain()) {
+            $this->addFlash('error', 'You cannot remove your main cart.');
+            return $this->redirectToRoute('app_cart_show');
+        }
+
+        $em->remove($cart);
+        $em->flush();
+        
+        $this->addFlash('info', 'Collection removed.');
 
         return $this->redirectToRoute('app_cart_show');
     }
