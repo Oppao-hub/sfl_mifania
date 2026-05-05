@@ -1,5 +1,4 @@
 <div x-data="customerChat()" 
-     x-init="initMercure()"
      class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
     
     {# Chat Window #}
@@ -21,12 +20,6 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-sm leading-tight">Mifania Support</h3>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full" :class="mercureConnected ? 'bg-success' : 'bg-white/30'"></span>
-                        <p class="text-[9px] uppercase tracking-widest font-bold" 
-                           :class="mercureConnected ? 'text-white' : 'text-white/50'"
-                           x-text="mercureConnected ? 'Real-time active' : 'Connecting...'"></p>
-                    </div>
                 </div>
             </div>
             <button @click="open = false" class="hover:bg-white/10 p-2 rounded-full transition-colors">
@@ -98,11 +91,9 @@
                 sending: false,
                 hasNew: false,
                 initialized: false,
-                mercureConnected: false,
                 unreadCount: 0,
 
                 init() {
-                    this.initMercure();
                     this.fetchUnreadCount();
                 },
 
@@ -182,46 +173,6 @@
                     } finally {
                         this.sending = false;
                     }
-                },
-
-                initMercure() {
-                    {% if app.user %}
-                        try {
-                            const url = new URL('{{ mercure("/chat/user/" ~ app.user.id)|escape("js") }}');
-                            console.log('Customer: Connecting to Mercure at', url.toString());
-                            const eventSource = new EventSource(url);
-
-                            eventSource.onopen = () => {
-                                console.log('Customer: Mercure connection opened!');
-                                this.mercureConnected = true;
-                            };
-
-                            eventSource.onmessage = (event) => {
-                                const message = JSON.parse(event.data);
-                                console.log('Customer: New message received:', message);
-                                
-                                // Prevent duplicates
-                                if (!this.messages.find(m => m.id === message.id)) {
-                                    this.messages.push(message);
-                                    
-                                    if (!this.open) {
-                                        this.hasNew = true;
-                                        this.unreadCount++;
-                                    } else {
-                                        this.markAsRead();
-                                        this.$nextTick(() => this.scrollToBottom());
-                                    }
-                                }
-                            };
-
-                            eventSource.onerror = (err) => {
-                                this.mercureConnected = false;
-                                console.error('Customer: Mercure connection error.', err);
-                            };
-                        } catch (e) {
-                            console.error('Customer: Failed to init Mercure:', e);
-                        }
-                    {% endif %}
                 },
 
                 scrollToBottom() {
