@@ -4,7 +4,6 @@
 
 {% block main_content %}
     <div x-data="chatComponent()" 
-         x-init="initMercure()"
          class="bg-white rounded-2xl shadow-sm border border-border-color flex h-[calc(100vh-140px)] min-h-[600px] overflow-hidden animate-fadeIn">
 
         {# --- LEFT SIDEBAR: Contact List --- #}
@@ -153,12 +152,6 @@
                             <img :src="selectedContact.avatar" :alt="selectedContact.name" class="w-10 h-10 rounded-full object-cover border border-border-color">
                             <div>
                                 <h2 class="text-base font-bold text-brand-dark" x-text="selectedContact.name"></h2>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="w-1.5 h-1.5 rounded-full" :class="mercureConnected ? 'bg-success' : 'bg-gray/30'"></span>
-                                    <p class="text-[10px] font-bold uppercase tracking-wide" 
-                                       :class="mercureConnected ? 'text-success' : 'text-gray/50'"
-                                       x-text="mercureConnected ? 'Real-time active' : 'Connecting...'"></p>
-                                </div>
                             </div>
                         </div>
 
@@ -259,7 +252,6 @@
                 activeTab: 'messages',
                 assignedSupport: null,
                 isCustomer: false,
-                mercureConnected: false,
                 unreadCounts: {{ initialUnread|json_encode|raw }},
                 lastMessages: {{ initialLastMsgs|json_encode|raw }},
                 
@@ -345,50 +337,6 @@
                         console.error('Error sending message:', error);
                     } finally {
                         this.sending = false;
-                    }
-                },
-
-                initMercure() {
-                    try {
-                        const url = new URL('{{ mercure("/chat/user/" ~ app.user.id)|escape("js") }}');
-                        console.log('Chat: Attempting to connect to Mercure at', url.toString());
-                        const eventSource = new EventSource(url);
-
-                        eventSource.onopen = () => {
-                            console.log('Chat: Mercure connection established! Real-time active.');
-                            this.mercureConnected = true;
-                        };
-
-                        eventSource.onmessage = (event) => {
-                            const message = JSON.parse(event.data);
-                            console.log('Chat: New message received:', message);
-                            
-                            const senderId = message.sender.id;
-                            
-                            // 1. Update unread counts and last message preview
-                            if (!this.selectedContact || senderId !== this.selectedContact.id) {
-                                if (senderId !== {{ app.user.id }}) {
-                                    this.unreadCounts[senderId] = (this.unreadCounts[senderId] || 0) + 1;
-                                }
-                            }
-                            this.lastMessages[senderId] = message.content;
-
-                            // 2. If part of current active conversation, add to window
-                            const isCurrentChat = this.selectedContact && (senderId === this.selectedContact.id || senderId === {{ app.user.id }});
-                            if (isCurrentChat) {
-                                if (!this.messages.find(m => m.id === message.id)) {
-                                    this.messages.push(message);
-                                    this.$nextTick(() => this.scrollToBottom());
-                                }
-                            }
-                        };
-
-                        eventSource.onerror = (error) => {
-                            this.mercureConnected = false;
-                            console.error('Chat: Mercure error. Check if Hub is running or CORS settings.', error);
-                        };
-                    } catch (e) {
-                        console.error('Chat: Failed to initialize Mercure:', e);
                     }
                 },
 
