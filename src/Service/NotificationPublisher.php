@@ -5,19 +5,17 @@ namespace App\Service;
 use App\Entity\Notification;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Mercure\HubInterface;
-use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class NotificationPublisher
 {
     public function __construct(
-        private HubInterface $hub,
         private EntityManagerInterface $em,
-        private UrlGeneratorInterface $router
+        private UrlGeneratorInterface $router,
+        private SocketIoPublisher $socketIoPublisher
     ) {}
 
-    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system'): void
+    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true): void
     {
         $targetUrl = $this->router->generate($routeName, $routeParams);
 
@@ -33,18 +31,17 @@ class NotificationPublisher
         $notification->setRecipient($recipient);
 
         $this->em->persist($notification);
-        $this->em->flush();
 
-        // 2. Universal Mercure Topic (One channel for everyone based on User ID)
-        $topic = sprintf('/notifications/user/%s', $recipient->getId());
+        if ($flush) {
+            $this->em->flush();
+        }
 
-        $payload = json_encode([
+        // 2. Real-time notification via Socket.io
+        $this->socketIoPublisher->publish($recipient->getId(), 'notification', [
             'title' => $title,
             'message' => $message,
             'targetUrl' => $targetUrl,
-            'type' => $type,
+            'type' => $type
         ]);
-
-        $this->hub->publish(new Update($topic, $payload));
     }
 }
