@@ -29,6 +29,7 @@ class Wallet
     private Collection $walletTransactions;
 
     #[ORM\OneToOne(inversedBy: 'wallet', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Customer $customer = null;
 
     public function __construct()
