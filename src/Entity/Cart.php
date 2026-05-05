@@ -8,34 +8,57 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use Symfony\Component\Serializer\Annotation\Groups;
+
+use App\State\CartProvider;
+
 #[ORM\Entity(repositoryClass: CartRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    operations: [
+        new Get(
+            uriTemplate: '/me/cart',
+            provider: CartProvider::class,
+            normalizationContext: ['groups' => ['cart:read']]
+        )
+    ],
+    normalizationContext: ['groups' => ['cart:read']]
+)]
 class Cart
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'carts')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Customer $customer = null;
 
     /**
      * @var Collection<int, CartItem>
      */
     #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    #[Groups(['cart:read'])]
     private Collection $cartItems;
 
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private ?int $totalQuantity = 0;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['cart:read'])]
     private ?string $totalPrice = '0.00';
 
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\PreUpdate]
