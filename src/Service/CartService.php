@@ -30,40 +30,42 @@ class CartService
     {
         $user = $this->security->getUser();
         $customer = ($user instanceof User) ? $user->getCustomer() : null;
-        $sessionCartId = $this->session->get('cartId');
         $cart = null;
 
-        // If user has customer record, try to load their cart first
+        // 1. If user is logged in, prioritize their database cart
         if ($customer) {
             $cart = $this->em->getRepository(Cart::class)->findOneBy(['customer' => $customer]);
+        }
 
-            if ($cart) {
-                $this->session->set('cartId', $cart->getId());
+        // 2. If no user cart (or guest), check session for a cart ID
+        if (!$cart) {
+            try {
+                $sessionCartId = $this->session->get('cartId');
+                if ($sessionCartId) {
+                    $cart = $this->em->getRepository(Cart::class)->find($sessionCartId);
+                }
+            } catch (\Exception $e) {
+                // Session might not be available in stateless API context
             }
         }
 
-        // If there's a cart id in session, prefer that (overrides previous)
-        if ($sessionCartId) {
-            $cartFromSession = $this->em->getRepository(Cart::class)->find($sessionCartId);
-            if ($cartFromSession) {
-                $cart = $cartFromSession;
-            }
-        }
-
-        // Create new cart if none found
+        // 3. Create new cart if none exists
         if (!$cart) {
             $cart = new Cart();
-
             if ($customer) {
                 $cart->setCustomer($customer);
             }
-
             $this->em->persist($cart);
             $this->em->flush();
-            $this->session->set('cartId', $cart->getId());
+            
+            try {
+                $this->session->set('cartId', $cart->getId());
+            } catch (\Exception $e) {
+                // Ignore session failures in stateless context
+            }
         }
 
-        // If cart has no customer but user does, attach and persist
+        // 4. If we found a guest cart and the user just logged in, attach it
         if ($cart->getCustomer() === null && $customer) {
             $cart->setCustomer($customer);
             $this->em->persist($cart);
