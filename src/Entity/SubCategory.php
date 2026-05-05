@@ -34,7 +34,7 @@ class SubCategory
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['subcategory:read', 'subcategory:write', 'category:read'])]
+    #[Groups(['subcategory:read', 'category:read'])]
     #[Assert\NotBlank(message: 'Please enter a name for this sub-category.')]
     #[Assert\Length(
         min: 2,
@@ -78,6 +78,9 @@ class SubCategory
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'subCategory')]
     #[Groups(['subcategory:read'])]
     private Collection $products;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $icon = null;
 
     public function __construct()
     {
@@ -186,6 +189,18 @@ class SubCategory
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    public function getIcon(): ?string
+    {
+        return $this->icon;
+    }
+
+    public function setIcon(?string $icon): static
+    {
+        $this->icon = $icon;
+
         return $this;
     }
 }
