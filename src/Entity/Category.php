@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,8 +15,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
-    normalizationContext: ['groups' => ['category:read']],
-    denormalizationContext: ['groups' => ['category:write']]
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ],
+    normalizationContext: ['groups' => ['category:read']]
 )]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
@@ -29,18 +34,18 @@ class Category
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['category:read', 'category:write', 'subcategory:read'])]
+    #[Groups(['category:read', 'subcategory:read'])]
     #[Assert\NotBlank(message: 'Please enter a name for this category.')]
     #[Assert\Length(max: 50, maxMessage: 'The name cannot be longer than {{ limit }} characters.')]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['category:read', 'category:write'])]
+    #[Groups(['category:read'])]
     #[Assert\NotBlank(message: 'A brief description is required.')]
     private ?string $description = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(['category:read', 'category:write'])]
+    #[Groups(['category:read'])]
     // Removed NotBlank here so the auto-generator can do its job if left empty!
     #[Assert\Regex(
         pattern: '/^[a-z0-9\-]+$/',
