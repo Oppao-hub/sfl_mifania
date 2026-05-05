@@ -27,7 +27,7 @@ class WalletTransaction
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'walletTransactions')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Wallet $wallet = null;
 
     public function getId(): ?int
