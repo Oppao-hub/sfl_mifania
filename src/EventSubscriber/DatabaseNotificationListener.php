@@ -50,10 +50,13 @@ class DatabaseNotificationListener
     public function onDeleted(object $entity): void
     {
         // No link for deleted items as the route would 404
-        $this->handleNotification('Removed', $entity, false);
+        // We pass false for flush to prevent ForeignKeyConstraintViolationException
+        // during preRemove events where a nested flush tries to commit the removal
+        // before everything is ready.
+        $this->handleNotification('Removed', $entity, false, false);
     }
 
-    private function handleNotification(string $action, object $entity, bool $includeLink = true): void
+    private function handleNotification(string $action, object $entity, bool $includeLink = true, bool $flush = true): void
     {
         $currentUser = $this->security->getUser();
         if (!$currentUser instanceof User) return;
@@ -65,17 +68,17 @@ class DatabaseNotificationListener
         $type = 'system';
 
         if ($entity instanceof Staff) {
-            $name = $entity->getFirstName() . ' ' . $entity->getLastName();
+            $name = trim($entity->getFirstName() . ' ' . $entity->getLastName());
             $route = 'app_staff_show';
             $titlePrefix = 'Staff';
             $type = 'staff';
         } elseif ($entity instanceof Admin) {
-            $name = $entity->getFirstName() . ' ' . $entity->getLastName();
+            $name = trim($entity->getFirstName() . ' ' . $entity->getLastName());
             $route = 'app_admin_show';
             $titlePrefix = 'Admin';
             $type = 'admin';
         } elseif ($entity instanceof Customer) {
-            $name = $entity->getFirstName() . ' ' . $entity->getLastName();
+            $name = trim($entity->getFirstName() . ' ' . $entity->getLastName());
             $route = 'app_customer_show';
             $titlePrefix = 'Customer';
             $type = 'customer';
@@ -84,6 +87,11 @@ class DatabaseNotificationListener
             $route = 'app_product_show';
             $titlePrefix = 'Product';
             $type = 'product';
+        }
+
+        // Final fallback if name is still empty or just spaces
+        if (empty($name) || $name === 'Record') {
+            $name = $titlePrefix . ' #' . $entity->getId();
         }
 
         // 1. Fetch all management users (Admins and Staff)
@@ -106,7 +114,8 @@ class DatabaseNotificationListener
                 "$actorRole updated the system: $name has been $action.",
                 $includeLink ? $route : 'app_dashboard',
                 $includeLink ? ['id' => $entity->getId()] : [],
-                $type
+                $type,
+                $flush
             );
         }
     }
