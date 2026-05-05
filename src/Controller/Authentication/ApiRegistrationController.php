@@ -37,7 +37,7 @@ class ApiRegistrationController extends AbstractController
         if (!isset($data['firstName']) || !isset($data['lastName']) ||  !isset($data['email']) || !isset($data['password'])) {
             return $this->json([
                 'success' => false,
-                'message' => 'First Name, LastName, email, and password are required'
+                'message' => 'First Name, Last Name, email, and password are required'
             ], 400);
         }
 
@@ -77,7 +77,7 @@ class ApiRegistrationController extends AbstractController
         $user->setPassword($hashedPassword);
 
         // Set default role
-        $user->setRoles(['ROLE_USER']);
+        $user->setRoles(['ROLE_CUSTOMER']);
 
         // Generate verification token
         $verificationToken = $this->emailVerificationService->generateVerificationToken();
