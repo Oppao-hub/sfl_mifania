@@ -10,7 +10,7 @@
             entity_name: 'Product',
             total_count: total_products|default(0),
             new_path: 'app_product_new',
-            headers: ['ID', 'Product Details', 'Color', 'Price', 'Actions']
+            headers: ['ID', 'Product Details', 'Material/Size', 'Color', 'Price', 'Impact Stats', 'Actions']
         } %}
 
         {% block rows %}
@@ -34,6 +34,14 @@
                         </div>
                     </td>
                     <td class="px-3 py-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold text-dark-gray">{{ product.material|default('—') }}</span>
+                            <span class="text-[10px] text-gray uppercase font-black tracking-wider bg-app-bg px-2 py-0.5 rounded border border-border-color w-fit">
+                                {{ product.size.value|default('N/A') }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-3 py-4">
                         <div class="flex items-center gap-2">
                             <span class="w-3 h-3 rounded-full border border-border-color shadow-inner"
                                   style="background-color: {{ product.color.value|default('#eee') }};"></span>
@@ -41,6 +49,13 @@
                         </div>
                     </td>
                     <td class="px-3 py-4 text-brand font-black text-sm">₱{{ product.price|number_format(2) }}</td>
+                    <td class="px-3 py-4">
+                        <div class="max-w-[150px]">
+                            <p class="text-[10px] text-gray leading-relaxed italic line-clamp-2">
+                                {{ product.ecoInfo|default('No impact stats recorded.') }}
+                            </p>
+                        </div>
+                    </td>
                     <td class="px-3 py-4">
                         <div class="flex items-center gap-2">
 
