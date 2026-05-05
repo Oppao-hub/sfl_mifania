@@ -6,30 +6,57 @@ use App\Repository\CartItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use Symfony\Component\Serializer\Annotation\Groups;
+use App\State\CartItemProcessor;
+
 #[ORM\Entity(repositoryClass: CartItemRepository::class)]
+#[ApiResource(
+    operations: [
+        new Post(
+            processor: CartItemProcessor::class,
+            denormalizationContext: ['groups' => ['cart_item:write']]
+        ),
+        new Patch(
+            denormalizationContext: ['groups' => ['cart_item:update']]
+        ),
+        new Delete()
+    ],
+    normalizationContext: ['groups' => ['cart:read']]
+)]
 class CartItem
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'cartItems')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Cart $cart = null;
 
     #[ORM\ManyToOne(inversedBy: 'cartItems')]
+    #[Groups(['cart:read', 'cart_item:write'])]
     private ?Product $product = null;
 
     #[ORM\Column]
+    #[Groups(['cart:read', 'cart_item:write', 'cart_item:update'])]
     private ?int $quantity = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['cart:read'])]
     private ?string $price = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['cart:read'])]
     private ?string $subtotal = null;
 
     #[ORM\Column]
+    #[Groups(['cart:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
@@ -110,6 +137,7 @@ class CartItem
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 }
