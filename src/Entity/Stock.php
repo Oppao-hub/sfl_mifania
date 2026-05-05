@@ -34,9 +34,11 @@ class Stock
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'stocks')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?User $addedBy = null;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?User $updatedBy = null;
 
     #[ORM\Column]
