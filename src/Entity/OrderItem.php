@@ -15,6 +15,7 @@ class OrderItem
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'orderItems')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Order $order = null;
 
     #[ORM\ManyToOne(inversedBy: 'orderItems')]
