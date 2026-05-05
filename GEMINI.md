@@ -14,8 +14,7 @@ Mifania is a sustainable fashion e-commerce platform and management system built
     - **Backend:** Symfony 7.3 (PHP 8.2+), Doctrine ORM, Symfony Security (JWT & Google OAuth).
     - **Frontend:** Twig, Tailwind CSS (v4), Alpine.js (for interactivity), Stimulus (Symfony UX).
     - **API:** API Platform (RESTful resources).
-    - **Real-time:** Symfony Mercure (for notifications/broadcasts).
-    - **Infrastructure:** Docker (MySQL, Mercure, PHPMyAdmin).
+    - **Infrastructure:** Docker (MySQL, PHPMyAdmin).
 
 ## Building and Running
 
@@ -35,12 +34,12 @@ Mifania is a sustainable fashion e-commerce platform and management system built
    ```bash
    npm install
    ```
-3. **Start Infrastructure (MySQL, Mercure):**
+3. **Start Infrastructure (MySQL):**
    ```bash
    docker-compose up -d
    ```
 4. **Environment Configuration:**
-   Copy `.env` to `.env.local` and configure your `DATABASE_URL`, `MERCURE_URL`, etc.
+   Copy `.env` to `.env.local` and configure your `DATABASE_URL`, etc.
 
 ### Database Setup
 ```bash
