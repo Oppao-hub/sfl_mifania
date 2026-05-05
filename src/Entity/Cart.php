@@ -10,9 +10,14 @@ use Doctrine\ORM\Mapping as ORM;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 use App\State\CartProvider;
+use App\State\CartsProvider;
+use App\State\CartProcessor;
 
 #[ORM\Entity(repositoryClass: CartRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -22,6 +27,19 @@ use App\State\CartProvider;
             uriTemplate: '/me/cart',
             provider: CartProvider::class,
             normalizationContext: ['groups' => ['cart:read']]
+        ),
+        new GetCollection(
+            uriTemplate: '/me/carts',
+            provider: CartsProvider::class,
+            normalizationContext: ['groups' => ['cart:read']]
+        ),
+        new Post(
+            processor: CartProcessor::class,
+            denormalizationContext: ['groups' => ['cart:write']]
+        ),
+        new Patch(
+            processor: CartProcessor::class,
+            denormalizationContext: ['groups' => ['cart:update']]
         )
     ],
     normalizationContext: ['groups' => ['cart:read']]
@@ -50,11 +68,11 @@ class Cart
     private ?int $totalQuantity = 0;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['cart:read'])]
+    #[Groups(['cart:read', 'cart:write', 'cart:update'])]
     private string $name = 'Main Cart';
 
     #[ORM\Column]
-    #[Groups(['cart:read'])]
+    #[Groups(['cart:read', 'cart:update'])]
     private bool $isMain = true;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
