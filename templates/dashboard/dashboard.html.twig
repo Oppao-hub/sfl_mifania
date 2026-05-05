@@ -40,6 +40,7 @@
     ecommerceOpen: false,
     get isExpanded() { return !this.isCollapsed || this.isHovered }
 }"
+{{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '"' : '' }}
 class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300">
 
     {# Impersonation Banner #}
@@ -637,30 +638,5 @@ class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-d
 
     {{ include('components/dashboard/flash/flash_messages.html.twig') }}
     {{ include('components/dashboard/modal/global_confirm.html.twig') }}
-
-    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                // Connect to the specific Admin channel
-                const url = new URL('{{ mercure('/notifications/user/' ~ app.user.id)|escape('js') }}');
-                const eventSource = new EventSource(url);
-
-                // When a live message arrives from PHP...
-                eventSource.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-
-                    // Fire the event that makes the Bell badge tick up +1
-                    window.dispatchEvent(new CustomEvent('notify', {
-                        detail: {
-                            type: data.type || 'success',
-                            message: data.message,
-                            title: data.title || 'New Notification',
-                            targetUrl: data.targetUrl || '#'
-                        }
-                    }));
-                };
-            });
-        </script>
-    {% endif %}
 </body>
 </html>
