@@ -64,6 +64,13 @@
                     {{ form_widget(form.slug, {'attr': {'class': input_base, 'placeholder': 'e.g. maxi-dresses'}}) }}
                     {{ form_errors(form.slug) }}
                 </div>
+
+                <div class="md:col-span-2">
+                    {{ form_label(form.icon, 'Icon Identifier', {'label_attr': {'class': label_style}}) }}
+                    {{ form_widget(form.icon, {'attr': {'class': input_base, 'placeholder': 'e.g. lucide:leaf'}}) }}
+                    {{ form_errors(form.icon) }}
+                    <p class="mt-2 text-[10px] text-gray italic">Use Iconify format (set:name). e.g., <strong>lucide:leaf</strong>, <strong>material-symbols:category</strong></p>
+                </div>
             </div>
         </div>
     </div>
