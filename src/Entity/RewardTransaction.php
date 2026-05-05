@@ -14,7 +14,7 @@ class RewardTransaction
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'rewardTransactions')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Customer $customer = null;
 
     #[ORM\ManyToOne(inversedBy: 'rewardTransactions')]
