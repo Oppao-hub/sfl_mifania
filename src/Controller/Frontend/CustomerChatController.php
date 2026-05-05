@@ -11,8 +11,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mercure\HubInterface;
-use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -85,7 +83,6 @@ final class CustomerChatController extends AbstractController
         UserRepository $userRepository,
         ChatMessageRepository $chatMessageRepository,
         EntityManagerInterface $entityManager,
-        HubInterface $hub,
         SerializerInterface $serializer,
         #[CurrentUser] $sender
     ): JsonResponse {
@@ -137,16 +134,6 @@ final class CustomerChatController extends AbstractController
         $entityManager->flush();
 
         $jsonMessage = $serializer->serialize($message, 'json', ['groups' => ['chat:read']]);
-
-        $update = new Update(
-            [
-                "/chat/user/{$recipient->getId()}",
-                "/chat/user/{$sender->getId()}"
-            ],
-            $jsonMessage,
-            false
-        );
-        $hub->publish($update);
 
         return new JsonResponse($jsonMessage, Response::HTTP_CREATED, [], true);
     }
