@@ -66,10 +66,10 @@
             {# Taxonomy Visual #}
             <div class="relative rounded-2xl overflow-hidden shadow-sm border border-border-color bg-white p-6 flex flex-col items-center justify-center aspect-square text-center">
                 <div class="p-4 bg-brand/10 rounded-full mb-4 border border-brand/20 text-brand">
-                    {{ ux_icon('lucide:network', {class: 'w-10 h-10'}) }}
+                    {{ ux_icon(sub_category.icon|default('lucide:network'), {class: 'w-10 h-10'}) }}
                 </div>
                 <h3 class="text-sm font-black text-brand-dark uppercase tracking-widest mb-1">Hierarchy Link</h3>
-                <p class="text-[10px] uppercase font-black tracking-[0.2em] text-gray">Dependent Node</p>
+                <p class="text-[10px] uppercase font-black tracking-[0.2em] text-gray">{{ sub_category.icon ? 'Icon Representation' : 'Dependent Node' }}</p>
             </div>
 
             {# Audit Block #}
