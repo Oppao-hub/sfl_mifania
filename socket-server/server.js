@@ -1,6 +1,13 @@
 const http = require('http').createServer();
-const io = require('socket.io')(http, {    cors: { origin: "*" } });const express = require('express');
-const app = express();app.use(express.json())// 1. Authentication Middleware
+const io = require('socket.io')(http, {
+    cors: { origin: "*" }
+});
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// 1. Authentication Middleware
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
     if (!token) return next(new Error("Authentication error"));
