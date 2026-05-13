@@ -1,6 +1,7 @@
 services:
     mysql:
         image: mysql:8.0
+        container_name: mifania_db
         restart: unless-stopped
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -16,6 +17,7 @@ services:
 
     phpmyadmin:
         image: phpmyadmin:latest
+        container_name: mifania_phpmyadmin
         restart: unless-stopped
         environment:
             PMA_HOST: mysql
@@ -33,4 +35,5 @@ volumes:
 
 networks:
     mifania_network:
+
         driver: bridge
