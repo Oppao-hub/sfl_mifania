@@ -89,7 +89,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Fetch products based on their Master Category (e.g., 'Womenswear', 'Menswear')
+     * Fetch products based on their Master Category (e.g., 'Women', 'Men')
      * * @return Product[] Returns an array of Product objects
      */
     public function findByMasterCategory(string $categoryName, int $limit = 4): array
