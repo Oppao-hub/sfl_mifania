@@ -1,4 +1,35 @@
 services:
+    php:
+        build:
+            context: .
+            dockerfile: Dokcerfile
+        container_name: mifania_php
+        restart: unless-stopped
+        environment:
+            APP_ENV: dev
+            DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - mysql
+        networks:
+            - mifania_network
+
+    nginx:
+        image: nginx:alpine
+        container_name: mifania_nginx
+        restart: unless-stopped
+        ports:
+            - "80:80"
+        volumes:
+            - .:/var/www/html
+            - ./nginx.conf:/etc/nginx/conf.d/default.conf
+            - ./nginx-main.conf:/etc/nginx/nginx.conf
+        depends_on:
+            - php
+        networks:
+            - mifania_network
+
     mysql:
         image: mysql:8.0
         container_name: mifania_db
@@ -35,5 +66,4 @@ volumes:
 
 networks:
     mifania_network:
-
         driver: bridge
