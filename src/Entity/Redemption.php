@@ -55,24 +55,24 @@ class Redemption
         return $this->id;
     }
 
-    public function getCustomer(): ?customer
+    public function getCustomer(): ?Customer
     {
         return $this->customer;
     }
 
-    public function setCustomer(?customer $customer): static
+    public function setCustomer(?Customer $customer): static
     {
         $this->customer = $customer;
 
         return $this;
     }
 
-    public function getReward(): ?reward
+    public function getReward(): ?Reward
     {
         return $this->reward;
     }
 
-    public function setReward(?reward $reward): static
+    public function setReward(?Reward $reward): static
     {
         $this->reward = $reward;
 

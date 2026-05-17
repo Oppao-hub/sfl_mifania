@@ -8,7 +8,7 @@ use App\Entity\Redemption;
 use App\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpKernelException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final readonly class RedemptionProcessor implements ProcessorInterface
 {
@@ -29,7 +29,7 @@ final readonly class RedemptionProcessor implements ProcessorInterface
         $customer = $user?->getCustomer();
 
         if (!$customer) {
-            throw new BadRequestHttpKernelException('Authenticated user must be a customer.');
+            throw new BadRequestHttpException('Authenticated user must be a customer.');
         }
 
         $data->setCustomer($customer);
@@ -38,12 +38,12 @@ final readonly class RedemptionProcessor implements ProcessorInterface
 
         $reward = $data->getReward();
         if (!$reward) {
-            throw new BadRequestHttpKernelException('Reward is required.');
+            throw new BadRequestHttpException('Reward is required.');
         }
 
         $wallet = $customer->getWallet();
         if (!$wallet || $wallet->getRewardPoints() < $reward->getPointsRequired()) {
-            throw new BadRequestHttpKernelException('Insufficient reward points.');
+            throw new BadRequestHttpException('Insufficient reward points.');
         }
 
         // Deduct points
