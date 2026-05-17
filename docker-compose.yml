@@ -2,7 +2,7 @@ services:
     php:
         build:
             context: .
-            dockerfile: Dokcerfile
+            dockerfile: Dockerfile
         container_name: mifania_php
         restart: unless-stopped
         environment:
