@@ -32,14 +32,22 @@ class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInt
         // Generate JWT token
         $jwt = $this->jwtManager->create($user);
 
+        $userData = [
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+            'verified' => $user->getIsVerified()
+        ];
+
+        if ($user->getCustomer()) {
+            $userData['customerId'] = $user->getCustomer()->getId();
+            $userData['firstName'] = $user->getCustomer()->getFirstName();
+            $userData['lastName'] = $user->getCustomer()->getLastName();
+        }
+
         return new JsonResponse([
             'token' => $jwt,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'roles' => $user->getRoles(),
-                'verified' => $user->getIsVerified()
-            ]
+            'user' => $userData
         ]);
     }
 }

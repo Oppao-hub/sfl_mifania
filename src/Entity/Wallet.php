@@ -2,34 +2,50 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\WalletRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: WalletRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(security: "is_granted('ROLE_ADMIN') or object.getCustomer().getUser() == user"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+    ],
+    normalizationContext: ['groups' => ['wallet:read']]
+)]
 class Wallet
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['wallet:read', 'customer:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['wallet:read', 'customer:read'])]
     private ?string $balance = '0.00';
 
     #[ORM\Column]
+    #[Groups(['wallet:read', 'customer:read'])]
     private ?int $rewardPoints = 0;
 
     /**
      * @var Collection<int, WalletTransaction>
      */
     #[ORM\OneToMany(targetEntity: WalletTransaction::class, mappedBy: 'wallet', orphanRemoval: true)]
+    #[Groups(['wallet:read'])]
     private Collection $walletTransactions;
 
     #[ORM\OneToOne(inversedBy: 'wallet', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['wallet:read'])]
     private ?Customer $customer = null;
 
     public function __construct()

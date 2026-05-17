@@ -2,20 +2,33 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
 use App\Repository\CustomerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    operations: [
+        new Get(security: "is_granted('ROLE_ADMIN') or object.getUser() == user"),
+        new Patch(security: "is_granted('ROLE_ADMIN') or object.getUser() == user"),
+    ],
+    normalizationContext: ['groups' => ['customer:read']],
+    denormalizationContext: ['groups' => ['customer:write']]
+)]
 class Customer
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['customer:read'])]
     private ?int $id = null;
 
     // --- KEEPING FIRST NAME REQUIRED ---
@@ -25,6 +38,7 @@ class Customer
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'Your first name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
+    #[Groups(['customer:read', 'customer:write', 'order:read'])]
     private ?string $firstName = null;
 
     // --- KEEPING LAST NAME REQUIRED ---
@@ -34,6 +48,7 @@ class Customer
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'Your last name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
+    #[Groups(['customer:read', 'customer:write', 'order:read'])]
     private ?string $lastName = null;
 
     // --- CHANGED TO NULLABLE ---
@@ -42,11 +57,13 @@ class Customer
         pattern: '/^(\+63|09)\d{9}$/',
         message: 'The phone number must start with "+63" or "09" and be followed by exactly 9 digits (e.g., +639171234567 or 09171234567).'
     )]
+    #[Groups(['customer:read', 'customer:write'])]
     private ?string $contactNumber = null;
 
     // --- CHANGED TO NULLABLE ---
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\NotBlank]
+    #[Groups(['customer:read', 'customer:write'])]
     private ?string $address = null;
 
     // --- CHANGED TO NULLABLE ---
@@ -56,6 +73,7 @@ class Customer
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The city name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
+    #[Groups(['customer:read', 'customer:write'])]
     private ?string $city = null;
 
     // --- CHANGED TO NULLABLE ---
@@ -65,6 +83,7 @@ class Customer
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The country name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
+    #[Groups(['customer:read', 'customer:write'])]
     private ?string $country = null;
 
     // --- CHANGED TO NULLABLE ---
@@ -74,6 +93,7 @@ class Customer
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The state name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
+    #[Groups(['customer:read', 'customer:write'])]
     private ?string $state = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -82,6 +102,7 @@ class Customer
         max: 20,
         maxMessage: 'The postal code cannot be longer than {{ limit }} characters.'
     )]
+    #[Groups(['customer:read', 'customer:write'])]
     private ?string $postalCode = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -90,12 +111,15 @@ class Customer
         mimeTypes: ['image/jpeg', 'image/png'],
         mimeTypesMessage: 'Please upload a valid JPEG or PNG image.'
     )]
+    #[Groups(['customer:read'])]
     private ?string $avatar = null;
 
     #[ORM\Column]
+    #[Groups(['customer:read'])]
     private ?\DateTimeImmutable $createdAt;
 
     #[ORM\Column]
+    #[Groups(['customer:read'])]
     private ?\DateTimeImmutable $updatedAt;
 
     /**

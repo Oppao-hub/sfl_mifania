@@ -2,33 +2,53 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use App\Repository\RedemptionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: RedemptionRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(security: "is_granted('ROLE_ADMIN') or object.getCustomer().getUser() == user"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN') or user.getCustomer() != null"),
+        new Post(processor: \App\State\RedemptionProcessor::class, security: "is_granted('ROLE_CUSTOMER')"),
+    ],
+    normalizationContext: ['groups' => ['redemption:read']],
+    denormalizationContext: ['groups' => ['redemption:write']]
+)]
 class Redemption
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['redemption:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'redemptions')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['redemption:read'])]
     private ?Customer $customer = null;
 
     #[ORM\ManyToOne(inversedBy: 'redemptions', targetEntity: Reward::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['redemption:read', 'redemption:write'])]
     private ?Reward $reward = null;
 
     #[ORM\Column]
+    #[Groups(['redemption:read'])]
     private ?int $pointSpent = null;
 
     #[ORM\Column]
+    #[Groups(['redemption:read'])]
     private ?\DateTimeImmutable $redeemedAt = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $status = null;
+    #[Groups(['redemption:read'])]
+    private ?string $status = 'PENDING';
 
     public function getId(): ?int
     {

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\WalletTransactionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: WalletTransactionRepository::class)]
 class WalletTransaction
@@ -12,18 +13,23 @@ class WalletTransaction
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['wallet:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['wallet:read'])]
     private ?string $amount = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['wallet:read'])]
     private ?string $type = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['wallet:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(['wallet:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'walletTransactions')]

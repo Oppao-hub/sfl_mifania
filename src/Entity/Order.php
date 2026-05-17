@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Enum\PaymentStatus;
 use App\Entity\Enum\PaymentMethod;
 use App\Entity\Enum\OrderStatus;
@@ -18,6 +21,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Table(name: '`order`')]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
+    operations: [
+        new Get(security: "is_granted('ROLE_ADMIN') or object.getCustomer().getUser() == user"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN') or user.getCustomer() != null"),
+        new Post(processor: \App\State\OrderProcessor::class),
+    ],
     normalizationContext: ['groups' => ['order:read']],
     denormalizationContext: ['groups' => ['order:write']]
 )]
