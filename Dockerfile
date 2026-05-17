@@ -1,5 +1,5 @@
 # Use PHP-FPM as the base image
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
 # Install system dependencies and MySQL extensions
 RUN apt-get update && apt-get install -y \
