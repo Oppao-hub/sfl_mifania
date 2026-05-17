@@ -1,0 +1,9 @@
+.git
+.idea
+vendor/
+node_modules/
+var/cache/
+var/log/
+.env.local
+.env
+docker-compose.yaml
