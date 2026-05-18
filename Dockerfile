@@ -20,11 +20,10 @@ COPY . .
 
 # 6. Install production dependencies and skip automated scripts
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN composer install --no-dev --optimize-autoloader
 
-# --- NEW STEPS: Create the var directory AND a dummy .env file ---
+# --- NEW STEPS: Create the var directory
 RUN mkdir -p /var/www/html/var
-RUN touch /var/www/html/.env
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/var
