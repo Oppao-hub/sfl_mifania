@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
     php:
         build:
@@ -6,8 +8,8 @@ services:
         container_name: mifania_php
         restart: unless-stopped
         environment:
-            - APP_ENV: prod
-            - DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}?serverVersion=8.0.32&charset=utf8mb4
+            APP_ENV: prod
+            DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}?serverVersion=8.0.32&charset=utf8mb4
         volumes:
             - .:/var/www/html
         depends_on:
