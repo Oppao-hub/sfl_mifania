@@ -22,8 +22,9 @@ COPY . .
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# --- NEW STEP: Create the var directory manually ---
+# --- NEW STEPS: Create the var directory AND a dummy .env file ---
 RUN mkdir -p /var/www/html/var
+RUN touch /var/www/html/.env
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/var
