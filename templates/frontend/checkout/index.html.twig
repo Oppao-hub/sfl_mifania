@@ -41,7 +41,7 @@
         </div>
 
         <turbo-frame id="checkout-form">
-            {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-16', novalidate: 'novalidate' } }) }}
+            {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-16', novalidate: 'novalidate', 'data-turbo-frame': '_top' } }) }}
 
             <div class="lg:col-span-2 space-y-12">
 
