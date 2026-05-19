@@ -105,7 +105,11 @@
                 {# Availability #}
                 <div class="flex items-center gap-4 text-xs font-bold">
                     <span class="text-light-brown uppercase tracking-widest underline cursor-pointer hover:text-brand transition">Clear Selection</span>
-                    <div class="px-3 py-1 bg-brand/10 text-brand border border-brand/20 uppercase tracking-tighter rounded-sm">In Stock</div>
+                    {% if product.getTotalStockQuantity() > 0 %}
+                        <div class="px-3 py-1 bg-brand/10 text-brand border border-brand/20 uppercase tracking-tighter rounded-sm">In Stock ({{ product.getTotalStockQuantity() }})</div>
+                    {% else %}
+                        <div class="px-3 py-1 bg-red-100 text-red-600 border border-red-200 uppercase tracking-tighter rounded-sm">Out of Stock</div>
+                    {% endif %}
                 </div>
 
                 {# Order Actions (Now properly wrapped in ONE form) #}
@@ -113,8 +117,8 @@
                     <form action="{{ path('app_cart_add', {'id': product.id}) }}" method="POST" class="flex flex-wrap items-center gap-4">
 
                         {# Quantity Selector #}
-                        <div class="flex items-center border border-gray-200 rounded-sm h-14 w-32 bg-white">
-                            <button type="button" data-action="click->product#decrement" class="px-4 h-full text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors font-bold text-lg">
+                        <div class="flex items-center border border-gray-200 rounded-sm h-14 w-32 bg-white {% if product.getTotalStockQuantity() == 0 %}opacity-50 pointer-events-none{% endif %}">
+                            <button type="button" data-action="click->product#decrement" class="px-4 h-full text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors font-bold text-lg" {% if product.getTotalStockQuantity() == 0 %}disabled{% endif %}>
                                 -
                             </button>
 
@@ -122,7 +126,7 @@
                                 data-product-target="quantityDisplay"
                                 class="w-full text-center border-none focus:ring-0 text-sm font-bold text-gray-800 bg-transparent">
 
-                            <button type="button" data-action="click->product#increment" class="px-4 h-full text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors font-bold text-lg">
+                            <button type="button" data-action="click->product#increment" class="px-4 h-full text-gray-500 hover:text-brand hover:bg-gray-50 transition-colors font-bold text-lg" {% if product.getTotalStockQuantity() == 0 %}disabled{% endif %}>
                                 +
                             </button>
                         </div>
@@ -132,15 +136,21 @@
                         <input type="hidden" name="color" value="" data-product-target="hiddenColorInput" required>
                         <input type="hidden" name="size" value="" data-product-target="hiddenSizeInput" required>
 
-                        {# Add To Cart Button #}
-                        <button type="submit" class="flex-1 min-w-[140px] bg-brand text-white px-8 h-14 text-xs font-bold tracking-[0.2em] hover:bg-brand-dark transition-colors uppercase rounded-sm shadow-sm cursor-pointer">
-                            Add To Cart
-                        </button>
+                        {% if product.getTotalStockQuantity() > 0 %}
+                            {# Add To Cart Button #}
+                            <button type="submit" class="flex-1 min-w-[140px] bg-brand text-white px-8 h-14 text-xs font-bold tracking-[0.2em] hover:bg-brand-dark transition-colors uppercase rounded-sm shadow-sm cursor-pointer">
+                                Add To Cart
+                            </button>
 
-                        {# Buy Now Button #}
-                        <button type="submit" name="buy_now" value="true" class="flex-1 min-w-[140px] bg-gray-900 text-white px-8 h-14 text-xs font-bold tracking-[0.2em] hover:bg-gray-800 transition-colors uppercase rounded-sm shadow-sm cursor-pointer">
-                            Buy Now
-                        </button>
+                            {# Buy Now Button #}
+                            <button type="submit" name="buy_now" value="true" class="flex-1 min-w-[140px] bg-gray-900 text-white px-8 h-14 text-xs font-bold tracking-[0.2em] hover:bg-gray-800 transition-colors uppercase rounded-sm shadow-sm cursor-pointer">
+                                Buy Now
+                            </button>
+                        {% else %}
+                            <button type="button" disabled class="flex-1 min-w-[140px] bg-gray-300 text-gray-500 px-8 h-14 text-xs font-bold tracking-[0.2em] uppercase rounded-sm cursor-not-allowed">
+                                Out of Stock
+                            </button>
+                        {% endif %}
 
                     </form>
 
