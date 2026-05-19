@@ -37,7 +37,7 @@ class NotificationController extends AbstractController
         return $this->json(['notifications' => $data]);
     }
 
-    #[Route('/mark-read', name: 'api_notifications_mark_read', methods: ['POST'])]
+    #[Route('/mark-read', name: 'api_notifications_mark_read_endpoint', methods: ['POST'])]
     public function markAllRead(EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
     {
         if (!$user) return $this->json(['error' => 'Unauthorized'], 401);

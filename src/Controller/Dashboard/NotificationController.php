@@ -4,17 +4,32 @@ namespace App\Controller\Dashboard;
 
 use App\Entity\Notification;
 use App\Entity\User;
+use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
+#[IsGranted('ROLE_STAFF')]
 #[Route('/dashboard/notifications')]
 class NotificationController extends AbstractController
 {
+    #[Route('', name: 'app_notification_index', methods: ['GET'])]
+    public function index(NotificationRepository $notificationRepository, #[CurrentUser] ?User $user): Response
+    {
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        return $this->render('dashboard/notification/index.html.twig', [
+            'notifications' => $notificationRepository->findForUser($user, 100),
+        ]);
+    }
+
     /**
      * Handles the "Mark Read" button click in the dropdown via AJAX
      */

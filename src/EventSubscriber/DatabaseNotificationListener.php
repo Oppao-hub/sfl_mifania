@@ -6,6 +6,8 @@ use App\Entity\Staff;
 use App\Entity\Admin;
 use App\Entity\Customer;
 use App\Entity\Product;
+use App\Entity\Stock;
+use App\Entity\Order;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\NotificationPublisher;
@@ -13,7 +15,7 @@ use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
 use Symfony\Bundle\SecurityBundle\Security;
 
-// Registering events for all three entity types
+// Registering events for relevant entities
 #[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Staff::class)]
 #[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Staff::class)]
 #[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Staff::class)]
@@ -29,6 +31,13 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Product::class)]
 #[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Product::class)]
 #[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Product::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Stock::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Stock::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Stock::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Order::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Order::class)]
 class DatabaseNotificationListener
 {
     public function __construct(
@@ -49,17 +58,14 @@ class DatabaseNotificationListener
 
     public function onDeleted(object $entity): void
     {
-        // No link for deleted items as the route would 404
-        // We pass false for flush to prevent ForeignKeyConstraintViolationException
-        // during preRemove events where a nested flush tries to commit the removal
-        // before everything is ready.
         $this->handleNotification('Removed', $entity, false, false);
     }
 
     private function handleNotification(string $action, object $entity, bool $includeLink = true, bool $flush = true): void
     {
         $currentUser = $this->security->getUser();
-        if (!$currentUser instanceof User) return;
+        // If it's a new order from a guest or API, we still want to notify management even if no $currentUser
+        $isOrder = $entity instanceof Order;
 
         // 1. Identify Entity Type and target Route
         $name = 'Record';
@@ -87,31 +93,75 @@ class DatabaseNotificationListener
             $route = 'app_product_show';
             $titlePrefix = 'Product';
             $type = 'product';
+        } elseif ($entity instanceof Stock) {
+            $name = 'Stock for ' . ($entity->getProduct() ? $entity->getProduct()->getName() : 'Unknown Product');
+            $route = 'app_stock_show';
+            $titlePrefix = 'Stock';
+            $type = 'stock';
+        } elseif ($entity instanceof Order) {
+            $name = 'Manifest #' . $entity->getId();
+            $route = 'app_order_show';
+            $titlePrefix = 'Order';
+            $type = 'order';
         }
 
-        // Final fallback if name is still empty or just spaces
+        // Final fallback
         if (empty($name) || $name === 'Record') {
             $name = $titlePrefix . ' #' . $entity->getId();
         }
 
-        // 1. Fetch all management users (Admins and Staff)
-        $managers = $this->userRepository->findAllManagement();
+        // 2. Logic to determine Recipients
+        $recipients = [];
+        $actorMessage = 'The system';
+        $verb = 'processed';
 
-        // 2. Determine who made the change for the message context
-        $actorRole = in_array('ROLE_ADMIN', $currentUser->getRoles()) ? 'An Admin' : 'A Staff Member';
+        if ($currentUser instanceof User) {
+            if (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+                $actorMessage = 'Admin ' . $currentUser->getEmail();
+            } elseif (in_array('ROLE_STAFF', $currentUser->getRoles())) {
+                $actorMessage = 'Staff ' . $currentUser->getEmail();
+            } else {
+                $actorMessage = 'Customer ' . $currentUser->getEmail();
+            }
 
-        // 3. Loop through and notify every manager
-        /** @var User $managerUser */
-        foreach ($managers as $managerUser) {
+            if ($isOrder) {
+                $verb = ($action === 'Created') ? 'placed' : 'updated';
+                // Orders notify BOTH Admins and Staff
+                $recipients = $this->userRepository->findAllManagement();
+            } elseif (in_array('ROLE_STAFF', $currentUser->getRoles())) {
+                // If STAFF changes something -> notify ALL ADMINS
+                $recipients = $this->userRepository->findAllAdmins();
+            } elseif (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+                // If ADMIN changes something -> notify OTHER ADMINS
+                $recipients = $this->userRepository->findAllAdmins();
+            }
+        } else {
+            // No current user (e.g., API order or background task)
+            if ($isOrder) {
+                $verb = 'placed';
+                $recipients = $this->userRepository->findAllManagement();
+            } else {
+                // Fallback for other automated changes
+                $recipients = $this->userRepository->findAllAdmins();
+            }
+        }
+
+        // 3. Send Notifications
+        foreach ($recipients as $recipient) {
             // Skip the person who actually performed the action
-            if ($managerUser->getId() === $currentUser->getId()) {
+            if ($currentUser && $recipient->getId() === $currentUser->getId()) {
                 continue;
             }
 
+            $message = "$actorMessage $verb: $name has been $action.";
+            if ($isOrder && $action === 'Created') {
+                $message = "$actorMessage has placed a new order: $name.";
+            }
+
             $this->notificationPublisher->send(
-                $managerUser,
+                $recipient,
                 "$titlePrefix $action",
-                "$actorRole updated the system: $name has been $action.",
+                $message,
                 $includeLink ? $route : 'app_dashboard',
                 $includeLink ? ['id' => $entity->getId()] : [],
                 $type,

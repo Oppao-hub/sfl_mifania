@@ -38,7 +38,96 @@
     isCollapsed: true,
     isHovered: false,
     ecommerceOpen: false,
-    get isExpanded() { return !this.isCollapsed || this.isHovered }
+    get isExpanded() { return !this.isCollapsed || this.isHovered },
+
+    {# --- GLOBAL NOTIFICATION STATE --- #}
+    unreadCount: {{ get_unread_notifications_count() }},
+    notifications: [
+        {% for n in get_recent_notifications(50) %}
+        {
+            id: {{ n.id }},
+            title: '{{ n.title|e('js') }}',
+            message: '{{ n.message|e('js') }}',
+            type: '{{ n.type|e('js') }}',
+            isRead: {{ n.isRead ? 'true' : 'false' }},
+            createdAt: '{{ n.createdAt|date('Y-m-d H:i:s') }}',
+            relativeTime: '{{ n.createdAt|date('M d, g:i a') }}',
+            targetUrl: '{{ n.targetUrl ? path('app_notification_read_and_redirect', {id: n.id}) : '#' }}'
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+
+    formatTime(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString.replace(/-/g, '/')); // Compatibility fix
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 0) return 'Just now';
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
+        if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
+        if (diffInSeconds < 604800) return Math.floor(diffInSeconds / 86400) + 'd ago';
+
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    },
+
+    init() {
+        window.addEventListener('notify', (event) => {
+            this.unreadCount++;
+            this.notifications.unshift({
+                id: 'temp-' + Date.now(),
+                title: event.detail.title || 'New Notification',
+                message: event.detail.message,
+                type: event.detail.type,
+                isRead: false,
+                isTemp: true,
+                relativeTime: 'Just now',
+                targetUrl: event.detail.targetUrl || '#'
+            });
+        });
+    },
+
+    markAllRead() {
+        fetch('{{ path('app_notifications_mark_read') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token('mark_notifications_read') }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                this.unreadCount = 0;
+                this.notifications.forEach(n => n.isRead = true);
+            }
+        })
+        .catch(err => console.error('Error marking all read:', err));
+    },
+
+    dismiss(notif) {
+        if (notif.isTemp) {
+            this.notifications = this.notifications.filter(n => n.id !== notif.id);
+            if (!notif.isRead) this.unreadCount--;
+            return;
+        }
+
+        fetch(`/dashboard/notifications/${notif.id}/dismiss`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token('dismiss_notification') }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.notifications = this.notifications.filter(n => n.id !== notif.id);
+                if (!notif.isRead) this.unreadCount--;
+            }
+        })
+        .catch(err => console.error('Error dismissing notification:', err));
+    }
 }"
 {{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '"' : '' }}
 class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300">
@@ -292,88 +381,9 @@ class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-d
                 </div>
 
                 {# --- NOTIFICATION BELL --- #}
-                {% set all_notifs_debug = get_recent_notifications(50) %}
-                <!-- DEBUG: 
-                     Logged In User ID: {{ app.user.id }}
-                     Total Notifs Found for this user: {{ all_notifs_debug|length }}
-                     Unread Count for this user: {{ get_unread_notifications_count() }}
-                -->
-                <div class="relative" x-data="{
-                    notifOpen: false,
-                    unreadCount: {{ get_unread_notifications_count() }},
-                    notifications: [
-                        {% for n in get_recent_notifications(10) %}
-                        {
-                            id: {{ n.id }},
-                            title: '{{ n.title|e('js') }}',
-                            message: '{{ n.message|e('js') }}',
-                            type: '{{ n.type|e('js') }}',
-                            isRead: {{ n.isRead ? 'true' : 'false' }},
-                            createdAt: '{{ n.createdAt|date('Y-m-d H:i:s') }}',
-                            relativeTime: '{{ n.createdAt|date('g:i a') }}',
-                            targetUrl: '{{ n.targetUrl ? path('app_notification_read_and_redirect', {id: n.id}) : '#' }}'
-                        }{% if not loop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-
-                    init() {
-                        window.addEventListener('notify', (event) => {
-                            this.unreadCount++;
-                            // Add new notification to the top
-                            this.notifications.unshift({
-                                id: Date.now(),
-                                title: event.detail.title || 'New Notification',
-                                message: event.detail.message,
-                                type: event.detail.type,
-                                isRead: false,
-                                relativeTime: 'Just now',
-                                targetUrl: event.detail.targetUrl || '#'
-                            });
-                        });
-                    },
-
-                    markAllRead() {
-                        fetch('{{ path('app_notifications_mark_read') }}', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token('mark_notifications_read') }}',
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.status === 'success') {
-                                this.unreadCount = 0;
-                                this.notifications.forEach(n => n.isRead = true);
-                            }
-                        });
-                    },
-
-                    dismiss(notif) {
-                        // If it's a real notification (has a proper ID)
-                        if (notif.id > 1000000000000) { // Temp ID from Date.now()
-                            this.notifications = this.notifications.filter(n => n.id !== notif.id);
-                            if (!notif.isRead) this.unreadCount--;
-                            return;
-                        }
-
-                        fetch(`/dashboard/notifications/${notif.id}/dismiss`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token('dismiss_notification') }}'
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                this.notifications = this.notifications.filter(n => n.id !== notif.id);
-                                if (!notif.isRead) this.unreadCount--;
-                            }
-                        });
-                    }
-                }" @click.outside="notifOpen = false">
+                <div class="relative" x-data="{ notifOpen: false }" @click.outside="notifOpen = false">
                     {# 1. The Bell Button #}
-                    <button @click="notifOpen = !notifOpen" 
+                    <button @click="notifOpen = !notifOpen"
                             class="relative w-10 h-10 lg:w-11 lg:h-11 flex items-center justify-center rounded-full bg-white border border-border-color shadow-sm text-gray hover:text-brand dark:bg-brand-dark dark:border-brand/20 dark:text-brand-light transition-all cursor-pointer hover:bg-app-bg/50 focus:outline-none">
                         {{ ux_icon('lucide:bell', {class: 'w-5 h-5'}) }}
 
@@ -412,9 +422,9 @@ class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-d
 
                         {# Notification List (Scrollable) #}
                         <div class="max-h-[400px] overflow-y-auto overscroll-contain flex flex-col divide-y divide-border-color">
-                            <template x-for="notif in notifications" :key="notif.id">
+                            <template x-for="notif in notifications.slice(0, 10)" :key="notif.id">
                                 <div class="relative group">
-                                    <a :href="notif.targetUrl" 
+                                    <a :href="notif.targetUrl"
                                        class="p-5 flex gap-4 hover:bg-app-bg/80 transition-colors relative"
                                        :class="!notif.isRead ? 'bg-brand/5' : ''">
 
@@ -434,9 +444,9 @@ class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-d
                                             <p class="text-[10px] font-bold text-brand/60 uppercase tracking-widest mt-1.5" x-text="notif.relativeTime"></p>
                                         </div>
                                     </a>
-                                    
+
                                     {# Dismiss Button #}
-                                    <button @click.stop="dismiss(notif)" 
+                                    <button @click.stop="dismiss(notif)"
                                             class="absolute top-4 right-4 p-1.5 text-gray/40 hover:text-danger hover:bg-danger/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
                                         {{ ux_icon('lucide:x', {class: 'w-3 h-3'}) }}
                                     </button>
@@ -444,16 +454,19 @@ class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-d
                             </template>
 
                             <template x-if="notifications.length === 0">
-                                <div class="p-10 text-center">
-                                    <p class="text-xs font-bold text-gray/40 uppercase tracking-widest">No notifications</p>
+                                <div class="p-16 text-center flex flex-col items-center justify-center">
+                                    <div class="w-12 h-12 bg-app-bg rounded-2xl flex items-center justify-center mb-4 text-gray/20">
+                                        {{ ux_icon('lucide:bell-off', {class: 'w-6 h-6'}) }}
+                                    </div>
+                                    <p class="text-[10px] font-black text-gray/30 uppercase tracking-[0.2em]">Zero Notifications</p>
                                 </div>
                             </template>
                         </div>
 
                         {# Footer #}
                         <div class="p-3 border-t border-border-color bg-app-bg/30 text-center shrink-0">
-                            <a href="#" class="text-[10px] font-bold text-brand hover:text-brand-dark transition-colors uppercase tracking-widest block py-2">
-                                View All Activity
+                            <a href="{{ path('app_notification_index') }}" class="text-[10px] font-bold text-brand hover:text-brand-dark transition-colors uppercase tracking-widest block py-2">
+                                View All Notifications
                             </a>
                         </div>
                     </div>
