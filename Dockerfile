@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm \
     && docker-php-ext-install pdo pdo_mysql \
+    && echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -40,6 +41,7 @@ RUN apt-get update && apt-get install -y \
     nginx \
     curl \
     && docker-php-ext-install pdo pdo_mysql \
+    && echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app /app
