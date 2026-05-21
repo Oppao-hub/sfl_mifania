@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Checking JWT keys..."
+php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
+
 echo "Running database migrations..."
 php bin/console doctrine:migrations:migrate --no-interaction || true
 
