@@ -75,7 +75,7 @@ class Order
     /**
      * @var Collection<int, OrderItem>
      */
-    #[Groups(['order:read'])]
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
     #[Assert\Count(min: 1, minMessage: 'An order must contain at least one product.')] // <-- ADDED
     #[Assert\Valid]
