@@ -36,13 +36,13 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'order:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Product name cannot be empty.')]
     #[Assert\Length(max: 100, maxMessage: 'Product name cannot exceed 100 characters.')]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'order:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 100)]
@@ -88,7 +88,7 @@ class Product
     private ?QRTag $qrTag = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'order:read'])]
     private ?string $image = 'default.png';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
