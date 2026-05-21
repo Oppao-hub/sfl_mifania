@@ -39,7 +39,6 @@ class Order
     #[Groups(['order:read'])]
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    #[Assert\NotNull(message: 'Please select a customer for this order.')] // <-- ADDED
     private ?Customer $customer = null;
 
     #[Groups(['order:read'])]
