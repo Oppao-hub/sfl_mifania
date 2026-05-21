@@ -1,10 +1,10 @@
 # Mifania Sustainable Fashion Line (SFL)
 
-Mifania is a high-end, sustainable fashion e-commerce platform built with **Symfony 7**, **API Platform**, and **Tailwind CSS**. It features a robust reward system, real-time notifications via Socket.io, and a comprehensive Admin/Staff dashboard.
+Mifania is a high-end, sustainable fashion e-commerce platform built with Symfony 7, API Platform, and Tailwind CSS. It features a robust reward system, real-time notifications via Socket.io, and a comprehensive Admin/Staff dashboard.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - PHP 8.2+ & Composer
