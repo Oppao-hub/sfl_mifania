@@ -6,12 +6,15 @@ use App\Repository\OrderItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 class OrderItem
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['order:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'orderItems')]
@@ -19,15 +22,19 @@ class OrderItem
     private ?Order $order = null;
 
     #[ORM\ManyToOne(inversedBy: 'orderItems')]
+    #[Groups(['order:read', 'order:write'])]
     private ?Product $product = null;
 
     #[ORM\Column]
+    #[Groups(['order:read', 'order:write'])]
     private ?int $quantity = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['order:read', 'order:write'])]
     private ?string $price = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['order:read', 'order:write'])]
     private ?string $subtotal = null;
 
     #[ORM\Column]
