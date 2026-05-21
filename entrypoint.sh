@@ -7,6 +7,12 @@ php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
 echo "Running database migrations..."
 php bin/console doctrine:migrations:migrate --no-interaction || true
 
+if [ "$APP_SEED_DATA" = "true" ]; then
+    echo "Seeding database..."
+
+    php bin/console doctrine:fixtures:load --append --no-interaction || true
+fi
+
 echo "Starting PHP-FPM..."
 php-fpm -F &
 PHP_PID=$!
