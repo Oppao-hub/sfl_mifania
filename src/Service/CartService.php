@@ -22,8 +22,17 @@ class CartService
     public function __construct(EntityManagerInterface $em, RequestStack $requestStack, Security $security)
     {
         $this->em = $em;
-        $this->session = $requestStack->getSession();
+        $this->requestStack = $requestStack;
         $this->security = $security;
+    }
+
+    private function getSession()
+    {
+        try {
+            return $this->requestStack->getSession();
+        } catch (\Symfony\Component\HttpFoundation\Exception\SessionNotFoundException $e) {
+            return null;
+        }
     }
 
     public function getCart(?int $cartId = null): Cart
@@ -31,6 +40,7 @@ class CartService
         $user = $this->security->getUser();
         $customer = ($user instanceof User) ? $user->getCustomer() : null;
         $cart = null;
+        $session = $this->getSession();
 
         // 1. If a specific ID is provided, try to find it (and check ownership)
         if ($cartId) {
@@ -49,14 +59,10 @@ class CartService
         }
 
         // 3. Check session for a guest cart ID if still no cart
-        if (!$cart) {
-            try {
-                $sessionCartId = $this->session->get('cartId');
-                if ($sessionCartId) {
-                    $cart = $this->em->getRepository(Cart::class)->find($sessionCartId);
-                }
-            } catch (\Exception $e) {
-                // Session might not be available
+        if (!$cart && $session) {
+            $sessionCartId = $session->get('cartId');
+            if ($sessionCartId) {
+                $cart = $this->em->getRepository(Cart::class)->find($sessionCartId);
             }
         }
 
@@ -64,10 +70,8 @@ class CartService
         if (!$cart) {
             $cart = $this->createCart($customer, 'Main Cart', true);
             
-            try {
-                $this->session->set('cartId', $cart->getId());
-            } catch (\Exception $e) {
-                // Ignore session failures
+            if ($session) {
+                $session->set('cartId', $cart->getId());
             }
         }
 
