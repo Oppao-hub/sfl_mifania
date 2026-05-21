@@ -21,7 +21,8 @@
         "dev-server": "encore dev-server",
         "dev": "encore dev",
         "watch": "encore dev --watch",
-        "build": "encore production --progress"
+        "build": "encore production --progress",
+        "socket-start": "node socket-server/server.js"
     },
     "dependencies": {
         "@tailwindcss/postcss": "^4.1.14",
