@@ -34,6 +34,7 @@ class Order
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['order:read'])]
     private ?int $id = null;
 
     #[Groups(['order:read'])]
