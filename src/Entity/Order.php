@@ -41,7 +41,7 @@ class Order
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Customer $customer = null;
 
-    #[Groups(['order:read'])]
+    #[Groups(['order:read', 'order:write'])]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Total amount is required.')] // <-- ADDED
     #[Assert\PositiveOrZero(message: 'Total amount cannot be negative.')] // <-- ADDED
