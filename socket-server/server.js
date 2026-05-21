@@ -1,6 +1,7 @@
 const http = require('http').createServer();
 const io = require('socket.io')(http, {
-    cors: { 
+    path: '/socket.io',
+    cors: {
         origin: ["https://sflmifania-production.up.railway.app", "http://localhost:8000"],
         methods: ["GET", "POST"]
     }
@@ -36,7 +37,7 @@ app.post('/publish', (req, res) => {
     res.sendStatus(200);
 });
 
-// Railway provides a single PORT env var. 
+// Railway provides a single PORT env var.
 // We will use one port for both Express and Socket.io to simplify deployment.
 const PORT = process.env.PORT || 3001;
 http.on('request', app); // Attach express app to the same http server
