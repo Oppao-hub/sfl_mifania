@@ -149,7 +149,7 @@ class DatabaseNotificationListener
         // 3. Send Notifications
         foreach ($recipients as $recipient) {
             // Skip the person who actually performed the action
-            if ($currentUser && $recipient->getId() === $currentUser->getId()) {
+            if ($currentUser instanceof User && $recipient->getId() === $currentUser->getId()) {
                 continue;
             }
 

@@ -1,38 +1,59 @@
-# Use PHP-FPM as the base image
-FROM php:8.4-fpm
+FROM php:8.4-fpm AS builder
 
-# Install system dependencies and MySQL extensions
+WORKDIR /app
+
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
-    libicu-dev \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql intl zip
+    curl \
+    nodejs \
+    npm \
+    && docker-php-ext-install pdo pdo_mysql \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
-WORKDIR /var/www/html
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Copy application files
+COPY composer.json composer.lock ./
+
+RUN composer install --no-interaction --no-scripts --optimize-autoloader
+
 COPY . .
 
-# 6. Install production dependencies and skip automated scripts
-ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-dev --optimize-autoloader
+RUN if [ ! -f .env ]; then echo "APP_ENV=prod\nAPP_DEBUG=false\nAPP_SECRET=SomeRandomString" > .env; fi
 
-# --- NEW STEPS: Create the var directory
-RUN mkdir -p /var/www/html/var
+RUN composer install --no-interaction --optimize-autoloader --no-ansi || true
+RUN php bin/console importmap:install --no-interaction || true
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/var
+RUN php bin/console cache:warmup --env=prod --no-debug || true
 
-# Use the entrypoint script
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+FROM php:8.4-fpm AS runtime
 
-# Expose port 9000 for Nginx to communicate with PHP-FPM
-EXPOSE 9000
+WORKDIR /app
 
-CMD ["entrypoint.sh"]
+RUN apt-get update && apt-get install -y \
+    nginx \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app /app
+
+RUN mkdir -p /app/var && \
+    chown -R www-data:www-data /app && \
+    chmod -R 755 /app && \
+    chmod -R 775 /app/var
+
+COPY nginx-main.conf /etc/nginx/nginx.conf
+RUN rm -rf /etc/nginx/conf.d/* /etc/nginx/sites-enabled /etc/nginx/sites
+COPY nginx.conf /etc/nginx/conf.d/symfony.conf
+
+COPY entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# HEALTHCHECK removed for Back4App compatibility
+
+EXPOSE 80
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

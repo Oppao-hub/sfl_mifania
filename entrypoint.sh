@@ -1,11 +1,17 @@
 #!/bin/bash
 set -e
 
-echo "Clearing Symfony cache..."
-php bin/console cache:clear --env=prod
-
 echo "Running database migrations..."
-php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+php bin/console doctrine:migrations:migrate --no-interaction || true
 
 echo "Starting PHP-FPM..."
-exec php-fpm
+php-fpm -F &
+PHP_PID=$!
+
+echo "Waiting for PHP-FPM to start..."
+sleep 2
+
+echo "Starting Nginx..."
+nginx -g "daemon off;"
+
+wait $PHP_PID
