@@ -1,4 +1,36 @@
-private function addWhere(QueryBuilder $queryBuilder, string $resourceClass): void
+<?php
+
+namespace App\Doctrine;
+
+use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\Operation;
+use App\Entity\Cart;
+use App\Entity\Order;
+use App\Entity\Redemption;
+use App\Entity\Wallet;
+use App\Entity\Customer;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Bundle\SecurityBundle\Security;
+
+final readonly class CurrentUserExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+{
+    public function __construct(
+        private Security $security
+    ) {}
+
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    {
+        $this->addWhere($queryBuilder, $resourceClass);
+    }
+
+    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?Operation $operation = null, array $context = []): void
+    {
+        $this->addWhere($queryBuilder, $resourceClass);
+    }
+
+    private function addWhere(QueryBuilder $queryBuilder, string $resourceClass): void
     {
         if (
             !in_array($resourceClass, [Order::class, Cart::class, Redemption::class, Wallet::class, Customer::class]) ||
@@ -16,20 +48,9 @@ private function addWhere(QueryBuilder $queryBuilder, string $resourceClass): vo
             return;
         }
 
-        // Logic for Order and other entities:
-        // We join to the customer and filter, but we MUST handle cases where customer is null
+        // Updated to leftJoin to prevent 404/500 errors if a record has a null customer ID
         $queryBuilder->leftJoin(sprintf('%s.customer', $rootAlias), 'customer');
-
-        // This condition now explicitly allows:
-        // 1. Orders where the customer is linked to the current user
-        // 2. OR orders where the customer is null (if your business logic allows guest orders)
-        // Adjust the 'or' condition based on whether guests should see their orders!
-        $queryBuilder->andWhere(
-            $queryBuilder->expr()->orX(
-                'customer.user = :current_user',
-                'customer.id IS NULL' // Keeps orders that don't have a customer assigned
-            )
-        );
-
+        $queryBuilder->andWhere('customer.user = :current_user');
         $queryBuilder->setParameter('current_user', $user);
     }
+}
