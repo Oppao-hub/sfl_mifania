@@ -151,6 +151,8 @@ class Customer
 
     #[ORM\OneToOne(inversedBy: 'customer', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['customer:read', 'customer:write'])]
+    #[Assert\Valid]
     private ?User $user = null;
 
     /**

@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 export default class extends Controller {
     static values = {
         userId: String,
-        socketUrl: { type: String, default: "http://localhost:3001" }
+        socketUrl: { type: String, default: "" }
     }
 
     connect() {

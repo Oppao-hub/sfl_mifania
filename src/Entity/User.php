@@ -221,6 +221,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:write', 'customer:read', 'customer:write'])]
+    private ?string $deviceToken = null;
+
+    public function getDeviceToken(): ?string
+    {
+        return $this->deviceToken;
+    }
+
+    public function setDeviceToken(?string $deviceToken): static
+    {
+        $this->deviceToken = $deviceToken;
+        return $this;
+    }
+
     public function getVerificationToken(): ?string
     {
         return $this->verificationToken;
