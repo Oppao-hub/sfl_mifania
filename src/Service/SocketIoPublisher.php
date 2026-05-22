@@ -9,7 +9,7 @@ class SocketIoPublisher
     public function publish(int $userId, string $event, array $data): void
     {
         try {
-            $this->httpClient->request('POST', 'http://localhost:3000/publish', [
+            $this->httpClient->request('POST', 'http://localhost:3001/publish', [
                 'json' => [
                     'userId' => $userId,
                     'event' => $event,
