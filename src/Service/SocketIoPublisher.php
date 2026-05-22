@@ -14,7 +14,8 @@ class SocketIoPublisher
                     'userId' => $userId,
                     'event' => $event,
                     'data' => $data
-                ]
+                ],
+                'timeout' => 2, // 2 seconds max
             ]);
         } catch (\Exception $e) {
             // Log error
