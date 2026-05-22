@@ -48,7 +48,8 @@ final readonly class CurrentUserExtension implements QueryCollectionExtensionInt
             return;
         }
 
-        $queryBuilder->innerJoin(sprintf('%s.customer', $rootAlias), 'customer');
+        // Updated to leftJoin to prevent 404/500 errors if a record has a null customer ID
+        $queryBuilder->leftJoin(sprintf('%s.customer', $rootAlias), 'customer');
         $queryBuilder->andWhere('customer.user = :current_user');
         $queryBuilder->setParameter('current_user', $user);
     }
