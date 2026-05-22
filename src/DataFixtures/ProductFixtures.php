@@ -3,8 +3,8 @@
 namespace App\DataFixtures;
 
 use App\Entity\Product;
-use App\Entity\SubCategory; // <-- ADDED IMPORT
-use App\Entity\Story;       // <-- ADDED IMPORT
+use App\Entity\SubCategory;
+use App\Entity\Story;
 use App\Entity\Enum\Color;
 use App\Entity\Enum\Size;
 use Doctrine\Bundle\FixturesBundle\Fixture;
