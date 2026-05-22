@@ -48,16 +48,8 @@ final readonly class CurrentUserExtension implements QueryCollectionExtensionInt
             return;
         }
 
-        // CHANGE: Use leftJoin to include records even if relationship fields are null
-        $queryBuilder->leftJoin(sprintf('%s.customer', $rootAlias), 'customer');
-
-        // CHANGE: Use orX to allow records belonging to the user OR where customer is null
-        $queryBuilder->andWhere(
-            $queryBuilder->expr()->orX(
-                'customer.user = :current_user',
-                'customer.id IS NULL'
-            )
-        );
+        $queryBuilder->innerJoin(sprintf('%s.customer', $rootAlias), 'customer');
+        $queryBuilder->andWhere('customer.user = :current_user');
         $queryBuilder->setParameter('current_user', $user);
     }
 }
