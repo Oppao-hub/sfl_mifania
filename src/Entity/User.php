@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Enum\AccountStatus;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -16,21 +17,25 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account registered with this email address.')]
+#[ApiResource(
+    normalizationContext: ['groups' => ['user:read']] // 💡 ADDED API RESOURCE
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product:read', 'chat:read'])]
+    #[Groups(['product:read', 'chat:read', 'user:read'])] // 💡 ADDED user:read
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(message: 'Please enter an email address.')]
     #[Assert\Email(message: 'Please provide a valid email format (e.g., name@mifania.com).')]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'user:read'])] // 💡 ADDED user:read
     private ?string $email = null;
 
     #[ORM\Column]
+    #[Groups(['user:read'])] // 💡 ADDED user:read
     private array $roles = [];
 
     #[ORM\Column]
@@ -46,6 +51,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $stocks;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[Groups(['user:read'])] // 💡 ADDED user:read (This embeds the Customer object!)
     private ?Customer $customer = null;
 
     #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'user')]
@@ -53,12 +59,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 20)]
     #[Assert\NotNull(message: 'Account status must be defined.')]
+    #[Groups(['user:read'])] // 💡 ADDED user:read
     private AccountStatus $status = AccountStatus::Active;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?Staff $staff = null;
 
     #[ORM\Column(type: 'boolean')]
+    #[Groups(['user:read'])] // 💡 ADDED user:read
     private ?bool $isVerified = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -69,6 +77,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     private ?self $assignedSupport = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:write', 'customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
+    private ?string $deviceToken = null;
 
     public function __construct()
     {
@@ -114,7 +126,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->password;
     }
 
-    // ADDED '?': Safe handling of null passwords during updates
     public function setPassword(?string $password): static
     {
         $this->password = $password; return $this;
@@ -220,10 +231,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isVerified = $isVerified ?? false;
         return $this;
     }
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:write', 'customer:read', 'customer:write'])]
-    private ?string $deviceToken = null;
 
     public function getDeviceToken(): ?string
     {

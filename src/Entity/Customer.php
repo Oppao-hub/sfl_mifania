@@ -28,72 +28,65 @@ class Customer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['customer:read'])]
+    #[Groups(['customer:read', 'user:read'])] // 💡 ADDED user:read
     private ?int $id = null;
 
-    // --- KEEPING FIRST NAME REQUIRED ---
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'Your first name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
-    #[Groups(['customer:read', 'customer:write', 'order:read'])]
+    #[Groups(['customer:read', 'customer:write', 'order:read', 'user:read'])] // 💡 ADDED user:read
     private ?string $firstName = null;
 
-    // --- KEEPING LAST NAME REQUIRED ---
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'Your last name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
-    #[Groups(['customer:read', 'customer:write', 'order:read'])]
+    #[Groups(['customer:read', 'customer:write', 'order:read', 'user:read'])] // 💡 ADDED user:read
     private ?string $lastName = null;
 
-    // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 20, nullable: true)]
     #[Assert\Regex(
         pattern: '/^(\+63|09)\d{9}$/',
         message: 'The phone number must start with "+63" or "09" and be followed by exactly 9 digits (e.g., +639171234567 or 09171234567).'
     )]
-    #[Groups(['customer:read', 'customer:write'])]
+    #[Groups(['customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
     private ?string $contactNumber = null;
 
-    // --- CHANGED TO NULLABLE ---
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\NotBlank]
-    #[Groups(['customer:read', 'customer:write'])]
+    #[Groups(['customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
     private ?string $address = null;
 
-    // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 100, nullable: true)]
     #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The city name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
-    #[Groups(['customer:read', 'customer:write'])]
+    #[Groups(['customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
     private ?string $city = null;
 
-    // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 100, nullable: true)]
     #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The country name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
-    #[Groups(['customer:read', 'customer:write'])]
+    #[Groups(['customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
     private ?string $country = null;
 
-    // --- CHANGED TO NULLABLE ---
     #[ORM\Column(length: 100, nullable: true)]
     #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: "/^[\p{L}\s'-]+$/u",
         message: 'The state name can only contain letters, spaces, hyphens, and apostrophes.'
     )]
-    #[Groups(['customer:read', 'customer:write'])]
+    #[Groups(['customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
     private ?string $state = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -102,7 +95,7 @@ class Customer
         max: 20,
         maxMessage: 'The postal code cannot be longer than {{ limit }} characters.'
     )]
-    #[Groups(['customer:read', 'customer:write'])]
+    #[Groups(['customer:read', 'customer:write', 'user:read'])] // 💡 ADDED user:read
     private ?string $postalCode = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -111,7 +104,7 @@ class Customer
         mimeTypes: ['image/jpeg', 'image/png'],
         mimeTypesMessage: 'Please upload a valid JPEG or PNG image.'
     )]
-    #[Groups(['customer:read'])]
+    #[Groups(['customer:read', 'user:read'])] // 💡 ADDED user:read
     private ?string $avatar = null;
 
     #[ORM\Column]
