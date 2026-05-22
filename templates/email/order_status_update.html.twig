@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Update - Mifania</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; border-radius: 0 !important; }
+            .content-padding { padding: 30px 20px !important; }
+        }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; padding: 0; font-family: 'Montserrat', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F3F4F6; padding: 40px 0;">
+        <tr>
+            <td align="center">
+
+                <table border="0" cellpadding="0" cellspacing="0" class="email-container" width="600" style="background-color: #FFFFFF; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+
+                    <tr>
+                        <td align="center" style="padding: 40px 0 20px 0;">
+                            <span style="font-size: 24px; font-weight: 800; color: #52622E; letter-spacing: 2px;">MIFANIA</span><br>
+                            <span style="font-size: 10px; color: #6A7282; letter-spacing: 1px; text-transform: uppercase;">Sustainable Fashion Line</span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="content-padding" style="padding: 20px 40px 40px 40px; text-align: left;">
+                            <h1 style="color: #52622E; font-size: 22px; font-weight: 600; margin-bottom: 20px;">Order Status Update</h1>
+
+                            <p style="color: #4B5563; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+                                Hi <strong>{{ customer.firstName }}</strong>,<br><br>
+                                We're writing to let you know that the status of your order <strong>#{{ order.id }}</strong> has been updated.
+                            </p>
+
+                            <div style="background-color: #F9FAFB; padding: 20px; border-radius: 6px; border-left: 4px solid #52622E; margin-bottom: 30px;">
+                                <p style="margin: 0; color: #374151; font-size: 16px;">
+                                    New Status: <strong style="color: #52622E;">{{ status }}</strong>
+                                </p>
+                            </div>
+
+                            <p style="color: #4B5563; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+                                You can view your full order history and track its progress in your account area.
+                            </p>
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center" style="padding-bottom: 30px;">
+                                        <a href="{{ order_url }}" style="display: inline-block; padding: 14px 35px; background-color: #52622E; color: #FFFFFF; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                            View Order Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
+                                Thank you for supporting sustainable fashion!<br>
+                                <strong>Team Mifania</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" style="padding: 20px; background-color: #F9FAFB; color: #9CA3AF; font-size: 11px;">
+                            &copy; {{ "now"|date("Y") }} Mifania Sustainable Fashion Line. All rights reserved.<br>
+                            You received this email because of your recent order with us.
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
