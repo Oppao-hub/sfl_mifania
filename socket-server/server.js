@@ -37,8 +37,7 @@ app.post('/publish', (req, res) => {
     res.sendStatus(200);
 });
 
-// Railway provides a single PORT env var.
-// We will use one port for both Express and Socket.io to simplify deployment.
-const PORT = process.env.PORT || 3001;
-http.on('request', app); // Attach express app to the same http server
-http.listen(PORT, () => console.log(`Socket.io & API running on port ${PORT}`));
+const PORT = 3001;
+http.listen(PORT, '127.0.0.1', () => {
+  console.log(`Socket.IO server running internally on port ${PORT}`);
+});
