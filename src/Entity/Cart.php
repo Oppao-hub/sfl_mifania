@@ -54,6 +54,7 @@ class Cart
 
     #[ORM\ManyToOne(inversedBy: 'carts')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['cart:read'])]
     private ?Customer $customer = null;
 
     /**
