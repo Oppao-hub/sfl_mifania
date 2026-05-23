@@ -86,10 +86,11 @@ class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInt
             'verified' => $user->getIsVerified()
         ];
 
-        if ($user->getCustomer()) {
-            $userData['customerId'] = $user->getCustomer()->getId();
-            $userData['firstName'] = $user->getCustomer()->getFirstName();
-            $userData['lastName'] = $user->getCustomer()->getLastName();
+        if ($customer = $user->getCustomer()) {
+            $userData['customerId'] = $customer->getId();
+            $userData['customer'] = '/api/customers/' . $customer->getId();
+            $userData['firstName'] = $customer->getFirstName();
+            $userData['lastName'] = $customer->getLastName();
         }
 
         return new JsonResponse([
