@@ -114,14 +114,23 @@ class ApiGoogleController extends AbstractController
             // 4. Generate JWT
             $token = $this->jwtManager->create($user);
 
+            $userPayload = [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'roles' => $user->getRoles(),
+                'verified' => $user->getIsVerified(),
+            ];
+
+            if ($customer = $user->getCustomer()) {
+                $userPayload['customerId'] = $customer->getId();
+                $userPayload['customer'] = '/api/customers/' . $customer->getId();
+                $userPayload['firstName'] = $customer->getFirstName();
+                $userPayload['lastName'] = $customer->getLastName();
+            }
+
             return new JsonResponse([
                 'token' => $token,
-                'user' => [
-                    'id' => $user->getId(),
-                    'email' => $user->getEmail(),
-                    'roles' => $user->getRoles(),
-                    'verified' => $user->getIsVerified()
-                ]
+                'user' => $userPayload,
             ], 200);
 
         } catch (\Exception $e) {
