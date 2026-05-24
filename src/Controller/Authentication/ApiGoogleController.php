@@ -62,10 +62,10 @@ class ApiGoogleController extends AbstractController
                 $user = new User();
                 $user->setEmail($email);
                 $user->setRoles(['ROLE_CUSTOMER']);
-                $user->setIsVerified(true);
+                $user->setIsVerified(true); // Google accounts are implicitly verified
                 $user->setStatus(AccountStatus::Active);
-                
-                // Set a random password for security compliance
+
+                // Set a secure random throwaway password
                 $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));
 
                 // Create Customer profile
@@ -84,12 +84,16 @@ class ApiGoogleController extends AbstractController
                 $cart = new Cart();
                 $cart->setCustomer($customer);
 
+                // Persist everything
                 $this->entityManager->persist($user);
                 $this->entityManager->persist($customer);
                 $this->entityManager->persist($wallet);
                 $this->entityManager->persist($cart);
-                
+
                 $this->entityManager->flush();
+
+                // Flag for React Native
+                $isNewUser = true;
 
                 // Notify admin of new user
                 try {
@@ -99,11 +103,14 @@ class ApiGoogleController extends AbstractController
                     // Log error but don't fail authentication
                 }
             } else {
-                // If user exists, ensure they are verified (since Google verified them)
+                // If user exists, ensure they are verified
                 if (!$user->getIsVerified()) {
                     $user->setIsVerified(true);
                     $this->entityManager->flush();
                 }
+
+                // Flag for React Native
+                $isNewUser = false;
             }
 
             // 3. Check if account is active
@@ -114,6 +121,7 @@ class ApiGoogleController extends AbstractController
             // 4. Generate JWT
             $token = $this->jwtManager->create($user);
 
+            // Build user payload to return
             $userPayload = [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
@@ -128,9 +136,11 @@ class ApiGoogleController extends AbstractController
                 $userPayload['lastName'] = $customer->getLastName();
             }
 
+            // 5. Final Response
             return new JsonResponse([
                 'token' => $token,
                 'user' => $userPayload,
+                'is_new_user' => $isNewUser
             ], 200);
 
         } catch (\Exception $e) {
