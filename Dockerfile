@@ -40,6 +40,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     nginx \
     curl \
+    ca-certificates \
     && docker-php-ext-install pdo pdo_mysql \
     && echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
     && rm -rf /var/lib/apt/lists/*
