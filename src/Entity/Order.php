@@ -37,6 +37,11 @@ class Order
     #[Groups(['order:read'])]
     private ?int $id = null;
 
+    // 💡 ADDED: Unique tracking reference (e.g., MIF-64A1B2)
+    #[ORM\Column(length: 255, unique: true)]
+    #[Groups(['order:read'])]
+    private ?string $reference = null;
+
     #[Groups(['order:read'])]
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -44,9 +49,9 @@ class Order
 
     #[Groups(['order:read', 'order:write'])]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotBlank(message: 'Total amount is required.')] // <-- ADDED
-    #[Assert\PositiveOrZero(message: 'Total amount cannot be negative.')] // <-- ADDED
-    #[Assert\Type(type: 'numeric', message: 'Total amount must be a valid number.')] // <-- ADDED
+    #[Assert\NotBlank(message: 'Total amount is required.')]
+    #[Assert\PositiveOrZero(message: 'Total amount cannot be negative.')]
+    #[Assert\Type(type: 'numeric', message: 'Total amount must be a valid number.')]
     private ?string $totalAmount = null;
 
     #[Groups(['order:read', 'order:write'])]
@@ -66,10 +71,12 @@ class Order
     #[ORM\Column]
     private ?int $rewardPoints = 0;
 
+    // 💡 ADDED: Exposed to API so mobile app can show "Ordered on..."
     #[Groups(['order:read'])]
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[Groups(['order:read'])]
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -78,7 +85,7 @@ class Order
      */
     #[Groups(['order:read', 'order:write'])]
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
-    #[Assert\Count(min: 1, minMessage: 'An order must contain at least one product.')] // <-- ADDED
+    #[Assert\Count(min: 1, minMessage: 'An order must contain at least one product.')]
     #[Assert\Valid]
     private Collection $orderItems;
 
@@ -102,6 +109,11 @@ class Order
         $this->createdAt = $this->createdAt ?? $now;
         $this->updatedAt = $this->updatedAt ?? $now;
 
+        // 💡 ADDED: Generate Reference automatically if it doesn't exist
+        if (!$this->reference) {
+            $this->reference = 'MIF-' . strtoupper(uniqid());
+        }
+
         // Auto-calculate reward points: 1 point per 50 pesos
         if ($this->totalAmount) {
             $this->rewardPoints = (int) floor((float)$this->totalAmount / 50);
@@ -121,95 +133,36 @@ class Order
 
     // --- getters and setters below ---
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getCustomer(): ?Customer
-    {
-        return $this->customer;
-    }
-    public function setCustomer(?Customer $customer): static
-    {
-        $this->customer = $customer;
-        return $this;
-    }
-public function getTotalAmount(): ?string
-    {
-        return $this->totalAmount;
-    }
+    public function getReference(): ?string { return $this->reference; }
+    public function setReference(string $reference): static { $this->reference = $reference; return $this; }
 
-    public function setTotalAmount(?string $totalAmount): static
-    {
-        $this->totalAmount = $totalAmount;
-        return $this;
-    }
+    public function getCustomer(): ?Customer { return $this->customer; }
+    public function setCustomer(?Customer $customer): static { $this->customer = $customer; return $this; }
 
-    public function getPaymentMethod(): ?PaymentMethod
-    {
-        return $this->paymentMethod;
-    }
-    public function setPaymentMethod(PaymentMethod $paymentMethod): static
-    {
-        $this->paymentMethod = $paymentMethod;
-        return $this;
-    }
+    public function getTotalAmount(): ?string { return $this->totalAmount; }
+    public function setTotalAmount(?string $totalAmount): static { $this->totalAmount = $totalAmount; return $this; }
 
-    public function getPaymentStatus(): ?PaymentStatus
-    {
-        return $this->paymentStatus;
-    }
-    public function setPaymentStatus(PaymentStatus $paymentStatus): static
-    {
-        $this->paymentStatus = $paymentStatus;
-        return $this;
-    }
+    public function getPaymentMethod(): ?PaymentMethod { return $this->paymentMethod; }
+    public function setPaymentMethod(PaymentMethod $paymentMethod): static { $this->paymentMethod = $paymentMethod; return $this; }
 
-    public function getOrderStatus(): ?OrderStatus
-    {
-        return $this->orderStatus;
-    }
-    public function setOrderStatus(OrderStatus $orderStatus): static
-    {
-        $this->orderStatus = $orderStatus;
-        return $this;
-    }
+    public function getPaymentStatus(): ?PaymentStatus { return $this->paymentStatus; }
+    public function setPaymentStatus(PaymentStatus $paymentStatus): static { $this->paymentStatus = $paymentStatus; return $this; }
 
-    public function getRewardPoints(): ?int
-    {
-        return $this->rewardPoints;
-    }
-    public function setRewardPoints(int $rewardPoints): static
-    {
-        $this->rewardPoints = $rewardPoints;
-        return $this;
-    }
+    public function getOrderStatus(): ?OrderStatus { return $this->orderStatus; }
+    public function setOrderStatus(OrderStatus $orderStatus): static { $this->orderStatus = $orderStatus; return $this; }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
+    public function getRewardPoints(): ?int { return $this->rewardPoints; }
+    public function setRewardPoints(int $rewardPoints): static { $this->rewardPoints = $rewardPoints; return $this; }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-        return $this;
-    }
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }
 
-    public function getOrderItems(): Collection
-    {
-        return $this->orderItems;
-    }
+    public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static { $this->updatedAt = $updatedAt; return $this; }
+
+    public function getOrderItems(): Collection { return $this->orderItems; }
 
     public function addOrderItem(OrderItem $orderItem): static
     {
@@ -228,10 +181,7 @@ public function getTotalAmount(): ?string
         return $this;
     }
 
-    public function getRewardTransactions(): Collection
-    {
-        return $this->rewardTransactions;
-    }
+    public function getRewardTransactions(): Collection { return $this->rewardTransactions; }
 
     public function addRewardTransaction(RewardTransaction $rewardTransaction): static
     {
