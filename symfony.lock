@@ -76,6 +76,9 @@
             "config/packages/knpu_oauth2_client.yaml"
         ]
     },
+    "kreait/firebase-bundle": {
+        "version": "5.6.0"
+    },
     "lexik/jwt-authentication-bundle": {
         "version": "3.2",
         "recipe": {
