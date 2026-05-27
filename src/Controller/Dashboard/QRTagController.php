@@ -35,7 +35,7 @@ final class QRTagController extends AbstractController
             return $this->redirectToRoute('app_qrTag_new', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('dashboard/qrTag/index.html.twig', [
+        return $this->render('dashboard/qrtag/index.html.twig', [
             'qrTags' => $qrTags,
         ]);
     }
@@ -75,7 +75,7 @@ final class QRTagController extends AbstractController
             }
         }
 
-        return $this->render('dashboard/qrTag/new.html.twig', [
+        return $this->render('dashboard/qrtag/new.html.twig', [
             'qrTag' => $qRTag,
             'form' => $form,
         ]);
@@ -84,7 +84,7 @@ final class QRTagController extends AbstractController
     #[Route('/{id}', name: 'app_qrTag_show', methods: ['GET'])]
     public function show(QRTag $qRTag): Response
     {
-        return $this->render('dashboard/qrTag/show.html.twig', [
+        return $this->render('dashboard/qrtag/show.html.twig', [
             'qrTag' => $qRTag,
         ]);
     }
@@ -120,7 +120,7 @@ final class QRTagController extends AbstractController
             return $this->redirectToRoute('app_qrTag_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('dashboard/qrTag/edit.html.twig', [
+        return $this->render('dashboard/qrtag/edit.html.twig', [
             'qrTag' => $qRTag,
             'form' => $form,
         ]);
