@@ -291,6 +291,8 @@ class Product
         return $this;
     }
 
+    #[Groups(['product:read'])]
+    #[SerializedName('stock')]
     public function getTotalStockQuantity(): int
     {
         $total = 0;
