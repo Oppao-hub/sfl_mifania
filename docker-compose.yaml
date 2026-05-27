@@ -12,7 +12,7 @@ services:
         ports:
             - "8000:80"
         volumes:
-            - .:/mifania_app
+            - .:/app
         depends_on:
             - mysql
         networks:
