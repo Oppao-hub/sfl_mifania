@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql \
+    && docker-php-ext-install pdo pdo_mysql gd \
     && echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
     && rm -rf /var/lib/apt/lists/*
 
