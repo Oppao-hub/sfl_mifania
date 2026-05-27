@@ -412,7 +412,7 @@ class Product
         return $this;
     }
 
-    #[Groups(['product:read'])]
+    #[Groups(['product:read','order:read'])]
     #[SerializedName('imageUrl')]
     public function getImageUrl(): string
     {
