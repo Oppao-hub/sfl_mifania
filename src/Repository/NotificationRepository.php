@@ -73,6 +73,28 @@ class NotificationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Return ONLY customer-facing notifications for a user.
+     */
+    public function findForCustomer(?User $user, int $limit = 50, int $offset = 0): array
+    {
+        if (!$user) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.recipient = :user')
+            // Add this line to exclude security-related alerts
+            ->andWhere('n.type != :securityType')
+            ->setParameter('user', $user)
+            ->setParameter('securityType', 'security')
+            ->orderBy('n.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     // Add save method if you want simple persistence helper
     public function save(Notification $notification, bool $flush = true): void
     {

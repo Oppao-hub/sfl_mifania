@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Notifications | Mifania{% endblock %}
+
+{% block main_content %}
+<div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8"
+     x-data="notificationCenter()">
+
+    <div class="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+
+        {# 1. Header Section #}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-brand/10 text-brand rounded-full flex items-center justify-center">
+                    {{ ux_icon('lucide:bell', {class: 'w-6 h-6'}) }}
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-brand-dark tracking-tighter uppercase">My Notifications</h1>
+                    <p class="text-xs text-gray-500 font-medium mt-1">
+                        You have <span x-text="unreadCount" class="font-bold text-brand"></span> unread message(s)
+                    </p>
+                </div>
+            </div>
+
+            <button x-show="unreadCount > 0"
+                    @click="markAllRead()"
+                    x-transition
+                    class="group flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-600 hover:text-brand hover:border-brand/30 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm active:scale-95">
+                {{ ux_icon('lucide:check-check', {class: 'w-4 h-4 group-hover:scale-110 transition-transform'}) }}
+                Mark All Read
+            </button>
+        </div>
+
+        {# 2. Notifications List #}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[50vh] flex flex-col">
+            <div class="divide-y divide-gray-100 flex-grow">
+                <template x-for="notif in notifications" :key="notif.id">
+                    <div class="group relative flex items-start gap-4 sm:gap-6 p-6 transition-all border-l-4"
+                         :class="!notif.isRead ? 'bg-brand/[0.02] border-brand hover:bg-brand/5' : 'border-transparent hover:bg-gray-50'">
+
+                        {# Icon based on type #}
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm border transition-transform duration-300 group-hover:scale-105"
+                             :class="!notif.isRead ? 'bg-brand text-white border-brand/20' : 'bg-gray-50 text-gray-400 border-gray-200'">
+                            <template x-if="notif.type === 'order'">{{ ux_icon('lucide:shopping-bag', {class: 'w-5 h-5'}) }}</template>
+                            <template x-if="notif.type === 'promotion'">{{ ux_icon('lucide:tag', {class: 'w-5 h-5'}) }}</template>
+                            <template x-if="notif.type !== 'order' && notif.type !== 'promotion'">{{ ux_icon('lucide:bell', {class: 'w-5 h-5'}) }}</template>
+                        </div>
+
+                        {# Content #}
+                        <div class="flex-1 min-w-0 pt-0.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-2">
+                                <h3 class="text-sm font-bold tracking-tight text-gray-900"
+                                    :class="!notif.isRead ? 'text-brand-dark' : ''"
+                                    x-text="notif.title"></h3>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap" x-text="notif.relativeTime"></span>
+                            </div>
+                            <p class="text-sm text-gray-600 leading-relaxed" x-text="notif.message"></p>
+
+                            <template x-if="notif.targetUrl && notif.targetUrl !== '#'">
+                                <div class="mt-4">
+                                    <a :href="notif.targetUrl" class="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-dark transition-colors group/link">
+                                        View Details
+                                        <span class="transition-transform group-hover/link:translate-x-1">
+                                            {{ ux_icon('lucide:arrow-right', {class: 'w-3.5 h-3.5'}) }}
+                                        </span>
+                                    </a>
+                                </div>
+                            </template>
+                        </div>
+
+                        {# Dismiss Action #}
+                        <button @click="dismiss(notif)"
+                                class="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
+                                title="Remove Notification">
+                            {{ ux_icon('lucide:x', {class: 'w-4 h-4'}) }}
+                        </button>
+                    </div>
+                </template>
+
+                {# 3. Empty State #}
+                <template x-if="notifications.length === 0">
+                    <div class="flex-grow flex flex-col items-center justify-center p-12 text-center">
+                        <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-6 border border-gray-100">
+                            {{ ux_icon('lucide:bell-off', {class: 'w-10 h-10'}) }}
+                        </div>
+                        <h3 class="text-lg font-black text-brand-dark uppercase tracking-tight">You're all caught up!</h3>
+                        <p class="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
+                            You don't have any new notifications at the moment. We'll let you know when there's an update on your orders.
+                        </p>
+                        <a href="{{ path('app_shop') }}" class="mt-8 px-8 py-3 bg-brand text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-brand-dark transition-all shadow-sm">
+                            Continue Shopping
+                        </a>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Alpine Component Logic #}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('notificationCenter', () => ({
+            notifications: [
+                {% for n in notifications %}
+                {
+                    id: {{ n.id }},
+                    title: '{{ n.title|e('js') }}',
+                    message: '{{ n.message|e('js') }}',
+                    type: '{{ n.type|e('js') }}',
+                    isRead: {{ n.isRead ? 'true' : 'false' }},
+                    relativeTime: '{{ n.createdAt|date('M d, Y \\a\\t g:i a') }}',
+                    targetUrl: '{{ n.targetUrl ? path('app_account_notification_read_redirect', {id: n.id}) : '#' }}'
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+
+            get unreadCount() {
+                return this.notifications.filter(n => !n.isRead).length;
+            },
+
+            markAllRead() {
+                fetch('{{ path('app_account_notifications_mark_read') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token('customer_mark_read') }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.notifications.forEach(n => n.isRead = true);
+                    }
+                })
+                .catch(err => console.error('Error marking as read:', err));
+            },
+
+            dismiss(notif) {
+                this.notifications = this.notifications.filter(n => n.id !== notif.id);
+
+                fetch(`/account/notifications/${notif.id}/dismiss`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token('customer_dismiss_notification') }}'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // CRITICAL: Tell the whole browser that a notification was removed
+                        window.dispatchEvent(new CustomEvent('notification-changed'));
+                    }
+                })
+                .catch(err => console.error('Error:', err));
+            }
+        }))
+    })
+</script>
+{% endblock %}

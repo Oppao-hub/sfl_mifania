@@ -25,8 +25,7 @@ class NotificationController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Fetch the user's notifications (e.g., limit to 50 for the frontend)
-        $notifications = $notificationRepository->findForUser($user, 50);
+        $notifications = $notificationRepository->findForCustomer($user, 50);
 
         return $this->render('frontend/notification/index.html.twig', [
             'notifications' => $notifications,
