@@ -126,6 +126,7 @@ class Product
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'wishlist')]
     private Collection $wishlisted;
 
+    #[Groups(['product:read'])]
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Story $story = null;
 
