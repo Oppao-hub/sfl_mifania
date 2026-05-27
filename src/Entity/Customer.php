@@ -12,6 +12,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -104,7 +105,7 @@ class Customer
         mimeTypes: ['image/jpeg', 'image/png'],
         mimeTypesMessage: 'Please upload a valid JPEG or PNG image.'
     )]
-    #[Groups(['customer:read', 'user:read'])] // 💡 ADDED user:read
+    #[Groups(['customer:read', 'user:read', 'customer:write'])] // 💡 ADDED user:read
     private ?string $avatar = null;
 
     #[ORM\Column]
@@ -277,6 +278,12 @@ class Customer
     public function getAvatar(): ?string
     {
         return $this->avatar;
+    }
+
+    #[Groups(['customer:read'])]
+    #[SerializedName('avatarUrl')]
+    public function getAvatarUrl(): ?string {
+        return $this->avatar ? '/uploads/customer/avatars/' . $this->avatar : null;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
