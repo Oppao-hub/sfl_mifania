@@ -41,6 +41,8 @@ RUN apt-get update && apt-get install -y \
     nginx \
     curl \
     ca-certificates \
+    nodejs \
+    npm \
     && docker-php-ext-install pdo pdo_mysql \
     && echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
     && rm -rf /var/lib/apt/lists/*
@@ -58,8 +60,6 @@ COPY nginx.conf /etc/nginx/conf.d/symfony.conf
 
 COPY entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# HEALTHCHECK removed for Back4App compatibility
 
 EXPOSE 80
 
