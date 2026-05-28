@@ -5,6 +5,10 @@ namespace App\Service;
 use App\Entity\Notification;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class NotificationPublisher
@@ -12,7 +16,9 @@ class NotificationPublisher
     public function __construct(
         private EntityManagerInterface $em,
         private UrlGeneratorInterface $router,
-        private SocketIoPublisher $socketIoPublisher
+        private SocketIoPublisher $socketIoPublisher,
+        private Messaging $messaging,
+        private LoggerInterface $logger,
     ) {}
 
     public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true): void
@@ -59,6 +65,29 @@ class NotificationPublisher
                 'orderId' => $routeParams['id'] ?? null,
                 'message' => $message,
             ]);
+        }
+
+        // 4. Push notification to mobile device (if token is available)
+        $deviceToken = $recipient->getDeviceToken();
+        if ($deviceToken) {
+            $pushMessage = CloudMessage::new()
+                ->toToken($deviceToken)
+                ->withNotification(FirebaseNotification::create($title, $message))
+                ->withData([
+                    'type' => $type,
+                    'targetUrl' => (string) $targetUrl,
+                ]);
+
+            try {
+                $this->messaging->send($pushMessage);
+            } catch (\Throwable $e) {
+                $this->logger->warning('Push notification send failed: {message}', [
+                    'message' => $e->getMessage(),
+                    'recipientId' => $recipient->getId(),
+                    'title' => $title,
+                    'type' => $type,
+                ]);
+            }
         }
     }
 

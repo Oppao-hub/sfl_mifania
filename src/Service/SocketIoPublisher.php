@@ -16,7 +16,7 @@ class SocketIoPublisher
     public function publish(int $userId, string $event, array $data): void
     {
         try {
-            $this->httpClient->request('POST', $this->publishUrl, [
+            $response = $this->httpClient->request('POST', $this->publishUrl, [
                 'json' => [
                     'userId' => $userId,
                     'event' => $event,
@@ -24,9 +24,20 @@ class SocketIoPublisher
                 ],
                 'timeout' => 2,
             ]);
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode >= 400) {
+                $this->logger->warning('Socket publish HTTP error: {status}', [
+                    'status' => $statusCode,
+                    'publishUrl' => $this->publishUrl,
+                    'userId' => $userId,
+                    'event' => $event,
+                ]);
+            }
         } catch (\Exception $e) {
             $this->logger->warning('Socket publish failed: {message}', [
                 'message' => $e->getMessage(),
+                'publishUrl' => $this->publishUrl,
                 'userId' => $userId,
                 'event' => $event,
             ]);
