@@ -42,8 +42,8 @@ app.post('/publish', (req, res) => {
     res.sendStatus(200);
 });
 
-const PORT = process.env.SOCKET_PORT || 3001;
-const HOST = process.env.SOCKET_HOST || '127.0.0.1';
+const PORT = process.env.PORT || process.env.SOCKET_PORT || 3001;
+const HOST = process.env.SOCKET_HOST || '0.0.0.0';
 http.listen(PORT, HOST, () => {
   console.log(`Socket.IO server running on ${HOST}:${PORT}`);
 });
