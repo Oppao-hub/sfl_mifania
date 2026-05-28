@@ -10,6 +10,7 @@ use App\Entity\Enum\PaymentStatus;
 use App\Form\CheckoutType;
 use App\Service\CartService;
 use App\Service\RewardManager;
+use App\Service\SocketIoPublisher;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +22,14 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 class CheckoutController extends AbstractController
 {
     #[Route('/checkout', name: 'app_checkout')]
-    public function index(Request $request, EntityManagerInterface $em, CartService $cartService, RewardManager $rewardManager, #[CurrentUser] ?User $user): Response
+    public function index(
+        Request $request,
+        EntityManagerInterface $em,
+        CartService $cartService,
+        RewardManager $rewardManager,
+        SocketIoPublisher $socketIoPublisher,
+        #[CurrentUser] ?User $user
+    ): Response
     {
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -95,6 +103,14 @@ class CheckoutController extends AbstractController
             }
 
             $cartService->clearCart();
+
+            // Real-time refresh for customer's open account pages (e.g. order history tab)
+            $socketIoPublisher->publish($user->getId(), 'dashboard_refresh', [
+                'entity' => 'order',
+                'action' => 'created',
+                'message' => sprintf('Order #%d placed successfully.', $order->getId()),
+                'targetUrl' => $this->generateUrl('app_account_order_view', ['id' => $order->getId()]),
+            ]);
 
             $this->addFlash('success', 'Order placed successfully!');
             return $this->redirectToRoute('app_order_success', ['id' => $order->getId()]);

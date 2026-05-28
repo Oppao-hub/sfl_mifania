@@ -8,6 +8,13 @@ use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\Stock;
 use App\Entity\Order;
+use App\Entity\Category;
+use App\Entity\SubCategory;
+use App\Entity\Story;
+use App\Entity\QRTag;
+use App\Entity\Reward;
+use App\Entity\Redemption;
+use App\Entity\Wallet;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\NotificationPublisher;
@@ -38,6 +45,32 @@ use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Order::class)]
 #[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Order::class)]
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Category::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Category::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Category::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: SubCategory::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: SubCategory::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: SubCategory::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Story::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Story::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Story::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: QRTag::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: QRTag::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: QRTag::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Reward::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Reward::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Reward::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Redemption::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Redemption::class)]
+#[AsEntityListener(event: Events::preRemove, method: 'onDeleted', entity: Redemption::class)]
+
+#[AsEntityListener(event: Events::postPersist, method: 'onCreated', entity: Wallet::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onUpdated', entity: Wallet::class)]
 class DatabaseNotificationListener
 {
     public function __construct(
@@ -103,6 +136,41 @@ class DatabaseNotificationListener
             $route = 'app_order_show';
             $titlePrefix = 'Order';
             $type = 'order';
+        } elseif ($entity instanceof Category) {
+            $name = $entity->getName();
+            $route = 'app_category_show';
+            $titlePrefix = 'Category';
+            $type = 'category';
+        } elseif ($entity instanceof SubCategory) {
+            $name = $entity->getName();
+            $route = 'app_sub_category_show';
+            $titlePrefix = 'Sub-category';
+            $type = 'sub_category';
+        } elseif ($entity instanceof Story) {
+            $name = $entity->getTitle();
+            $route = 'app_story_show';
+            $titlePrefix = 'Story';
+            $type = 'story';
+        } elseif ($entity instanceof QRTag) {
+            $name = 'QR Tag #' . $entity->getId();
+            $route = 'app_qrTag_show';
+            $titlePrefix = 'QR Tag';
+            $type = 'qr';
+        } elseif ($entity instanceof Reward) {
+            $name = $entity->getName();
+            $route = 'app_reward_show';
+            $titlePrefix = 'Reward';
+            $type = 'reward';
+        } elseif ($entity instanceof Redemption) {
+            $name = 'Redemption #' . $entity->getId();
+            $route = 'app_reward_index';
+            $titlePrefix = 'Redemption';
+            $type = 'redemption';
+        } elseif ($entity instanceof Wallet) {
+            $name = 'Wallet #' . $entity->getId();
+            $route = 'app_wallet_show';
+            $titlePrefix = 'Wallet';
+            $type = 'wallet';
         }
 
         // Final fallback
