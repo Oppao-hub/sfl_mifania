@@ -46,7 +46,7 @@
                             {# Order Status Badge #}
                             <td class="py-4">
                                 {% set statusClass = 'bg-gray-100 text-gray-800' %}
-                                {% if order.orderStatus.value == 'Delivered' or order.orderStatus.value == 'Completed' %}
+                                {% if order.orderStatus.value == 'Delivered' %}
                                     {% set statusClass = 'bg-green-100 text-green-800' %}
                                 {% elseif order.orderStatus.value == 'Processing' or order.orderStatus.value == 'Shipped' %}
                                     {% set statusClass = 'bg-blue-100 text-blue-800' %}
