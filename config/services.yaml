@@ -11,9 +11,12 @@ parameters:
     admin_images_directory: "%kernel.project_dir%/public/uploads/admin/avatars"
     staff_images_directory: "%kernel.project_dir%/public/uploads/staff/avatars"
     product_qr_directory: "%kernel.project_dir%/public/uploads/qrcodes"
-    loyalty_points_per_currency: '%env(int:default:10:LOYALTY_POINTS_PER_CURRENCY)%'
-    loyalty_min_order_for_redemption: '%env(float:default:100:LOYALTY_MIN_ORDER_FOR_REDEMPTION)%'
-    loyalty_max_redemption_percentage: '%env(float:default:0.30:LOYALTY_MAX_REDEMPTION_PERCENTAGE)%'
+    loyalty_points_per_currency_default: 10
+    loyalty_min_order_for_redemption_default: 100.0
+    loyalty_max_redemption_percentage_default: 0.30
+    loyalty_points_per_currency: '%env(int:default:loyalty_points_per_currency_default:LOYALTY_POINTS_PER_CURRENCY)%'
+    loyalty_min_order_for_redemption: '%env(float:default:loyalty_min_order_for_redemption_default:LOYALTY_MIN_ORDER_FOR_REDEMPTION)%'
+    loyalty_max_redemption_percentage: '%env(float:default:loyalty_max_redemption_percentage_default:LOYALTY_MAX_REDEMPTION_PERCENTAGE)%'
 
 services:
     # default configuration for services in *this* file

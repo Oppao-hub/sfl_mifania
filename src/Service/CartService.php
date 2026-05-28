@@ -16,7 +16,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 class CartService
 {
     private EntityManagerInterface $em;
-    private SessionInterface $session;
+    private RequestStack $requestStack;
     private Security $security;
 
     public function __construct(EntityManagerInterface $em, RequestStack $requestStack, Security $security)
@@ -115,7 +115,10 @@ class CartService
         $this->em->persist($newMainCart);
         $this->em->flush();
         
-        $this->session->set('cartId', $newMainCart->getId());
+        $session = $this->getSession();
+        if ($session) {
+            $session->set('cartId', $newMainCart->getId());
+        }
     }
 
     public function getCustomerCarts(): array
@@ -217,7 +220,10 @@ class CartService
             }
             // Remove guest cart
             $this->em->remove($cart);
-            $this->session->set('cartId', $existingMainCart->getId());
+            $session = $this->getSession();
+            if ($session) {
+                $session->set('cartId', $existingMainCart->getId());
+            }
         } else {
             // Just attach guest cart to user as main
             $cart->setCustomer($customer);
