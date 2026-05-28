@@ -37,11 +37,45 @@ class NotificationPublisher
         }
 
         // 2. Real-time notification via Socket.io
-        $this->socketIoPublisher->publish($recipient->getId(), 'notification', [
+        $payload = [
             'title' => $title,
             'message' => $message,
             'targetUrl' => $targetUrl,
-            'type' => $type
+            'type' => $type,
+        ];
+
+        $this->socketIoPublisher->publish($recipient->getId(), 'notification', $payload);
+
+        // 3. Tell dashboard clients to refresh lists/stats without manual reload
+        $this->socketIoPublisher->publish($recipient->getId(), 'dashboard_refresh', [
+            'entity' => $type,
+            'action' => $this->inferActionFromTitle($title),
+            'message' => $message,
+            'targetUrl' => $targetUrl,
         ]);
+
+        if ($type === 'order' && str_contains(strtolower($title), 'created')) {
+            $this->socketIoPublisher->publish($recipient->getId(), 'new_order', [
+                'orderId' => $routeParams['id'] ?? null,
+                'message' => $message,
+            ]);
+        }
+    }
+
+    private function inferActionFromTitle(string $title): string
+    {
+        $normalized = strtolower($title);
+
+        if (str_contains($normalized, 'created')) {
+            return 'created';
+        }
+        if (str_contains($normalized, 'updated')) {
+            return 'updated';
+        }
+        if (str_contains($normalized, 'removed') || str_contains($normalized, 'deleted')) {
+            return 'deleted';
+        }
+
+        return 'changed';
     }
 }

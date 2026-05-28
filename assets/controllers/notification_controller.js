@@ -9,6 +9,7 @@ export default class extends Controller {
 
     connect() {
         if (!this.userIdValue) return;
+        this.reloadTimeout = null;
 
         this.socket = io(this.socketUrlValue, {
             auth: { token: this.userIdValue }
@@ -30,6 +31,10 @@ export default class extends Controller {
                 message: `Order #${data.orderId} received!`,
                 icon: data.icon || null
             });
+        });
+
+        this.socket.on("dashboard_refresh", (data) => {
+            this.handleDashboardRefresh(data);
         });
 
         this.requestPermission();
@@ -69,7 +74,30 @@ export default class extends Controller {
         }
     }
 
+    handleDashboardRefresh(data) {
+        const pathname = window.location.pathname;
+        const isDashboardPage = pathname.startsWith('/dashboard');
+
+        if (!isDashboardPage) return;
+
+        // Keep UX stable: avoid repeated reload storms on burst updates.
+        if (this.reloadTimeout) {
+            clearTimeout(this.reloadTimeout);
+        }
+
+        this.reloadTimeout = setTimeout(() => {
+            if (window.Turbo?.visit) {
+                window.Turbo.visit(window.location.href, { action: 'replace' });
+            } else {
+                window.location.reload();
+            }
+        }, 800);
+    }
+
     disconnect() {
+        if (this.reloadTimeout) {
+            clearTimeout(this.reloadTimeout);
+        }
         if (this.socket) {
             this.socket.disconnect();
         }

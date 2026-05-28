@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    socket_publish_url_default: 'http://127.0.0.1:3001/publish'
     uploads_directory: "%kernel.project_dir%/public/uploads/images"
     product_images_directory: "%kernel.project_dir%/public/uploads/products"
     customer_images_directory: "%kernel.project_dir%/public/uploads/customer/avatars"
@@ -37,6 +38,10 @@ services:
             $clientId: '%env(PAYPAL_CLIENT_ID)%'
             $secret: '%env(PAYPAL_CLIENT_SECRET)%'
             $mode: '%env(PAYPAL_MODE)%'
+
+    App\Service\SocketIoPublisher:
+        arguments:
+            $publishUrl: '%env(default:socket_publish_url_default:SOCKET_PUBLISH_URL)%'
 
 twig:
     default_path: "%kernel.project_dir%/templates"
