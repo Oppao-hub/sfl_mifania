@@ -50,6 +50,10 @@ class NotificationPublisher
             'type' => $type,
         ];
 
+        if ($type === 'order' && isset($routeParams['id'])) {
+            $payload['orderId'] = (string) $routeParams['id'];
+        }
+
         $this->socketIoPublisher->publish($recipient->getId(), 'notification', $payload);
 
         // 3. Tell dashboard clients to refresh lists/stats without manual reload
@@ -70,13 +74,19 @@ class NotificationPublisher
         // 4. Push notification to mobile device (if token is available)
         $deviceToken = $recipient->getDeviceToken();
         if ($deviceToken) {
+            $pushData = [
+                'type' => $type,
+                'targetUrl' => (string) $targetUrl,
+            ];
+
+            if ($type === 'order' && isset($routeParams['id'])) {
+                $pushData['orderId'] = (string) $routeParams['id'];
+            }
+
             $pushMessage = CloudMessage::new()
                 ->toToken($deviceToken)
                 ->withNotification(FirebaseNotification::create($title, $message))
-                ->withData([
-                    'type' => $type,
-                    'targetUrl' => (string) $targetUrl,
-                ]);
+                ->withData($pushData);
 
             try {
                 $this->messaging->send($pushMessage);

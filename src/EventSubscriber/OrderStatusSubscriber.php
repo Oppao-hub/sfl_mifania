@@ -8,10 +8,6 @@ use App\Service\OrderMailerService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
-use Kreait\Firebase\Contract\Messaging;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
-use Psr\Log\LoggerInterface;
 
 #[AsEntityListener(event: Events::preUpdate, entity: Order::class)]
 class OrderStatusSubscriber
@@ -19,8 +15,6 @@ class OrderStatusSubscriber
     public function __construct(
         private NotificationPublisher $notificationPublisher,
         private OrderMailerService $orderMailerService,
-        private Messaging $messaging, // 💡 Added Firebase Messaging
-        private LoggerInterface $logger // 💡 Added Logger to catch errors safely
     ) {}
 
     public function preUpdate(Order $order, PreUpdateEventArgs $event): void
@@ -32,13 +26,9 @@ class OrderStatusSubscriber
             return;
         }
 
-        $title = null;
-        $body = null;
-
         // 1. Handle Order Status Change
         if ($event->hasChangedField('orderStatus')) {
             $newStatus = $event->getNewValue('orderStatus');
-            $title = 'Order Status Updated 📦';
             $body = "Your order #{$order->getId()} is now {$newStatus->value}.";
 
             // Keep your existing in-app and email notifications
@@ -57,7 +47,6 @@ class OrderStatusSubscriber
         // 2. Handle Payment Status Change
         if ($event->hasChangedField('paymentStatus')) {
             $newStatus = $event->getNewValue('paymentStatus');
-            $title = 'Payment Update 💳';
             $body = "The payment for order #{$order->getId()} is now {$newStatus->value}.";
 
             // Add an in-app notification for payment as well
@@ -70,21 +59,6 @@ class OrderStatusSubscriber
                 'order',
                 false
             );
-        }
-
-        // 3. Send the Firebase Push Notification to the phone
-        if ($title && $body && $user->getDeviceToken()) {
-            // 💡 Use the new builder pattern
-            $message = CloudMessage::new()
-                ->toToken($user->getDeviceToken())
-                ->withNotification(FirebaseNotification::create($title, $body));
-
-            try {
-                $this->messaging->send($message);
-                $this->logger->info("Push notification sent to User ID: " . $user->getId());
-            } catch (\Exception $e) {
-                $this->logger->error("Failed to send push notification: " . $e->getMessage());
-            }
         }
     }
 }
