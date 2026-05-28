@@ -103,7 +103,15 @@
                                     <div class="flex flex-col relative z-10">
                                         <span class="text-[11px] font-black text-brand-dark uppercase tracking-widest">{{ child.vars.label }}</span>
                                         <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                                            {% if child.vars.label == 'CASH' %} Pay securely upon delivery {% else %} Encrypted electronic payment {% endif %}
+                                            {% if child.vars.label == 'Cash' %}
+                                                Pay securely upon delivery
+                                            {% elseif child.vars.label == 'Bank Transfer' %}
+                                                Transfer to our bank account — details sent after order
+                                            {% elseif child.vars.label == 'Paypal' %}
+                                                Pay with your PayPal account
+                                            {% else %}
+                                                Pay with Visa, Mastercard, or other major cards
+                                            {% endif %}
                                         </span>
                                     </div>
                                 </label>
