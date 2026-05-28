@@ -71,7 +71,7 @@
                                         token: '{{ csrf_token('change_status' ~ order.id) }}'
                                     }); this.value = '{{ order.orderStatus.value }}';"
                                     class="text-[10px] font-black uppercase tracking-widest py-1.5 pl-3 pr-8 rounded-lg cursor-pointer outline-none border-none w-full
-                                    {% if order.orderStatus.value == 'Completed' %} bg-success/10 text-success
+                                    {% if order.orderStatus.value == 'Delivered' %} bg-success/10 text-success
                                     {% elseif order.orderStatus.value == 'Cancelled' %} bg-danger/10 text-danger
                                     {% else %} bg-brand/10 text-brand {% endif %}">
                                 {% for oStatus in statuses %}
