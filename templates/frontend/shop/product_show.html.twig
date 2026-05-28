@@ -53,9 +53,9 @@
                 </div>
 
                 <div class="flex items-baseline gap-6 border-b border-gray-200 pb-6">
-                    <span class="text-4xl font-bold text-brand uppercase">PHP {{ product.price|number_format(2) }}</span>
+                    <span class="text-4xl font-bold text-brand uppercase">₱{{ product.price|number_format(2) }}</span>
                     {% if product.price < 1500 %}
-                        <span class="text-xl text-light-brown line-through font-medium">PHP 1,500.00</span>
+                        <span class="text-xl text-light-brown line-through font-medium">₱1,500.00</span>
                     {% endif %}
                 </div>
 
