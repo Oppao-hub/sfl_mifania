@@ -33,19 +33,24 @@ class LoginLogoutSubscriber implements EventSubscriberInterface
 
         if ($user instanceof User) {
             $request = $event->getRequest();
-
-            // Checking the raw URL path is safer than checking the route name during login
             $path = $request->getPathInfo();
 
-            $loginMethod = 'Login Form';
-            if (str_contains($path, 'google')) {
-                $loginMethod = 'Google OAuth';
-            }
+            // Google mobile login uses ApiGoogleController (no LoginSuccessEvent).
+            // JSON /api/login is covered here — skip JwtAuthenticationSuccessHandler duplicates.
+            $isApiLogin = str_starts_with($path, '/api/login');
 
-            // 1. Notify the User themselves (Security Alert)
+            $loginMethod = match (true) {
+                $isApiLogin => 'Mobile App',
+                str_contains($path, 'google') => 'Google OAuth',
+                default => 'Login Form',
+            };
+
+            $alertTitle = $isApiLogin ? 'Security Alert: Mobile Login' : 'Security Alert: New Login';
+
+            // 1. Notify the User themselves (Security Alert) — once per successful login
             $this->notificationPublisher->send(
                 $user,
-                'Security Alert: New Login',
+                $alertTitle,
                 "A new login was detected on your account via {$loginMethod}.",
                 'app_account', // Link to account settings
                 [],
@@ -62,8 +67,10 @@ class LoginLogoutSubscriber implements EventSubscriberInterface
 
                 $this->notificationPublisher->send(
                     $manager,
-                    'User Login Detected',
-                    "User {$user->getEmail()} has logged into the system.",
+                    $isApiLogin ? 'Mobile Login Detected' : 'User Login Detected',
+                    $isApiLogin
+                        ? "User {$user->getEmail()} has logged in via Mobile App."
+                        : "User {$user->getEmail()} has logged into the system.",
                     'app_dashboard',
                     [],
                     'system',
