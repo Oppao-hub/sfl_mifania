@@ -84,9 +84,9 @@ final readonly class OrderProcessor implements ProcessorInterface
                     throw new BadRequestHttpException('Order amount is below the minimum for loyalty redemption.');
                 }
                 $cappedDiscount = min($requestedDiscount, $originalAmount, $policyMaxDiscount);
-                $effectivePoints = (int) floor($cappedDiscount * RewardManager::POINTS_PER_CURRENCY);
+                $effectivePoints = $this->rewardManager->pointsFromDiscount($cappedDiscount);
 
-                if ($effectivePoints <= 0 || !$this->rewardManager->consumePoints($customer, $effectivePoints)) {
+                if ($effectivePoints <= 0 || !$this->rewardManager->consumePoints($customer, $effectivePoints, null, 'REDEEMED_ORDER')) {
                     throw new BadRequestHttpException('Unable to apply reward points.');
                 }
 

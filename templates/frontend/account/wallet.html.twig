@@ -17,7 +17,7 @@
             <div class="flex items-baseline gap-2 mb-8">
                 <span class="text-5xl font-bold tracking-tight">
                     {# Null coalescing to prevent errors if wallet doesn't exist #}
-                    ₱ {{ wallet ? wallet.balance|number_format(2) : '0.00' }}
+                    ₱{{ wallet ? wallet.balance|number_format(2) : '0.00' }}
                 </span>
                 <span class="text-lg opacity-80 font-medium">PHP</span>
             </div>
@@ -88,9 +88,9 @@
                                 </td>
                                 <td class="py-4 pr-2 text-right">
                                     {% if transaction.type == 'credit' %}
-                                        <span class="text-green-600 font-bold">+ ₱ {{ transaction.amount|number_format(2) }}</span>
+                                        <span class="text-green-600 font-bold">+ ₱{{ transaction.amount|number_format(2) }}</span>
                                     {% else %}
-                                        <span class="text-red-500 font-bold">- ₱ {{ transaction.amount|number_format(2) }}</span>
+                                        <span class="text-red-500 font-bold">- ₱{{ transaction.amount|number_format(2) }}</span>
                                     {% endif %}
                                 </td>
                             </tr>

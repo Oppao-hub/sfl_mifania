@@ -54,7 +54,7 @@
 
         {{ _self.detailCard('Customer', order.customer ? order.customer.firstName ~ ' ' ~ order.customer.lastName : 'N/A', true) }}
         {{ _self.detailCard('Order Date', order.orderDate ? order.orderDate|date('M d, Y') : 'N/A') }}
-        {{ _self.detailCard('Total Amount', '₱ ' ~ order.totalAmount|number_format(2), true, 'text-brand') }}
+        {{ _self.detailCard('Total Amount', '₱' ~ order.totalAmount|number_format(2), true, 'text-brand') }}
         {{ _self.detailCard('Order Status', order.orderStatus.value|default('N/A'), true, 'text-terracotta') }}
 
         {{ _self.detailCard('Payment Method', order.paymentMethod.value|default('N/A')) }}
@@ -87,8 +87,8 @@
                                 <span class="text-[9px] font-black uppercase tracking-widest text-gray">ID: {{ item.product.id }}</span>
                             </td>
                             <td class="py-4 px-6 text-sm font-bold text-dark-gray text-center">{{ item.quantity }}</td>
-                            <td class="py-4 px-6 text-sm font-medium text-dark-gray text-right">₱ {{ item.price|number_format(2) }}</td>
-                            <td class="py-4 px-6 text-sm font-black text-brand-dark text-right">₱ {{ item.subtotal|number_format(2) }}</td>
+                            <td class="py-4 px-6 text-sm font-medium text-dark-gray text-right">₱{{ item.price|number_format(2) }}</td>
+                            <td class="py-4 px-6 text-sm font-black text-brand-dark text-right">₱{{ item.subtotal|number_format(2) }}</td>
                         </tr>
                     {% else %}
                         <tr><td colspan="4" class="px-6 py-10 text-center text-sm font-bold text-gray uppercase tracking-widest">This order contains no items.</td></tr>
@@ -98,7 +98,7 @@
                     <tr>
                         <td colspan="3" class="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-brand">Grand Total:</td>
                         <td class="px-6 py-5 text-right text-lg font-black text-brand-dark">
-                            ₱ {{ order.totalAmount|number_format(2) }}
+                            ₱{{ order.totalAmount|number_format(2) }}
                         </td>
                     </tr>
                 </tfoot>

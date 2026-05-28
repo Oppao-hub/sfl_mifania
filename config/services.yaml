@@ -11,6 +11,9 @@ parameters:
     admin_images_directory: "%kernel.project_dir%/public/uploads/admin/avatars"
     staff_images_directory: "%kernel.project_dir%/public/uploads/staff/avatars"
     product_qr_directory: "%kernel.project_dir%/public/uploads/qrcodes"
+    loyalty_points_per_currency: '%env(int:default:10:LOYALTY_POINTS_PER_CURRENCY)%'
+    loyalty_min_order_for_redemption: '%env(float:default:100:LOYALTY_MIN_ORDER_FOR_REDEMPTION)%'
+    loyalty_max_redemption_percentage: '%env(float:default:0.30:LOYALTY_MAX_REDEMPTION_PERCENTAGE)%'
 
 services:
     # default configuration for services in *this* file
@@ -42,6 +45,18 @@ services:
     App\Service\SocketIoPublisher:
         arguments:
             $publishUrl: '%env(default:socket_publish_url_default:SOCKET_PUBLISH_URL)%'
+
+    App\Service\RewardManager:
+        arguments:
+            $pointsPerCurrency: '%loyalty_points_per_currency%'
+            $minOrderForRedemption: '%loyalty_min_order_for_redemption%'
+            $maxRedemptionPercentage: '%loyalty_max_redemption_percentage%'
+
+    App\Controller\Api\LoyaltyPolicyController:
+        arguments:
+            $loyaltyPointsPerCurrency: '%loyalty_points_per_currency%'
+            $loyaltyMinOrderForRedemption: '%loyalty_min_order_for_redemption%'
+            $loyaltyMaxRedemptionPercentage: '%loyalty_max_redemption_percentage%'
 
 twig:
     default_path: "%kernel.project_dir%/templates"

@@ -29,7 +29,7 @@ class PayPalService
             'intent' => 'CAPTURE',
             'purchase_units' => [[
                 'amount' => [
-                    'currency_code' => 'USD',
+                    'currency_code' => 'PHP',
                     'value' => number_format($amount, 2, '.', ''),
                 ]
             ]],

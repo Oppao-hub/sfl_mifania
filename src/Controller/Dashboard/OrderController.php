@@ -8,6 +8,7 @@ use App\Entity\Enum\PaymentMethod;
 use App\Entity\Enum\PaymentStatus;
 use App\Form\OrderType;
 use App\Repository\OrderRepository;
+use App\Service\RewardManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -70,12 +71,25 @@ final class OrderController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_order_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Request $request, Order $order, EntityManagerInterface $entityManager): Response
+    public function edit(
+        Request $request,
+        Order $order,
+        EntityManagerInterface $entityManager,
+        RewardManager $rewardManager
+    ): Response
     {
+        $previousPaymentStatus = $order->getPaymentStatus();
+        $previousOrderStatus = $order->getOrderStatus();
         $form = $this->createForm(OrderType::class, $order);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->refundRedeemedPointsIfNeeded(
+                $order,
+                $previousPaymentStatus,
+                $previousOrderStatus,
+                $rewardManager
+            );
             $entityManager->flush();
 
             $this->addFlash('success', 'Order updated successfully!');
@@ -123,7 +137,12 @@ final class OrderController extends AbstractController
     }
 
     #[Route('/{id}/change-order-payment-status', name: 'app_order_change_payment_status', methods: ['POST'])]
-    public function changePaymentStatus(Order $order, EntityManagerInterface $entityManager, Request $request): Response
+    public function changePaymentStatus(
+        Order $order,
+        EntityManagerInterface $entityManager,
+        Request $request,
+        RewardManager $rewardManager
+    ): Response
     {
         if (!$this->isCsrfTokenValid('change_payment_status' . $order->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Invalid security token.');
@@ -134,7 +153,15 @@ final class OrderController extends AbstractController
         $newStatus = PaymentStatus::tryFrom($newStatusValue);
 
         if ($newStatus) {
+            $previousPaymentStatus = $order->getPaymentStatus();
+            $previousOrderStatus = $order->getOrderStatus();
             $order->setPaymentStatus($newStatus);
+            $this->refundRedeemedPointsIfNeeded(
+                $order,
+                $previousPaymentStatus,
+                $previousOrderStatus,
+                $rewardManager
+            );
             $entityManager->flush();
             $this->addFlash('success', 'Payment status updated to ' . $newStatus->value);
         }
@@ -143,7 +170,12 @@ final class OrderController extends AbstractController
     }
 
     #[Route('/{id}/change-order-status', name: 'app_order_change_status', methods: ['POST'])]
-    public function changeOrderStatus(Order $order, EntityManagerInterface $entityManager, Request $request): Response
+    public function changeOrderStatus(
+        Order $order,
+        EntityManagerInterface $entityManager,
+        Request $request,
+        RewardManager $rewardManager
+    ): Response
     {
         if (!$this->isCsrfTokenValid('change_status' . $order->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Invalid security token.');
@@ -154,11 +186,36 @@ final class OrderController extends AbstractController
         $newStatus = OrderStatus::tryFrom($newStatusValue);
 
         if ($newStatus) {
+            $previousPaymentStatus = $order->getPaymentStatus();
+            $previousOrderStatus = $order->getOrderStatus();
             $order->setOrderStatus($newStatus);
+            $this->refundRedeemedPointsIfNeeded(
+                $order,
+                $previousPaymentStatus,
+                $previousOrderStatus,
+                $rewardManager
+            );
             $entityManager->flush();
             $this->addFlash('success', 'Order status updated to ' . $newStatus->value);
         }
 
         return $this->redirectToRoute('app_order_index');
+    }
+
+    private function refundRedeemedPointsIfNeeded(
+        Order $order,
+        ?PaymentStatus $previousPaymentStatus,
+        ?OrderStatus $previousOrderStatus,
+        RewardManager $rewardManager
+    ): void {
+        $nowCancelled = $order->getOrderStatus() === OrderStatus::CANCELLED;
+        $nowRefunded = $order->getPaymentStatus() === PaymentStatus::REFUNDED;
+
+        $becameCancelled = !$previousOrderStatus || $previousOrderStatus !== OrderStatus::CANCELLED;
+        $becameRefunded = !$previousPaymentStatus || $previousPaymentStatus !== PaymentStatus::REFUNDED;
+
+        if (($nowCancelled && $becameCancelled) || ($nowRefunded && $becameRefunded)) {
+            $rewardManager->refundPointsForOrder($order);
+        }
     }
 }
