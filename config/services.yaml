@@ -52,12 +52,6 @@ services:
             $minOrderForRedemption: '%loyalty_min_order_for_redemption%'
             $maxRedemptionPercentage: '%loyalty_max_redemption_percentage%'
 
-    App\Controller\Api\LoyaltyPolicyController:
-        arguments:
-            $loyaltyPointsPerCurrency: '%loyalty_points_per_currency%'
-            $loyaltyMinOrderForRedemption: '%loyalty_min_order_for_redemption%'
-            $loyaltyMaxRedemptionPercentage: '%loyalty_max_redemption_percentage%'
-
 twig:
     default_path: "%kernel.project_dir%/templates"
     file_name_pattern: "*.twig"

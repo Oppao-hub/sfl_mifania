@@ -135,6 +135,16 @@ class RewardManager
         return max(1, $this->pointsPerCurrency);
     }
 
+    public function getMinOrderForRedemption(): float
+    {
+        return max(0.0, $this->minOrderForRedemption);
+    }
+
+    public function getMaxRedemptionPercentage(): float
+    {
+        return min(1.0, max(0.0, $this->maxRedemptionPercentage));
+    }
+
     public function maxDiscountForOrder(float $orderAmount): float
     {
         if ($orderAmount < $this->minOrderForRedemption) {
