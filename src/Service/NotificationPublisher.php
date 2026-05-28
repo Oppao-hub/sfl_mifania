@@ -23,7 +23,16 @@ class NotificationPublisher
 
     public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true): void
     {
-        $targetUrl = $this->router->generate($routeName, $routeParams);
+        try {
+            $targetUrl = $this->router->generate($routeName, $routeParams);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('Notification route generation failed, using dashboard fallback.', [
+                'routeName' => $routeName,
+                'routeParams' => $routeParams,
+                'message' => $exception->getMessage(),
+            ]);
+            $targetUrl = $this->router->generate('app_dashboard');
+        }
 
         $notification = new Notification();
         $notification->setTitle($title);

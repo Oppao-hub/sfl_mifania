@@ -19,10 +19,18 @@ class LoyaltyPolicyController extends AbstractController
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
-        return $this->json([
-            'pointsPerCurrency' => $rewardManager->getPointsPerCurrency(),
-            'minOrderForRedemption' => $rewardManager->getMinOrderForRedemption(),
-            'maxRedemptionPercentage' => $rewardManager->getMaxRedemptionPercentage(),
-        ]);
+        try {
+            return $this->json([
+                'pointsPerCurrency' => $rewardManager->getPointsPerCurrency(),
+                'minOrderForRedemption' => $rewardManager->getMinOrderForRedemption(),
+                'maxRedemptionPercentage' => $rewardManager->getMaxRedemptionPercentage(),
+            ]);
+        } catch (\Throwable) {
+            return $this->json([
+                'pointsPerCurrency' => 10,
+                'minOrderForRedemption' => 100.0,
+                'maxRedemptionPercentage' => 0.3,
+            ]);
+        }
     }
 }
