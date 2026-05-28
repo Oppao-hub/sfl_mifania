@@ -136,19 +136,36 @@
 </div>
 
 {# --- TOP UP MODAL --- #}
-<div x-data="{ open: false }"
-     @open-modal.window="if($event.detail.name === 'wallet-top-up') open = true"
+<div x-data="{ open: false, selectedPreset: null }"
+     @open-modal.window="if($event.detail.name === 'wallet-top-up') { open = true; selectedPreset = null; }"
      x-show="open"
      class="fixed inset-0 z-[100] flex items-center justify-center p-6"
      style="display: none;">
     <div @click="open = false" class="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm"></div>
     <div class="bg-white w-full max-w-md p-8 md:p-10 rounded-xl relative z-10 shadow-2xl border border-gray-100">
         <h3 class="text-xl font-bold text-brand uppercase tracking-tight mb-2">Top Up Wallet</h3>
-        <p class="text-xs text-gray-500 mb-6">Add funds to your Mifania wallet balance.</p>
-        {{ form_start(topUpForm, { action: path('app_account_wallet_top_up'), attr: { class: 'space-y-5' } }) }}
+        <p class="text-xs text-gray-500 mb-4">Add funds to your Mifania wallet balance.</p>
+        {{ form_start(topUpForm, { action: path('app_account_wallet_top_up'), attr: { class: 'space-y-5', 'x-ref': 'topUpForm' } }) }}
             <div>
+                <p class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Quick amounts</p>
+                <div class="flex gap-2 mb-3">
+                    {% for preset in topUpPresets %}
+                        <button
+                            type="button"
+                            @click="selectedPreset = {{ preset }}; $refs.topUpAmount.value = '{{ preset }}'"
+                            :class="selectedPreset === {{ preset }} ? 'bg-brand text-white border-brand' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-brand hover:text-brand'"
+                            class="flex-1 py-2.5 rounded-sm border text-xs font-bold uppercase tracking-widest transition cursor-pointer"
+                        >
+                            ₱{{ preset|number_format(0) }}
+                        </button>
+                    {% endfor %}
+                </div>
                 {{ form_label(topUpForm.amount, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
-                {{ form_widget(topUpForm.amount, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                {{ form_widget(topUpForm.amount, { attr: {
+                    class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand',
+                    'x-ref': 'topUpAmount',
+                    '@input': 'selectedPreset = null'
+                } }) }}
                 {{ form_errors(topUpForm.amount) }}
             </div>
             <div>
@@ -168,39 +185,111 @@
 </div>
 
 {# --- TRANSFER MODAL --- #}
-<div x-data="{ open: false }"
-     @open-modal.window="if($event.detail.name === 'wallet-transfer') open = true"
+<div x-data="{
+        open: false,
+        showConfirm: false,
+        confirmEmail: '',
+        confirmAmount: '',
+        confirmNote: '',
+        walletBalance: {{ wallet ? wallet.balance|default(0) : 0 }}
+     }"
+     @open-modal.window="if($event.detail.name === 'wallet-transfer') { open = true; showConfirm = false; }"
      x-show="open"
      class="fixed inset-0 z-[100] flex items-center justify-center p-6"
      style="display: none;">
-    <div @click="open = false" class="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm"></div>
+    <div @click="open = false; showConfirm = false" class="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm"></div>
     <div class="bg-white w-full max-w-md p-8 md:p-10 rounded-xl relative z-10 shadow-2xl border border-gray-100">
         <h3 class="text-xl font-bold text-brand uppercase tracking-tight mb-2">Transfer Funds</h3>
-        <p class="text-xs text-gray-500 mb-6">Send wallet balance to another Mifania customer by email.</p>
-        {{ form_start(transferForm, { action: path('app_account_wallet_transfer'), attr: { class: 'space-y-5' } }) }}
-            <div>
-                {{ form_label(transferForm.recipientEmail, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
-                {{ form_widget(transferForm.recipientEmail, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
-                {{ form_errors(transferForm.recipientEmail) }}
+
+        {# Step 1: Transfer form #}
+        <div x-show="!showConfirm">
+            <p class="text-xs text-gray-500 mb-6">Send wallet balance to another Mifania customer by email.</p>
+            {{ form_start(transferForm, {
+                action: path('app_account_wallet_transfer'),
+                attr: {
+                    id: 'wallet-transfer-form',
+                    class: 'space-y-5',
+                    'x-ref': 'transferForm',
+                    '@submit': "
+                        if (!showConfirm) {
+                            $event.preventDefault();
+                            const email = $refs.transferForm.querySelector('[name$=\\'[recipientEmail]\\']').value.trim();
+                            const amount = parseFloat($refs.transferForm.querySelector('[name$=\\'[amount]\\']').value);
+                            const note = $refs.transferForm.querySelector('[name$=\\'[note]\\']')?.value?.trim() || '';
+                            if (!email) { alert('Please enter the recipient email.'); return; }
+                            if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+                            if (amount > walletBalance) { alert('Insufficient wallet balance for this transfer.'); return; }
+                            confirmEmail = email;
+                            confirmAmount = amount.toFixed(2);
+                            confirmNote = note;
+                            showConfirm = true;
+                        }
+                    "
+                }
+            }) }}
+                <div>
+                    {{ form_label(transferForm.recipientEmail, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                    {{ form_widget(transferForm.recipientEmail, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                    {{ form_errors(transferForm.recipientEmail) }}
+                </div>
+                <div>
+                    {{ form_label(transferForm.amount, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                    {{ form_widget(transferForm.amount, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                    {{ form_errors(transferForm.amount) }}
+                    <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Available: ₱{{ wallet ? wallet.balance|number_format(2) : '0.00' }}</p>
+                </div>
+                <div>
+                    {{ form_label(transferForm.note, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                    {{ form_widget(transferForm.note, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                </div>
+                <div class="flex flex-col gap-3 pt-2">
+                    <button type="submit" class="w-full bg-brand text-white py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-brand-dark transition cursor-pointer">
+                        Review Transfer
+                    </button>
+                    <button type="button" @click="open = false" class="w-full text-gray-500 py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:text-brand transition cursor-pointer">
+                        Cancel
+                    </button>
+                </div>
+            {{ form_end(transferForm) }}
+        </div>
+
+        {# Step 2: Confirmation #}
+        <div x-show="showConfirm" style="display: none;">
+            <p class="text-xs text-gray-500 mb-4">Please review your transfer before sending.</p>
+            <div class="bg-gray-50 border border-gray-100 rounded-sm p-4 mb-6 space-y-3 text-sm">
+                <div class="flex justify-between gap-4">
+                    <span class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Recipient</span>
+                    <span class="font-bold text-gray-800 text-right" x-text="confirmEmail"></span>
+                </div>
+                <div class="flex justify-between gap-4">
+                    <span class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Amount</span>
+                    <span class="font-bold text-red-600">− ₱<span x-text="confirmAmount"></span></span>
+                </div>
+                <div class="flex justify-between gap-4" x-show="confirmNote">
+                    <span class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Note</span>
+                    <span class="font-medium text-gray-700 text-right" x-text="confirmNote"></span>
+                </div>
             </div>
-            <div>
-                {{ form_label(transferForm.amount, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
-                {{ form_widget(transferForm.amount, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
-                {{ form_errors(transferForm.amount) }}
-            </div>
-            <div>
-                {{ form_label(transferForm.note, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
-                {{ form_widget(transferForm.note, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
-            </div>
-            <div class="flex flex-col gap-3 pt-2">
-                <button type="submit" class="w-full bg-brand text-white py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-brand-dark transition cursor-pointer">
-                    Confirm Transfer
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+                This action cannot be undone. The funds will be deducted from your wallet immediately.
+            </p>
+            <div class="flex flex-col gap-3">
+                <button
+                    type="submit"
+                    form="wallet-transfer-form"
+                    class="w-full bg-brand text-white py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-brand-dark transition cursor-pointer"
+                >
+                    Yes, Send Transfer
                 </button>
-                <button type="button" @click="open = false" class="w-full text-gray-500 py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:text-brand transition cursor-pointer">
-                    Cancel
+                <button
+                    type="button"
+                    @click="showConfirm = false"
+                    class="w-full text-gray-500 py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:text-brand transition cursor-pointer"
+                >
+                    Back
                 </button>
             </div>
-        {{ form_end(transferForm) }}
+        </div>
     </div>
 </div>
 {% endblock %}
