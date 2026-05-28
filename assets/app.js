@@ -61,6 +61,25 @@ document.addEventListener("turbo:before-cache", () => {
     });
 });
 
+// Global image fallback for missing product uploads (404-safe UI)
+document.addEventListener(
+    "error",
+    (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLImageElement)) return;
+
+        const src = target.getAttribute("src") || "";
+        const defaultProduct = "/uploads/default/default-product.png";
+
+        // Only intercept missing product upload images
+        if (!src.includes("/uploads/products/")) return;
+        if (src.includes(defaultProduct)) return;
+
+        target.setAttribute("src", defaultProduct);
+    },
+    true
+);
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('scrollReveal', (customThreshold = 0.15) => ({
         shown: false,
