@@ -1,62 +1,120 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}PayPal Payment{% endblock %}
-
-{% block body %}
-<h1>Pay with PayPal</h1>
-
-<p>Amount: <strong>₱{{ amount|default('10.00') }}</strong></p>
-
-<div id="paypal-button-container"></div>
-
-<div id="payment-status" style="margin-top: 20px; font-weight: bold;"></div>
-
-{# PayPal JS SDK #}
-<script src="https://www.paypal.com/sdk/js?client-id={{ app_env == 'dev' ? 'YOUR_SANDBOX_CLIENT_ID' : 'YOUR_LIVE_CLIENT_ID' }}&currency=PHP"></script>
-
-<script>
-    const statusEl = document.getElementById('payment-status');
-    const orderAmount = '{{ amount|default("10.00") }}';
-
-    paypal.Buttons({
-        createOrder: function(data, actions) {
-            statusEl.innerText = 'Creating order...';
-            return fetch('{{ path('paypal_create_order') }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: orderAmount })
-            })
-            .then(res => res.json())
-            .then(data => {
-                statusEl.innerText = 'Order created. Awaiting approval...';
-                return data.id;
-            });
-        },
-        onApprove: function(data, actions) {
-            statusEl.innerText = 'Capturing payment...';
-            return fetch('{{ path('paypal_capture_order') }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderID: data.orderID })
-            })
-            .then(res => res.json())
-            .then(details => {
-                statusEl.innerText = 'Payment completed successfully!';
-                console.log('PayPal capture details:', details);
-            })
-            .catch(err => {
-                console.error(err);
-                statusEl.innerText = 'Payment failed. Check console for details.';
-            });
-        },
-        onCancel: function(data) {
-            statusEl.innerText = 'Payment canceled by user.';
-        },
-        onError: function(err) {
-            console.error(err);
-            statusEl.innerText = 'An error occurred during payment.';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Payment | Mifania</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #f7f8f4;
+            color: #2f3a22;
         }
-    }).render('#paypal-button-container');
-</script>
+        .card {
+            max-width: 480px;
+            margin: 40px auto;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+        h1 {
+            font-size: 1.25rem;
+            margin: 0 0 8px;
+        }
+        .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #5b8e68;
+            margin-bottom: 20px;
+        }
+        .notice {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        #payment-status {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Pay with PayPal</h1>
+        <p class="amount">Amount: ₱{{ amount|default('10.00') }}</p>
 
-{% endblock %}
+        {% if not paypalConfigured %}
+            <div class="notice">
+                PayPal checkout is not configured on the server yet. Set
+                <strong>PAYPAL_CLIENT_ID</strong>, <strong>PAYPAL_CLIENT_SECRET</strong>, and
+                <strong>PAYPAL_MODE</strong> (sandbox or live) in your Railway environment variables.
+            </div>
+        {% else %}
+            <div id="paypal-button-container"></div>
+            <div id="payment-status"></div>
+        {% endif %}
+    </div>
+
+    {% if paypalConfigured %}
+        <script src="https://www.paypal.com/sdk/js?client-id={{ paypalClientId|e('html_attr') }}&currency=PHP"></script>
+        <script>
+            const statusEl = document.getElementById('payment-status');
+            const orderAmount = '{{ amount|default("10.00")|e('js') }}';
+
+            paypal.Buttons({
+                createOrder: function () {
+                    statusEl.innerText = 'Creating order...';
+                    return fetch('{{ path('paypal_create_order')|e('js') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount: orderAmount }),
+                    })
+                        .then(async (res) => {
+                            const data = await res.json();
+                            if (!res.ok) {
+                                throw new Error(data.error || 'Unable to create PayPal order.');
+                            }
+                            statusEl.innerText = 'Order created. Awaiting approval...';
+                            return data.id;
+                        });
+                },
+                onApprove: function (data) {
+                    statusEl.innerText = 'Capturing payment...';
+                    return fetch('{{ path('paypal_capture_order')|e('js') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderID: data.orderID }),
+                    })
+                        .then(async (res) => {
+                            const details = await res.json();
+                            if (!res.ok) {
+                                throw new Error(details.error || 'Payment capture failed.');
+                            }
+                            statusEl.innerText = 'Payment completed successfully! You can return to the app.';
+                        })
+                        .catch((err) => {
+                            console.error(err);
+                            statusEl.innerText = err.message || 'Payment failed. Please try again.';
+                        });
+                },
+                onCancel: function () {
+                    statusEl.innerText = 'Payment canceled.';
+                },
+                onError: function (err) {
+                    console.error(err);
+                    statusEl.innerText = 'An error occurred during payment.';
+                },
+            }).render('#paypal-button-container');
+        </script>
+    {% endif %}
+</body>
+</html>

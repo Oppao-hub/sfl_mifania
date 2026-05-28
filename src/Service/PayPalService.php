@@ -10,15 +10,28 @@ use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 
 class PayPalService
 {
-    private PayPalHttpClient $client;
+    private ?PayPalHttpClient $client = null;
 
-    public function __construct(string $clientId, string $secret, string $mode = 'sandbox')
+    public function __construct(
+        private readonly string $clientId,
+        private readonly string $secret,
+        private readonly string $mode = 'sandbox',
+    ) {
+        if ($this->clientId !== '' && $this->secret !== '') {
+            $normalizedMode = strtolower(trim($this->mode));
+            $isLive = in_array($normalizedMode, ['live', 'production'], true);
+
+            $environment = $isLive
+                ? new ProductionEnvironment($this->clientId, $this->secret)
+                : new SandboxEnvironment($this->clientId, $this->secret);
+
+            $this->client = new PayPalHttpClient($environment);
+        }
+    }
+
+    public function isConfigured(): bool
     {
-        $environment = $mode === 'live'
-            ? new ProductionEnvironment($clientId, $secret)
-            : new SandboxEnvironment($clientId, $secret);
-
-        $this->client = new PayPalHttpClient($environment);
+        return $this->client !== null;
     }
 
     public function createOrder(float $amount): string
@@ -31,11 +44,12 @@ class PayPalService
                 'amount' => [
                     'currency_code' => 'PHP',
                     'value' => number_format($amount, 2, '.', ''),
-                ]
+                ],
             ]],
         ];
 
-        $response = $this->client->execute($request);
+        $response = $this->client()->execute($request);
+
         return $response->result->id;
     }
 
@@ -43,7 +57,17 @@ class PayPalService
     {
         $request = new OrdersCaptureRequest($orderId);
         $request->prefer('return=representation');
-        $response = $this->client->execute($request);
+        $response = $this->client()->execute($request);
+
         return $response->result;
+    }
+
+    private function client(): PayPalHttpClient
+    {
+        if ($this->client === null) {
+            throw new \RuntimeException('PayPal credentials are not configured.');
+        }
+
+        return $this->client;
     }
 }

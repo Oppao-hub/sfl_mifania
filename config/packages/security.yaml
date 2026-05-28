@@ -82,6 +82,7 @@ security:
         - { path: ^/account, roles: ROLE_CUSTOMER }
 
         # 4. Public Pages
+        - { path: ^/paypal, roles: PUBLIC_ACCESS }
         - { path: ^/email-verification, roles: PUBLIC_ACCESS }
         - { path: ^/home, roles: PUBLIC_ACCESS }
 
