@@ -53,4 +53,46 @@ class NotificationController extends AbstractController
 
         return $this->json(['success' => true, 'message' => 'All notifications marked as read']);
     }
+
+    #[Route('/{id}', name: 'api_notifications_delete_one', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    public function deleteOne(int $id, NotificationRepository $repo, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $notification = $repo->findOneBy([
+            'id' => $id,
+            'recipient' => $user,
+        ]);
+
+        if (!$notification) {
+            return $this->json(['error' => 'Notification not found'], 404);
+        }
+
+        $em->remove($notification);
+        $em->flush();
+
+        return $this->json(null, 204);
+    }
+
+    #[Route('/clear', name: 'api_notifications_clear_all', methods: ['DELETE'])]
+    public function clearAll(EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $deleted = $em->createQuery('
+            DELETE FROM App\Entity\Notification n
+            WHERE n.recipient = :user
+        ')
+        ->setParameter('user', $user)
+        ->execute();
+
+        return $this->json([
+            'success' => true,
+            'deletedCount' => $deleted,
+        ]);
+    }
 }
