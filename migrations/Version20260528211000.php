@@ -22,8 +22,30 @@ final class Version20260528211000 extends AbstractMigration
             'Migration can only be executed safely on mysql.',
         );
 
-        $this->addSql("ALTER TABLE orders ADD points_redeemed INT NOT NULL DEFAULT 0, ADD discount_amount NUMERIC(10, 2) NOT NULL DEFAULT '0.00', ADD original_amount NUMERIC(10, 2) NOT NULL DEFAULT '0.00', ADD idempotency_key VARCHAR(128) DEFAULT NULL");
-        $this->addSql('CREATE UNIQUE INDEX uniq_order_customer_idempotency ON orders (customer_id, idempotency_key)');
+        $columns = $this->connection->fetchFirstColumn(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'orders'"
+        );
+        $columnSet = array_flip($columns);
+
+        if (!isset($columnSet['points_redeemed'])) {
+            $this->addSql('ALTER TABLE orders ADD points_redeemed INT NOT NULL DEFAULT 0');
+        }
+        if (!isset($columnSet['discount_amount'])) {
+            $this->addSql("ALTER TABLE orders ADD discount_amount NUMERIC(10, 2) NOT NULL DEFAULT '0.00'");
+        }
+        if (!isset($columnSet['original_amount'])) {
+            $this->addSql("ALTER TABLE orders ADD original_amount NUMERIC(10, 2) NOT NULL DEFAULT '0.00'");
+        }
+        if (!isset($columnSet['idempotency_key'])) {
+            $this->addSql('ALTER TABLE orders ADD idempotency_key VARCHAR(128) DEFAULT NULL');
+        }
+
+        $indexExists = (int) $this->connection->fetchOne(
+            "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'orders' AND index_name = 'uniq_order_customer_idempotency'"
+        );
+        if ($indexExists === 0) {
+            $this->addSql('CREATE UNIQUE INDEX uniq_order_customer_idempotency ON orders (customer_id, idempotency_key)');
+        }
     }
 
     public function down(Schema $schema): void

@@ -13,6 +13,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Repository\OrderRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
+use Psr\Log\LoggerInterface;
 
 final readonly class OrderProcessor implements ProcessorInterface
 {
@@ -23,7 +25,8 @@ final readonly class OrderProcessor implements ProcessorInterface
         private RewardManager $rewardManager,
         private CartService $cartService,
         private OrderRepository $orderRepository,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
+        private LoggerInterface $logger,
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -53,13 +56,23 @@ final readonly class OrderProcessor implements ProcessorInterface
         // Validate and deduct stock
         foreach ($data->getOrderItems() as $item) {
             $product = $item->getProduct();
-            if ($product) {
-                if ($product->getTotalStockQuantity() < $item->getQuantity()) {
-                    throw new \Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException(
-                        sprintf('Sorry, "%s" is out of stock or has insufficient quantity.', $product->getName())
-                    );
-                }
+            if (!$product) {
+                throw new BadRequestHttpException('Each order item must include a valid product.');
+            }
+
+            if ($product->getTotalStockQuantity() < $item->getQuantity()) {
+                throw new UnprocessableEntityHttpException(
+                    sprintf('Sorry, "%s" is out of stock or has insufficient quantity.', $product->getName())
+                );
+            }
+
+            try {
                 $product->deductStockQuantity($item->getQuantity());
+            } catch (\Throwable $exception) {
+                throw new UnprocessableEntityHttpException(
+                    sprintf('Sorry, "%s" is out of stock or has insufficient quantity.', $product->getName()),
+                    $exception
+                );
             }
         }
 
@@ -102,10 +115,28 @@ final readonly class OrderProcessor implements ProcessorInterface
         // Persist the order first
         $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
 
-        if ($customer && $data->getRewardPoints() > 0) {
-            // Award points and clear cart after successful persistence
-            $this->rewardManager->earnPointsFromOrder($customer, $data, $data->getRewardPoints());
-            $this->cartService->clearCart();
+        if ($customer) {
+            if ($data->getRewardPoints() > 0) {
+                try {
+                    $this->rewardManager->earnPointsFromOrder($customer, $data, $data->getRewardPoints());
+                } catch (\Throwable $exception) {
+                    $this->logger->error('Failed to award loyalty points after order creation.', [
+                        'orderId' => $data->getId(),
+                        'customerId' => $customer->getId(),
+                        'exception' => $exception,
+                    ]);
+                }
+            }
+
+            try {
+                $this->cartService->clearCart();
+            } catch (\Throwable $exception) {
+                $this->logger->error('Failed to clear cart after order creation.', [
+                    'orderId' => $data->getId(),
+                    'customerId' => $customer->getId(),
+                    'exception' => $exception,
+                ]);
+            }
         }
 
         return $result;
