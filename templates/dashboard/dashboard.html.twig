@@ -129,7 +129,7 @@
         .catch(err => console.error('Error dismissing notification:', err));
     }
 }"
-{{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '"' : '' }}
+{{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '" data-notification-socket-url-value="' ~ app.request.schemeAndHttpHost ~ '"' : '' }}
 class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300">
 
     {# Impersonation Banner #}
