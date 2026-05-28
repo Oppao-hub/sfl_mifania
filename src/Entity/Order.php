@@ -105,6 +105,43 @@ class Order
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $orderNotes = null;
 
+    #[Groups(['order:read', 'order:write'])]
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?CustomerAddress $customerAddress = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 80, nullable: true)]
+    private ?string $shippingLabel = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 200, nullable: true)]
+    private ?string $shippingRecipientName = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $shippingContactNumber = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $shippingAddressLine = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $shippingCity = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $shippingState = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $shippingCountry = null;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $shippingPostalCode = null;
+
     // 💡 ADDED: Exposed to API so mobile app can show "Ordered on..."
     #[Groups(['order:read'])]
     #[ORM\Column]
@@ -210,6 +247,46 @@ class Order
 
     public function getOrderNotes(): ?string { return $this->orderNotes; }
     public function setOrderNotes(?string $orderNotes): static { $this->orderNotes = $orderNotes; return $this; }
+
+    public function getCustomerAddress(): ?CustomerAddress { return $this->customerAddress; }
+    public function setCustomerAddress(?CustomerAddress $customerAddress): static { $this->customerAddress = $customerAddress; return $this; }
+
+    public function getShippingLabel(): ?string { return $this->shippingLabel; }
+    public function setShippingLabel(?string $shippingLabel): static { $this->shippingLabel = $shippingLabel; return $this; }
+
+    public function getShippingRecipientName(): ?string { return $this->shippingRecipientName; }
+    public function setShippingRecipientName(?string $shippingRecipientName): static { $this->shippingRecipientName = $shippingRecipientName; return $this; }
+
+    public function getShippingContactNumber(): ?string { return $this->shippingContactNumber; }
+    public function setShippingContactNumber(?string $shippingContactNumber): static { $this->shippingContactNumber = $shippingContactNumber; return $this; }
+
+    public function getShippingAddressLine(): ?string { return $this->shippingAddressLine; }
+    public function setShippingAddressLine(?string $shippingAddressLine): static { $this->shippingAddressLine = $shippingAddressLine; return $this; }
+
+    public function getShippingCity(): ?string { return $this->shippingCity; }
+    public function setShippingCity(?string $shippingCity): static { $this->shippingCity = $shippingCity; return $this; }
+
+    public function getShippingState(): ?string { return $this->shippingState; }
+    public function setShippingState(?string $shippingState): static { $this->shippingState = $shippingState; return $this; }
+
+    public function getShippingCountry(): ?string { return $this->shippingCountry; }
+    public function setShippingCountry(?string $shippingCountry): static { $this->shippingCountry = $shippingCountry; return $this; }
+
+    public function getShippingPostalCode(): ?string { return $this->shippingPostalCode; }
+    public function setShippingPostalCode(?string $shippingPostalCode): static { $this->shippingPostalCode = $shippingPostalCode; return $this; }
+
+    public function applyShippingSnapshotFromAddress(CustomerAddress $address): void
+    {
+        $this->setCustomerAddress($address);
+        $this->setShippingLabel($address->getLabel());
+        $this->setShippingRecipientName($address->getRecipientFullName());
+        $this->setShippingContactNumber($address->getContactNumber());
+        $this->setShippingAddressLine($address->getAddress());
+        $this->setShippingCity($address->getCity());
+        $this->setShippingState($address->getState());
+        $this->setShippingCountry($address->getCountry());
+        $this->setShippingPostalCode($address->getPostalCode());
+    }
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }

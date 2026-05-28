@@ -11,6 +11,7 @@ use App\Service\CartService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Repository\OrderRepository;
+use App\Repository\CustomerAddressRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -25,6 +26,7 @@ final readonly class OrderProcessor implements ProcessorInterface
         private RewardManager $rewardManager,
         private CartService $cartService,
         private OrderRepository $orderRepository,
+        private CustomerAddressRepository $customerAddressRepository,
         private RequestStack $requestStack,
         private LoggerInterface $logger,
     ) {}
@@ -41,6 +43,16 @@ final readonly class OrderProcessor implements ProcessorInterface
 
         if ($customer) {
             $data->setCustomer($customer);
+
+            $selectedAddress = $data->getCustomerAddress();
+            if ($selectedAddress) {
+                if ($selectedAddress->getCustomer()?->getId() !== $customer->getId()) {
+                    throw new BadRequestHttpException('Invalid shipping address for this customer.');
+                }
+                $data->applyShippingSnapshotFromAddress($selectedAddress);
+            } elseif ($defaultAddress = $this->customerAddressRepository->findDefaultForCustomer($customer)) {
+                $data->applyShippingSnapshotFromAddress($defaultAddress);
+            }
         }
 
         $request = $this->requestStack->getCurrentRequest();
