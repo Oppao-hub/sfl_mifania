@@ -11,6 +11,10 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class RewardManager
 {
+    public const POINTS_PER_CURRENCY = 10;
+    public const MIN_ORDER_FOR_REDEMPTION = 100.00;
+    public const MAX_REDEMPTION_PERCENTAGE = 0.30;
+
     public function __construct(private EntityManagerInterface $em) {}
 
     public function earnPointsFromOrder(Customer $customer, Order $order, int $pointsToAward): void
@@ -34,30 +38,58 @@ class RewardManager
     public function claimReward(Customer $customer, Reward $reward): bool
     {
         $wallet = $customer->getWallet();
-
-        // Check if they have enough points
-        if (!$wallet || $wallet->getRewardPoints() < $reward->getPointsRequired()) {
+        $pointsRequired = $reward->getPointsRequired() ?? 0;
+        if (!$wallet || $pointsRequired <= 0 || !$this->consumePoints($customer, $pointsRequired)) {
             return false;
         }
-
-        // Deduct points
-        $wallet->setRewardPoints($wallet->getRewardPoints() - $reward->getPointsRequired());
-
-        $transaction = new RewardTransaction();
-        $transaction->setCustomer($customer);
-        $transaction->setPoints(-$reward->getPointsRequired());
-        $transaction->setType('REDEEMED');
-        $transaction->setCreatedAt(new \DateTimeImmutable());
 
         $redemption = new Redemption();
         $redemption->setCustomer($customer);
         $redemption->setReward($reward);
+        $redemption->setPointSpent($pointsRequired);
         $redemption->setRedeemedAt(new \DateTimeImmutable());
+        $redemption->setStatus('PENDING');
 
-        $this->em->persist($transaction);
         $this->em->persist($redemption);
         $this->em->flush();
 
         return true;
+    }
+
+    public function consumePoints(Customer $customer, int $points): bool
+    {
+        $wallet = $customer->getWallet();
+        if (!$wallet || $points <= 0 || $wallet->getRewardPoints() < $points) {
+            return false;
+        }
+
+        $wallet->setRewardPoints($wallet->getRewardPoints() - $points);
+
+        $transaction = new RewardTransaction();
+        $transaction->setCustomer($customer);
+        $transaction->setPoints(-$points);
+        $transaction->setType('REDEEMED');
+        $transaction->setCreatedAt(new \DateTimeImmutable());
+        $this->em->persist($transaction);
+
+        return true;
+    }
+
+    public function currencyDiscountFromPoints(int $points): string
+    {
+        if ($points <= 0) {
+            return '0.00';
+        }
+
+        return number_format($points / self::POINTS_PER_CURRENCY, 2, '.', '');
+    }
+
+    public function maxDiscountForOrder(float $orderAmount): float
+    {
+        if ($orderAmount < self::MIN_ORDER_FOR_REDEMPTION) {
+            return 0.0;
+        }
+
+        return $orderAmount * self::MAX_REDEMPTION_PERCENTAGE;
     }
 }
