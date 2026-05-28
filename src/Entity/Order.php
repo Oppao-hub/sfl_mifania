@@ -26,7 +26,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('ROLE_ADMIN') or object.getCustomer().getUser() == user"),
-        new GetCollection(security: "is_granted('ROLE_ADMIN') or user.getCustomer() != null"),
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN') or user.getCustomer() != null",
+            order: ['createdAt' => 'DESC'],
+        ),
         new Post(processor: \App\State\OrderProcessor::class),
     ],
     normalizationContext: ['groups' => ['order:read']],
