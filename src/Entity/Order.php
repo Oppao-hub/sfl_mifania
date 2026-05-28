@@ -18,7 +18,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
-#[ORM\Table(name: 'orders')]
+#[ORM\Table(
+    name: 'orders',
+    uniqueConstraints: [new ORM\UniqueConstraint(name: 'uniq_order_customer_idempotency', columns: ['customer_id', 'idempotency_key'])]
+)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
@@ -70,6 +73,22 @@ class Order
     #[Assert\PositiveOrZero(message: 'Reward points earned must be a positive number.')]
     #[ORM\Column]
     private ?int $rewardPoints = 0;
+
+    #[Groups(['order:read', 'order:write'])]
+    #[Assert\PositiveOrZero(message: 'Redeemed points must be a positive number.')]
+    #[ORM\Column]
+    private ?int $pointsRedeemed = 0;
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    private ?string $discountAmount = '0.00';
+
+    #[Groups(['order:read'])]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    private ?string $originalAmount = '0.00';
+
+    #[ORM\Column(length: 128, nullable: true)]
+    private ?string $idempotencyKey = null;
 
     // 💡 ADDED: Exposed to API so mobile app can show "Ordered on..."
     #[Groups(['order:read'])]
@@ -155,6 +174,18 @@ class Order
 
     public function getRewardPoints(): ?int { return $this->rewardPoints; }
     public function setRewardPoints(int $rewardPoints): static { $this->rewardPoints = $rewardPoints; return $this; }
+
+    public function getPointsRedeemed(): ?int { return $this->pointsRedeemed; }
+    public function setPointsRedeemed(int $pointsRedeemed): static { $this->pointsRedeemed = $pointsRedeemed; return $this; }
+
+    public function getDiscountAmount(): ?string { return $this->discountAmount; }
+    public function setDiscountAmount(string $discountAmount): static { $this->discountAmount = $discountAmount; return $this; }
+
+    public function getOriginalAmount(): ?string { return $this->originalAmount; }
+    public function setOriginalAmount(string $originalAmount): static { $this->originalAmount = $originalAmount; return $this; }
+
+    public function getIdempotencyKey(): ?string { return $this->idempotencyKey; }
+    public function setIdempotencyKey(?string $idempotencyKey): static { $this->idempotencyKey = $idempotencyKey; return $this; }
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }
