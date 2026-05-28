@@ -90,6 +90,18 @@ class Order
     #[ORM\Column(length: 128, nullable: true)]
     private ?string $idempotencyKey = null;
 
+    #[Groups(['order:read', 'order:write'])]
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $shippingMethod = null;
+
+    #[Groups(['order:read', 'order:write'])]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    private ?string $shippingFee = '0.00';
+
+    #[Groups(['order:read', 'order:write'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $orderNotes = null;
+
     // 💡 ADDED: Exposed to API so mobile app can show "Ordered on..."
     #[Groups(['order:read'])]
     #[ORM\Column]
@@ -186,6 +198,15 @@ class Order
 
     public function getIdempotencyKey(): ?string { return $this->idempotencyKey; }
     public function setIdempotencyKey(?string $idempotencyKey): static { $this->idempotencyKey = $idempotencyKey; return $this; }
+
+    public function getShippingMethod(): ?string { return $this->shippingMethod; }
+    public function setShippingMethod(?string $shippingMethod): static { $this->shippingMethod = $shippingMethod; return $this; }
+
+    public function getShippingFee(): ?string { return $this->shippingFee; }
+    public function setShippingFee(string $shippingFee): static { $this->shippingFee = $shippingFee; return $this; }
+
+    public function getOrderNotes(): ?string { return $this->orderNotes; }
+    public function setOrderNotes(?string $orderNotes): static { $this->orderNotes = $orderNotes; return $this; }
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }
