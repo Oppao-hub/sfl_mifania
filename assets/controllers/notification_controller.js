@@ -34,7 +34,7 @@ export default class extends Controller {
         });
 
         this.socket.on("dashboard_refresh", (data) => {
-            this.handleDashboardRefresh(data);
+            this.handleRealtimeRefresh(data);
         });
 
         this.requestPermission();
@@ -74,11 +74,20 @@ export default class extends Controller {
         }
     }
 
-    handleDashboardRefresh(data) {
+    handleRealtimeRefresh(data) {
         const pathname = window.location.pathname;
-        const isDashboardPage = pathname.startsWith('/dashboard');
+        const isAppPage =
+            pathname.startsWith('/dashboard') ||
+            pathname.startsWith('/account') ||
+            pathname.startsWith('/shop') ||
+            pathname.startsWith('/cart') ||
+            pathname.startsWith('/checkout') ||
+            pathname.startsWith('/wishlist') ||
+            pathname.startsWith('/notification') ||
+            pathname === '/' ||
+            pathname.startsWith('/home');
 
-        if (!isDashboardPage) return;
+        if (!isAppPage) return;
 
         // Keep UX stable: avoid repeated reload storms on burst updates.
         if (this.reloadTimeout) {
