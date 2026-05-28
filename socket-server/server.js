@@ -2,20 +2,25 @@ const http = require('http').createServer();
 const io = require('socket.io')(http, {
     path: '/socket.io',
     cors: {
-        origin: ["https://sflmifania-production.up.railway.app", "http://localhost:8000"],
-        methods: ["GET", "POST"]
-    }
+        origin: [
+            "https://sfl-mifania.up.railway.app",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://10.0.2.2:8000",
+        ],
+        methods: ["GET", "POST"],
+    },
 });
 const express = require('express');
 const app = express();
 
 app.use(express.json());
 
-// 1. Authentication Middleware
+// 1. Authentication — room key must match Symfony publish(userId) and web dashboard
 io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
-    if (!token) return next(new Error("Authentication error"));
-    socket.userId = token;
+    const userId = socket.handshake.auth.userId ?? socket.handshake.auth.token;
+    if (!userId) return next(new Error("Authentication error"));
+    socket.userId = String(userId);
     next();
 });
 
@@ -37,7 +42,8 @@ app.post('/publish', (req, res) => {
     res.sendStatus(200);
 });
 
-const PORT = 3001;
-http.listen(PORT, '127.0.0.1', () => {
-  console.log(`Socket.IO server running internally on port ${PORT}`);
+const PORT = process.env.SOCKET_PORT || 3001;
+const HOST = process.env.SOCKET_HOST || '127.0.0.1';
+http.listen(PORT, HOST, () => {
+  console.log(`Socket.IO server running on ${HOST}:${PORT}`);
 });

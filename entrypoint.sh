@@ -19,6 +19,10 @@ PHP_PID=$!
 echo "Waiting for PHP-FPM to start..."
 sleep 2
 
+echo "Starting Socket.IO server on port 3001..."
+node /app/socket-server/server.js &
+SOCKET_PID=$!
+
 echo "Starting Nginx..."
 nginx -g "daemon off;"
 
