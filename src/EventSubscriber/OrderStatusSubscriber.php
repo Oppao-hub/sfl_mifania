@@ -74,14 +74,15 @@ class OrderStatusSubscriber
 
         // 3. Send the Firebase Push Notification to the phone
         if ($title && $body && $user->getDeviceToken()) {
-            $message = CloudMessage::withTarget('token', $user->getDeviceToken())
+            // 💡 Use the new builder pattern
+            $message = CloudMessage::new()
+                ->toToken($user->getDeviceToken())
                 ->withNotification(FirebaseNotification::create($title, $body));
 
             try {
                 $this->messaging->send($message);
                 $this->logger->info("Push notification sent to User ID: " . $user->getId());
             } catch (\Exception $e) {
-                // Catching errors ensures a failed notification doesn't crash the whole save process
                 $this->logger->error("Failed to send push notification: " . $e->getMessage());
             }
         }
