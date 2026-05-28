@@ -36,13 +36,13 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['product:read', 'order:read'])]
+    #[Groups(['product:read', 'order:read', 'cart:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Product name cannot be empty.')]
     #[Assert\Length(max: 100, maxMessage: 'Product name cannot exceed 100 characters.')]
-    #[Groups(['product:read', 'order:read'])]
+    #[Groups(['product:read', 'order:read', 'cart:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 100)]
@@ -53,12 +53,12 @@ class Product
 
     #[ORM\Column(length: 20, enumType: Size::class)]
     #[Assert\NotNull(message: 'Please select a size.')]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'cart:read'])]
     private ?Size $size = null;
 
     #[ORM\Column(length: 50, nullable: false, enumType: Color::class)]
     #[Assert\NotNull(message: 'Please select a color palette.')]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'cart:read'])]
     private ?Color $color = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
@@ -88,7 +88,7 @@ class Product
     private ?QRTag $qrTag = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['product:read', 'order:read'])]
+    #[Groups(['product:read', 'order:read', 'cart:read'])]
     private ?string $image = 'default.png';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -292,7 +292,7 @@ class Product
         return $this;
     }
 
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'cart:read'])]
     #[SerializedName('stock')]
     public function getTotalStockQuantity(): int
     {
@@ -412,7 +412,7 @@ class Product
         return $this;
     }
 
-    #[Groups(['product:read','order:read'])]
+    #[Groups(['product:read', 'order:read', 'cart:read'])]
     #[SerializedName('imageUrl')]
     public function getImageUrl(): string
     {
