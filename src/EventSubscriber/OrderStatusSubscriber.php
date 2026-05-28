@@ -30,7 +30,7 @@ class OrderStatusSubscriber
         // 1. Handle Order Status Change
         if ($event->hasChangedField('orderStatus')) {
             $newStatus = $event->getNewValue('orderStatus');
-            $statusLabel = $this->normalizeStatusLabel($newStatus, 'updated');
+            $statusLabel = $this->normalizeStatusLabel($newStatus, 'Processing');
             $body = "Your order #{$order->getId()} is now {$statusLabel}.";
 
             // Keep your existing in-app and email notifications
@@ -49,7 +49,7 @@ class OrderStatusSubscriber
         // 2. Handle Payment Status Change
         if ($event->hasChangedField('paymentStatus')) {
             $newStatus = $event->getNewValue('paymentStatus');
-            $statusLabel = $this->normalizeStatusLabel($newStatus, 'updated');
+            $statusLabel = $this->normalizeStatusLabel($newStatus, 'Pending');
             $body = "The payment for order #{$order->getId()} is now {$statusLabel}.";
 
             // Add an in-app notification for payment as well
