@@ -8,6 +8,7 @@ use App\Service\OrderMailerService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
+use BackedEnum;
 
 #[AsEntityListener(event: Events::preUpdate, entity: Order::class)]
 class OrderStatusSubscriber
@@ -29,7 +30,8 @@ class OrderStatusSubscriber
         // 1. Handle Order Status Change
         if ($event->hasChangedField('orderStatus')) {
             $newStatus = $event->getNewValue('orderStatus');
-            $body = "Your order #{$order->getId()} is now {$newStatus->value}.";
+            $statusLabel = $this->normalizeStatusLabel($newStatus, 'updated');
+            $body = "Your order #{$order->getId()} is now {$statusLabel}.";
 
             // Keep your existing in-app and email notifications
             $this->notificationPublisher->send(
@@ -47,7 +49,8 @@ class OrderStatusSubscriber
         // 2. Handle Payment Status Change
         if ($event->hasChangedField('paymentStatus')) {
             $newStatus = $event->getNewValue('paymentStatus');
-            $body = "The payment for order #{$order->getId()} is now {$newStatus->value}.";
+            $statusLabel = $this->normalizeStatusLabel($newStatus, 'updated');
+            $body = "The payment for order #{$order->getId()} is now {$statusLabel}.";
 
             // Add an in-app notification for payment as well
             $this->notificationPublisher->send(
@@ -60,5 +63,18 @@ class OrderStatusSubscriber
                 false
             );
         }
+    }
+
+    private function normalizeStatusLabel(mixed $status, string $fallback): string
+    {
+        if ($status instanceof BackedEnum) {
+            return (string) $status->value;
+        }
+
+        if (is_string($status) && trim($status) !== '') {
+            return $status;
+        }
+
+        return $fallback;
     }
 }
