@@ -20,6 +20,7 @@ use App\Repository\UserRepository;
 use App\Service\NotificationPublisher;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
 // Registering events for relevant entities
@@ -76,7 +77,8 @@ class DatabaseNotificationListener
     public function __construct(
         private NotificationPublisher $notificationPublisher,
         private Security $security,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private LoggerInterface $logger,
     ) {}
 
     public function onCreated(object $entity): void
@@ -96,9 +98,32 @@ class DatabaseNotificationListener
 
     private function handleNotification(string $action, object $entity, bool $includeLink = true, bool $flush = true): void
     {
+        $isOrder = $entity instanceof Order;
+        if ($isOrder) {
+            // Never nested-flush during order persistence (causes API order POST 500).
+            $flush = false;
+        }
+
+        try {
+            $this->dispatchNotification($action, $entity, $includeLink, $flush);
+        } catch (\Throwable $exception) {
+            $this->logger->error('Notification dispatch failed.', [
+                'action' => $action,
+                'entity' => $entity::class,
+                'entityId' => method_exists($entity, 'getId') ? $entity->getId() : null,
+                'exception' => $exception,
+            ]);
+        }
+    }
+
+    private function dispatchNotification(
+        string $action,
+        object $entity,
+        bool $includeLink,
+        bool $flush,
+    ): void {
         $currentUser = $this->security->getUser();
         // If it's a new order from a guest or API, we still want to notify management even if no $currentUser
-        $isOrder = $entity instanceof Order;
 
         // 1. Identify Entity Type and target Route
         $name = 'Record';
@@ -226,12 +251,20 @@ class DatabaseNotificationListener
                 $message = "$actorMessage has placed a new order: $name.";
             }
 
+            $routeParams = [];
+            if ($includeLink && method_exists($entity, 'getId')) {
+                $entityId = $entity->getId();
+                if ($entityId !== null) {
+                    $routeParams = ['id' => $entityId];
+                }
+            }
+
             $this->notificationPublisher->send(
                 $recipient,
                 "$titlePrefix $action",
                 $message,
-                $includeLink ? $route : 'app_dashboard',
-                $includeLink ? ['id' => $entity->getId()] : [],
+                $includeLink && $routeParams !== [] ? $route : 'app_dashboard',
+                $routeParams,
                 $type,
                 $flush
             );
