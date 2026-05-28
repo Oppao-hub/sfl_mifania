@@ -92,6 +92,10 @@ class CustomerAddress
     #[Groups(['address:read', 'address:write', 'order:read'])]
     private ?string $postalCode = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['address:read', 'address:write'])]
+    private ?string $courierNote = null;
+
     #[ORM\Column]
     #[Groups(['address:read', 'address:write', 'order:read'])]
     private bool $isDefault = false;
@@ -241,6 +245,18 @@ class CustomerAddress
     public function setPostalCode(?string $postalCode): static
     {
         $this->postalCode = $postalCode;
+
+        return $this;
+    }
+
+    public function getCourierNote(): ?string
+    {
+        return $this->courierNote;
+    }
+
+    public function setCourierNote(?string $courierNote): static
+    {
+        $this->courierNote = $courierNote;
 
         return $this;
     }

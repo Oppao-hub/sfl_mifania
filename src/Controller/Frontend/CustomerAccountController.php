@@ -61,6 +61,7 @@ class CustomerAccountController extends AbstractController
 
         return $this->render('frontend/account/wallet.html.twig', [
             'wallet' => $wallet,
+            'topUpPresets' => [100, 500, 1000],
             'topUpForm' => $this->createForm(WalletTopUpType::class)->createView(),
             'transferForm' => $this->createForm(WalletTransferType::class)->createView(),
         ]);
