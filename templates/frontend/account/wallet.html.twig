@@ -23,16 +23,22 @@
             </div>
 
             <div class="flex flex-wrap gap-4 relative z-10">
-                {# Top Up Button (Visual for now) #}
-                <button class="bg-white text-brand px-6 py-2.5 rounded-sm font-bold hover:bg-gray-100 transition shadow-sm flex items-center group">
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'wallet-top-up' })"
+                    class="bg-white text-brand px-6 py-2.5 rounded-sm font-bold hover:bg-gray-100 transition shadow-sm flex items-center group cursor-pointer"
+                >
                     <div class="mr-2 p-1 bg-brand/10 rounded-full group-hover:bg-brand/20 transition">
                         {{ ux_icon('lucide:plus', { class: 'w-4 h-4 text-brand' }) }}
                     </div>
                     Top Up Wallet
                 </button>
 
-                {# Transfer Button (Visual for now) #}
-                <button class="bg-black/20 text-white border border-white/20 px-6 py-2.5 rounded-sm font-bold hover:bg-black/30 transition flex items-center backdrop-blur-sm">
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'wallet-transfer' })"
+                    class="bg-black/20 text-white border border-white/20 px-6 py-2.5 rounded-sm font-bold hover:bg-black/30 transition flex items-center backdrop-blur-sm cursor-pointer"
+                >
                     {{ ux_icon('lucide:arrow-right-left', { class: 'w-4 h-4 mr-2 opacity-80' }) }}
                     Transfer Funds
                 </button>
@@ -45,12 +51,17 @@
         <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
             <h3 class="text-lg font-bold text-gray-800 uppercase tracking-tighter">Transaction History</h3>
 
-            {# Filter (Visual Only) #}
+            {# Filter by transaction type #}
+            {% set activeFilter = app.request.query.get('filter', 'all') %}
             <div class="relative">
-                <select class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-4 pr-8 rounded-sm text-xs font-bold focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand cursor-pointer uppercase tracking-widest">
-                    <option>All Transactions</option>
-                    <option>Deposits</option>
-                    <option>Withdrawals</option>
+                <select
+                    onchange="window.location.href='{{ path('app_account_wallet') }}?filter=' + this.value"
+                    class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-4 pr-8 rounded-sm text-xs font-bold focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand cursor-pointer uppercase tracking-widest"
+                >
+                    <option value="all" {{ activeFilter == 'all' ? 'selected' : '' }}>All Transactions</option>
+                    <option value="deposit" {{ activeFilter == 'deposit' ? 'selected' : '' }}>Deposits</option>
+                    <option value="withdrawal" {{ activeFilter == 'withdrawal' ? 'selected' : '' }}>Withdrawals</option>
+                    <option value="reward" {{ activeFilter == 'reward' ? 'selected' : '' }}>Rewards</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                     {{ ux_icon('lucide:chevron-down', { class: 'h-4 w-4' }) }}
@@ -58,39 +69,50 @@
             </div>
         </div>
 
+        {% set transactions = wallet ? wallet.walletTransactions|sort((a, b) => b.createdAt <=> a.createdAt) : [] %}
+        {% if activeFilter != 'all' %}
+            {% set transactions = transactions|filter(t => t.type|lower == activeFilter) %}
+        {% endif %}
+
         {# Check if transactions exist #}
-        {% if wallet and wallet.transactions is defined and wallet.transactions|length > 0 %}
+        {% if transactions|length > 0 %}
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="text-gray-400 border-b border-gray-100 text-[10px] uppercase tracking-widest">
                             <th class="pb-3 font-bold pl-2">Date</th>
                             <th class="pb-3 font-bold">Description</th>
-                            <th class="pb-3 font-bold">Status</th>
+                            <th class="pb-3 font-bold">Type</th>
                             <th class="pb-3 font-bold text-right pr-2">Amount</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm divide-y divide-gray-50">
-                        {% for transaction in wallet.transactions|sort((a, b) => b.createdAt <=> a.createdAt) %}
+                        {% for transaction in transactions %}
+                            {% set txType = transaction.type|lower %}
                             <tr class="hover:bg-gray-50 transition duration-150">
                                 <td class="py-4 pl-2 text-gray-500">
                                     <span class="font-bold text-gray-700">{{ transaction.createdAt|date('M d, Y') }}</span>
                                     <span class="block text-xs text-gray-400">{{ transaction.createdAt|date('h:i A') }}</span>
                                 </td>
                                 <td class="py-4">
-                                    <p class="font-bold text-sm text-gray-800">{{ transaction.description }}</p>
+                                    <p class="font-bold text-sm text-gray-800">{{ transaction.description|default('—') }}</p>
                                     <p class="text-[10px] uppercase tracking-widest text-gray-400">ID: #{{ transaction.id }}</p>
                                 </td>
                                 <td class="py-4">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-sm text-[10px] uppercase tracking-widest font-bold bg-green-100 text-green-800">
-                                        Completed
+                                    <span class="inline-flex items-center px-2 py-1 rounded-sm text-[10px] uppercase tracking-widest font-bold
+                                        {% if txType == 'deposit' %} bg-green-100 text-green-800
+                                        {% elseif txType == 'withdrawal' %} bg-red-100 text-red-800
+                                        {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
+                                        {{ txType }}
                                     </span>
                                 </td>
                                 <td class="py-4 pr-2 text-right">
-                                    {% if transaction.type == 'credit' %}
-                                        <span class="text-green-600 font-bold">+ ₱{{ transaction.amount|number_format(2) }}</span>
+                                    {% if txType == 'deposit' %}
+                                        <span class="text-green-600 font-bold">+ ₱{{ transaction.amount|abs|number_format(2) }}</span>
+                                    {% elseif txType == 'withdrawal' %}
+                                        <span class="text-red-500 font-bold">− ₱{{ transaction.amount|abs|number_format(2) }}</span>
                                     {% else %}
-                                        <span class="text-red-500 font-bold">- ₱{{ transaction.amount|number_format(2) }}</span>
+                                        <span class="text-yellow-700 font-bold text-xs uppercase tracking-widest">Reward</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -110,6 +132,75 @@
                 </p>
             </div>
         {% endif %}
+    </div>
+</div>
+
+{# --- TOP UP MODAL --- #}
+<div x-data="{ open: false }"
+     @open-modal.window="if($event.detail.name === 'wallet-top-up') open = true"
+     x-show="open"
+     class="fixed inset-0 z-[100] flex items-center justify-center p-6"
+     style="display: none;">
+    <div @click="open = false" class="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm"></div>
+    <div class="bg-white w-full max-w-md p-8 md:p-10 rounded-xl relative z-10 shadow-2xl border border-gray-100">
+        <h3 class="text-xl font-bold text-brand uppercase tracking-tight mb-2">Top Up Wallet</h3>
+        <p class="text-xs text-gray-500 mb-6">Add funds to your Mifania wallet balance.</p>
+        {{ form_start(topUpForm, { action: path('app_account_wallet_top_up'), attr: { class: 'space-y-5' } }) }}
+            <div>
+                {{ form_label(topUpForm.amount, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                {{ form_widget(topUpForm.amount, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                {{ form_errors(topUpForm.amount) }}
+            </div>
+            <div>
+                {{ form_label(topUpForm.description, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                {{ form_widget(topUpForm.description, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+            </div>
+            <div class="flex flex-col gap-3 pt-2">
+                <button type="submit" class="w-full bg-brand text-white py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-brand-dark transition cursor-pointer">
+                    Confirm Top Up
+                </button>
+                <button type="button" @click="open = false" class="w-full text-gray-500 py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:text-brand transition cursor-pointer">
+                    Cancel
+                </button>
+            </div>
+        {{ form_end(topUpForm) }}
+    </div>
+</div>
+
+{# --- TRANSFER MODAL --- #}
+<div x-data="{ open: false }"
+     @open-modal.window="if($event.detail.name === 'wallet-transfer') open = true"
+     x-show="open"
+     class="fixed inset-0 z-[100] flex items-center justify-center p-6"
+     style="display: none;">
+    <div @click="open = false" class="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm"></div>
+    <div class="bg-white w-full max-w-md p-8 md:p-10 rounded-xl relative z-10 shadow-2xl border border-gray-100">
+        <h3 class="text-xl font-bold text-brand uppercase tracking-tight mb-2">Transfer Funds</h3>
+        <p class="text-xs text-gray-500 mb-6">Send wallet balance to another Mifania customer by email.</p>
+        {{ form_start(transferForm, { action: path('app_account_wallet_transfer'), attr: { class: 'space-y-5' } }) }}
+            <div>
+                {{ form_label(transferForm.recipientEmail, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                {{ form_widget(transferForm.recipientEmail, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                {{ form_errors(transferForm.recipientEmail) }}
+            </div>
+            <div>
+                {{ form_label(transferForm.amount, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                {{ form_widget(transferForm.amount, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+                {{ form_errors(transferForm.amount) }}
+            </div>
+            <div>
+                {{ form_label(transferForm.note, null, { label_attr: { class: 'block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2' } }) }}
+                {{ form_widget(transferForm.note, { attr: { class: 'w-full border border-gray-200 rounded-sm px-4 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand' } }) }}
+            </div>
+            <div class="flex flex-col gap-3 pt-2">
+                <button type="submit" class="w-full bg-brand text-white py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-brand-dark transition cursor-pointer">
+                    Confirm Transfer
+                </button>
+                <button type="button" @click="open = false" class="w-full text-gray-500 py-3 rounded-sm font-bold text-xs uppercase tracking-widest hover:text-brand transition cursor-pointer">
+                    Cancel
+                </button>
+            </div>
+        {{ form_end(transferForm) }}
     </div>
 </div>
 {% endblock %}

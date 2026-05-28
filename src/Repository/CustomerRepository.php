@@ -31,6 +31,17 @@ class CustomerRepository extends ServiceEntityRepository
      * @param string $query The search term from the admin form.
      * @return Customer|null The found Customer entity or null if none is found.
      */
+    public function findOneByUserEmail(string $email): ?Customer
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.user', 'u')
+            ->andWhere('LOWER(u.email) = :email')
+            ->setParameter('email', strtolower(trim($email)))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findOneBySearch(string $query): ?Customer
     {
         $qb = $this->createQueryBuilder('c');

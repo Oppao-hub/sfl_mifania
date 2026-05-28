@@ -5,6 +5,9 @@ namespace App\Controller\Frontend;
 use App\Entity\User;
 use App\Form\CustomerProfileType;
 use App\Form\ChangePasswordType;
+use App\Form\WalletTopUpType;
+use App\Form\WalletTransferType;
+use App\Service\WalletManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException; // <-- Added FileException
@@ -58,7 +61,68 @@ class CustomerAccountController extends AbstractController
 
         return $this->render('frontend/account/wallet.html.twig', [
             'wallet' => $wallet,
+            'topUpForm' => $this->createForm(WalletTopUpType::class)->createView(),
+            'transferForm' => $this->createForm(WalletTransferType::class)->createView(),
         ]);
+    }
+
+    #[Route(path: '/wallet/top-up', name: 'app_account_wallet_top_up', methods: ['POST'])]
+    public function walletTopUp(Request $request, #[CurrentUser] User $user, WalletManager $walletManager): Response
+    {
+        $wallet = $user->getCustomer()?->getWallet();
+        if (!$wallet) {
+            $this->addFlash('error', 'Wallet not found.');
+            return $this->redirectToRoute('app_account_wallet');
+        }
+
+        $form = $this->createForm(WalletTopUpType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $amount = (float) $form->get('amount')->getData();
+            $description = $form->get('description')->getData();
+
+            try {
+                $walletManager->topUp($wallet, $amount, $description ?: null);
+                $this->addFlash('success', sprintf('Successfully added ₱%s to your wallet.', number_format($amount, 2)));
+            } catch (\InvalidArgumentException $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        } else {
+            $this->addFlash('error', 'Please enter a valid top-up amount.');
+        }
+
+        return $this->redirectToRoute('app_account_wallet');
+    }
+
+    #[Route(path: '/wallet/transfer', name: 'app_account_wallet_transfer', methods: ['POST'])]
+    public function walletTransfer(Request $request, #[CurrentUser] User $user, WalletManager $walletManager): Response
+    {
+        $wallet = $user->getCustomer()?->getWallet();
+        if (!$wallet) {
+            $this->addFlash('error', 'Wallet not found.');
+            return $this->redirectToRoute('app_account_wallet');
+        }
+
+        $form = $this->createForm(WalletTransferType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $recipientEmail = (string) $form->get('recipientEmail')->getData();
+            $amount = (float) $form->get('amount')->getData();
+            $note = $form->get('note')->getData();
+
+            try {
+                $walletManager->transfer($wallet, $recipientEmail, $amount, $note ?: null);
+                $this->addFlash('success', sprintf('Successfully transferred ₱%s.', number_format($amount, 2)));
+            } catch (\InvalidArgumentException $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        } else {
+            $this->addFlash('error', 'Please check the transfer details and try again.');
+        }
+
+        return $this->redirectToRoute('app_account_wallet');
     }
 
     #[Route('/edit', name: 'app_account_edit')]
