@@ -129,6 +129,7 @@ class Customer
     private Collection $rewardTransactions;
 
     #[ORM\OneToOne(mappedBy: 'customer', cascade: ['persist', 'remove'])]
+    #[Groups(['customer:read'])]
     private ?Wallet $wallet = null;
 
     /**
