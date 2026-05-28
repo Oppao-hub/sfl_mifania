@@ -17,6 +17,12 @@ parameters:
     loyalty_points_per_currency: '%env(int:default:loyalty_points_per_currency_default:LOYALTY_POINTS_PER_CURRENCY)%'
     loyalty_min_order_for_redemption: '%env(float:default:loyalty_min_order_for_redemption_default:LOYALTY_MIN_ORDER_FOR_REDEMPTION)%'
     loyalty_max_redemption_percentage: '%env(float:default:loyalty_max_redemption_percentage_default:LOYALTY_MAX_REDEMPTION_PERCENTAGE)%'
+    paypal_client_id_default: ''
+    paypal_client_secret_default: ''
+    paypal_mode_default: 'sandbox'
+    paypal.client_id: '%env(default:paypal_client_id_default:PAYPAL_CLIENT_ID)%'
+    paypal.client_secret: '%env(default:paypal_client_secret_default:PAYPAL_CLIENT_SECRET)%'
+    paypal.mode: '%env(default:paypal_mode_default:PAYPAL_MODE)%'
 
 services:
     # default configuration for services in *this* file
@@ -41,9 +47,14 @@ services:
 
     App\Service\PayPalService:
         arguments:
-            $clientId: '%env(PAYPAL_CLIENT_ID)%'
-            $secret: '%env(PAYPAL_CLIENT_SECRET)%'
-            $mode: '%env(PAYPAL_MODE)%'
+            $clientId: '%paypal.client_id%'
+            $secret: '%paypal.client_secret%'
+            $mode: '%paypal.mode%'
+
+    App\Controller\Frontend\PayPalController:
+        arguments:
+            $paypalClientId: '%paypal.client_id%'
+            $paypalMode: '%paypal.mode%'
 
     App\Service\SocketIoPublisher:
         arguments:
