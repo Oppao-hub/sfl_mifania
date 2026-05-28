@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Enum\PaymentMethod;
+use App\Service\DeliveryOptionsCatalog;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -16,7 +17,20 @@ class CheckoutType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $deliveryChoices = [];
+        foreach ($options['delivery_options'] as $deliveryOption) {
+            $deliveryChoices[$deliveryOption['name']] = $deliveryOption['id'];
+        }
+
         $builder
+            ->add('deliveryOption', ChoiceType::class, [
+                'choices' => $deliveryChoices,
+                'expanded' => true,
+                'multiple' => false,
+                'label' => 'Delivery Option',
+                'data' => DeliveryOptionsCatalog::defaultId(),
+                'constraints' => [new NotBlank(['message' => 'Please select a delivery option.'])],
+            ])
             ->add('shippingAddress', TextareaType::class, [
                 'label' => 'Complete Shipping Address',
                 'constraints' => [new NotBlank(['message' => 'Please provide a shipping address.'])],
@@ -60,6 +74,9 @@ class CheckoutType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([]);
+        $resolver->setDefaults([
+            'delivery_options' => DeliveryOptionsCatalog::all(),
+        ]);
+        $resolver->setAllowedTypes('delivery_options', 'array');
     }
 }

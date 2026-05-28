@@ -111,6 +111,19 @@
                     <p class="text-sm font-medium text-gray-800">{{ order.customer.firstName }} {{ order.customer.lastName }}</p>
                 </div>
 
+                {% if order.shippingMethod %}
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Delivery</p>
+                    <p class="text-sm font-medium text-gray-800 flex items-center gap-2">
+                        {{ ux_icon('lucide:truck', { class: 'w-4 h-4 text-brand' }) }}
+                        {{ order.shippingMethod }}
+                        {% if order.shippingFee is defined and order.shippingFee > 0 %}
+                            <span class="text-gray-500">(₱{{ order.shippingFee|number_format(2) }})</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Payment Method</p>
                     <p class="text-sm font-medium text-gray-800 flex items-center gap-2">
@@ -147,8 +160,12 @@
                     <span class="font-medium">₱{{ order.totalAmount|number_format(2) }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span>Shipping</span>
-                    <span class="font-medium text-green-600 text-xs uppercase tracking-widest bg-green-50 px-2 py-1 rounded-sm">Free</span>
+                    <span>Delivery Fee</span>
+                    {% if order.shippingFee is defined and order.shippingFee > 0 %}
+                        <span class="font-medium">₱{{ order.shippingFee|number_format(2) }}</span>
+                    {% else %}
+                        <span class="font-medium text-green-600 text-xs uppercase tracking-widest bg-green-50 px-2 py-1 rounded-sm">Free</span>
+                    {% endif %}
                 </div>
                 <div class="flex justify-between items-center">
                     <span>Tax</span>

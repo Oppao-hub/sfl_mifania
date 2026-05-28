@@ -9,6 +9,7 @@ use App\Entity\Enum\OrderStatus;
 use App\Entity\Enum\PaymentStatus;
 use App\Form\CheckoutType;
 use App\Service\CartService;
+use App\Service\DeliveryOptionsCatalog;
 use App\Service\RewardManager;
 use App\Service\SocketIoPublisher;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,18 +56,38 @@ class CheckoutController extends AbstractController
             ];
         }
 
-        $form = $this->createForm(CheckoutType::class, $defaultData);
+        $deliveryOptions = DeliveryOptionsCatalog::all();
+        $deliveryOptionsById = [];
+        foreach ($deliveryOptions as $deliveryOption) {
+            $deliveryOptionsById[$deliveryOption['id']] = $deliveryOption;
+        }
+
+        $form = $this->createForm(CheckoutType::class, $defaultData, [
+            'delivery_options' => $deliveryOptions,
+        ]);
         $form->handleRequest($request);
+
+        $cartSubtotal = (float) $cart->getTotalPrice();
+        $selectedDeliveryId = $form->get('deliveryOption')->getData() ?? DeliveryOptionsCatalog::defaultId();
+        $selectedDelivery = $deliveryOptionsById[$selectedDeliveryId] ?? DeliveryOptionsCatalog::findById(DeliveryOptionsCatalog::defaultId());
+        $shippingFee = $selectedDelivery['feeAmount'] ?? 0.0;
+        $orderTotal = $cartSubtotal + $shippingFee;
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
+            $delivery = $deliveryOptionsById[$data['deliveryOption']] ?? DeliveryOptionsCatalog::findById(DeliveryOptionsCatalog::defaultId());
+            $fee = $delivery['feeAmount'] ?? 0.0;
+            $grandTotal = $cartSubtotal + $fee;
 
             $order = new Order();
             $order->setCustomer($customer);
             $order->setOrderStatus(OrderStatus::PENDING);
             $order->setPaymentMethod($data['paymentMethod']);
             $order->setPaymentStatus(PaymentStatus::PENDING);
-            $order->setTotalAmount($cart->getTotalPrice()); // Use the pre-calculated cart total!
+            $order->setShippingMethod($delivery['name']);
+            $order->setShippingFee(number_format($fee, 2, '.', ''));
+            $order->setOrderNotes($data['orderNotes'] ?: null);
+            $order->setTotalAmount(number_format($grandTotal, 2, '.', ''));
 
             // FIX 2: Actually create the Order Items!
             foreach ($cart->getCartItems() as $cartItem) {
@@ -121,6 +142,10 @@ class CheckoutController extends AbstractController
         return $this->render('frontend/checkout/index.html.twig', [
             'checkoutForm' => $form->createView(),
             'cart' => $cart,
+            'deliveryOptionsById' => $deliveryOptionsById,
+            'cartSubtotal' => $cartSubtotal,
+            'shippingFee' => $shippingFee,
+            'orderTotal' => $orderTotal,
         ], new Response(null, $status));
     }
 

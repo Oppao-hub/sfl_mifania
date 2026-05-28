@@ -41,7 +41,13 @@
         </div>
 
         <turbo-frame id="checkout-form">
-            {{ form_start(checkoutForm, { attr: { class: 'grid grid-cols-1 lg:grid-cols-3 gap-16', novalidate: 'novalidate', 'data-turbo-frame': '_top' } }) }}
+            {{ form_start(checkoutForm, { attr: {
+                class: 'grid grid-cols-1 lg:grid-cols-3 gap-16',
+                novalidate: 'novalidate',
+                'data-turbo-frame': '_top',
+                'data-controller': 'checkout',
+                'data-checkout-subtotal-value': cartSubtotal
+            } }) }}
 
             <div class="lg:col-span-2 space-y-12">
 
@@ -75,6 +81,46 @@
                             {{ form_label(checkoutForm.postalCode, 'Postal Code *', { label_attr: { class: label_style } }) }}
                             {{ form_widget(checkoutForm.postalCode, { attr: { class: input_base, placeholder: '6200' } }) }}
                             {{ form_errors(checkoutForm.postalCode) }}
+                        </div>
+                    </div>
+                </div>
+
+                {# Delivery Options (Philippines) #}
+                <div class="reveal" style="transition-delay: 75ms;">
+                    <div class="flex items-center gap-4 mb-10 border-b border-gray-100 pb-6">
+                        <span class="p-3 bg-app-bg text-brand rounded-sm border border-gray-100">
+                            {{ ux_icon('lucide:package', {class: 'w-5 h-5'}) }}
+                        </span>
+                        <h2 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">Delivery Options</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        {% for child in checkoutForm.deliveryOption %}
+                            {% set option = deliveryOptionsById[child.vars.value] ?? null %}
+                            <div class="relative">
+                                {{ form_widget(child, { attr: { class: 'peer hidden', 'data-fee-amount': option ? option.feeAmount : 0 } }) }}
+
+                                <div class="absolute left-6 top-[32px] w-5 h-5 rounded-full border-2 border-gray-200 flex items-center justify-center transition-all pointer-events-none peer-checked:border-brand peer-checked:bg-brand z-20">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                                </div>
+
+                                <label for="{{ child.vars.id }}" class="group relative flex items-center p-6 border border-gray-200 rounded-sm hover:border-brand transition-all cursor-pointer bg-app-bg/30 peer-checked:bg-white peer-checked:border-brand peer-checked:shadow-sm">
+                                    <div class="w-5 h-5 mr-4 flex-shrink-0"></div>
+                                    <div class="flex flex-col relative z-10 flex-1">
+                                        <div class="flex justify-between items-start gap-4">
+                                            <span class="text-[11px] font-black text-brand-dark uppercase tracking-widest">{{ child.vars.label }}</span>
+                                            <span class="text-[11px] font-black text-brand shrink-0">{{ option ? option.fee : '₱0.00' }}</span>
+                                        </div>
+                                        {% if option %}
+                                            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">{{ option.estimate }}</span>
+                                            <span class="text-[9px] text-gray-400 font-medium normal-case tracking-normal mt-1">{{ option.description }}</span>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="mt-2">
+                            {{ form_errors(checkoutForm.deliveryOption) }}
                         </div>
                     </div>
                 </div>
@@ -161,15 +207,15 @@
                             <span class="text-brand-dark font-black">₱{{ cart.totalPrice|number_format(2) }}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span>Carbon Neutral Shipping</span>
-                            <span class="text-green-600 font-black">Free</span>
+                            <span>Delivery Fee</span>
+                            <span class="text-brand-dark font-black" data-checkout-target="shippingFee">₱{{ shippingFee|number_format(2) }}</span>
                         </div>
                     </div>
 
                     <div class="flex justify-between items-end mb-10">
                         <span class="text-xs font-black text-brand-dark uppercase tracking-[0.2em]">Total</span>
                         <div class="text-right">
-                            <span class="text-3xl font-black text-brand block tracking-tighter leading-none">₱{{ cart.totalPrice|number_format(2) }}</span>
+                            <span class="text-3xl font-black text-brand block tracking-tighter leading-none" data-checkout-target="orderTotal">₱{{ orderTotal|number_format(2) }}</span>
                             {% if cart.estimatedPoints > 0 %}
                                 <span class="inline-flex items-center gap-1.5 text-[9px] font-black text-terracotta uppercase tracking-[0.2em] mt-2 bg-terracotta/5 px-2 py-1 rounded-sm border border-terracotta/10">
                                     {{ ux_icon('lucide:sparkles', {class: 'w-3 h-3'}) }}
