@@ -35,6 +35,19 @@ class LoginLogoutSubscriber implements EventSubscriberInterface
             $request = $event->getRequest();
             $path = $request->getPathInfo();
 
+            // LoginSuccessEvent can fire on authenticated requests in stateless flows.
+            // Only create login notifications on explicit login endpoints.
+            $isExplicitLoginEndpoint = in_array($path, [
+                '/login',
+                '/api/login',
+                '/api/login/google',
+                '/connect/google/check',
+            ], true);
+
+            if (!$isExplicitLoginEndpoint) {
+                return;
+            }
+
             // Google mobile login uses ApiGoogleController (no LoginSuccessEvent).
             // JSON /api/login is covered here — skip JwtAuthenticationSuccessHandler duplicates.
             $isApiLogin = str_starts_with($path, '/api/login');
