@@ -19,6 +19,9 @@ class PayPalService
     ) {
         if ($this->clientId !== '' && $this->secret !== '') {
             $normalizedMode = strtolower(trim($this->mode));
+            if (str_contains($normalizedMode, 'sandbox')) {
+                $normalizedMode = 'sandbox';
+            }
             $isLive = in_array($normalizedMode, ['live', 'production'], true);
 
             $environment = $isLive

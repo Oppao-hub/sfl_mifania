@@ -29,7 +29,14 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: #5b8e68;
+            margin-bottom: 12px;
+        }
+        .mode {
+            font-size: 0.75rem;
+            color: #6b7280;
             margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
         .notice {
             background: #fff7ed;
@@ -44,6 +51,10 @@
             margin-top: 16px;
             font-size: 0.9rem;
             font-weight: 600;
+            line-height: 1.5;
+        }
+        #payment-status.error {
+            color: #b91c1c;
         }
     </style>
 </head>
@@ -51,12 +62,13 @@
     <div class="card">
         <h1>Pay with PayPal</h1>
         <p class="amount">Amount: ₱{{ amount|default('10.00') }}</p>
+        <p class="mode">PayPal mode: {{ paypalMode|default('sandbox') }}</p>
 
         {% if not paypalConfigured %}
             <div class="notice">
                 PayPal checkout is not configured on the server yet. Set
                 <strong>PAYPAL_CLIENT_ID</strong>, <strong>PAYPAL_CLIENT_SECRET</strong>, and
-                <strong>PAYPAL_MODE</strong> (sandbox or live) in your Railway environment variables.
+                <strong>PAYPAL_MODE</strong> (<code>sandbox</code> or <code>live</code>) in Railway.
             </div>
         {% else %}
             <div id="paypal-button-container"></div>
@@ -65,53 +77,78 @@
     </div>
 
     {% if paypalConfigured %}
-        <script src="https://www.paypal.com/sdk/js?client-id={{ paypalClientId|e('html_attr') }}&currency=PHP"></script>
+        <script src="https://www.paypal.com/sdk/js?client-id={{ paypalClientId|e('html_attr') }}&currency=PHP&intent=capture{% if isSandbox %}&buyer-country=PH{% endif %}"></script>
         <script>
             const statusEl = document.getElementById('payment-status');
             const orderAmount = '{{ amount|default("10.00")|e('js') }}';
+            const createOrderUrl = '{{ path('paypal_create_order')|e('js') }}';
+            const captureOrderUrl = '{{ path('paypal_capture_order')|e('js') }}';
+
+            function setStatus(message, isError = false) {
+                statusEl.innerText = message;
+                statusEl.classList.toggle('error', isError);
+            }
+
+            async function postJson(url, payload) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    throw new Error('Server returned an invalid response. Check PayPal API credentials on Railway.');
+                }
+
+                if (!response.ok) {
+                    const detail = data.detail ? ` (${data.detail})` : '';
+                    throw new Error((data.error || 'PayPal request failed.') + detail);
+                }
+
+                return data;
+            }
 
             paypal.Buttons({
-                createOrder: function () {
-                    statusEl.innerText = 'Creating order...';
-                    return fetch('{{ path('paypal_create_order')|e('js') }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ amount: orderAmount }),
-                    })
-                        .then(async (res) => {
-                            const data = await res.json();
-                            if (!res.ok) {
-                                throw new Error(data.error || 'Unable to create PayPal order.');
-                            }
-                            statusEl.innerText = 'Order created. Awaiting approval...';
-                            return data.id;
-                        });
+                createOrder: async function () {
+                    setStatus('Creating order...');
+                    try {
+                        const data = await postJson(createOrderUrl, { amount: orderAmount });
+                        if (!data.id) {
+                            throw new Error('PayPal order ID missing from server response.');
+                        }
+                        setStatus('Order created. Complete payment in the PayPal window.');
+                        return data.id;
+                    } catch (error) {
+                        setStatus(error.message || 'Could not create PayPal order.', true);
+                        throw error;
+                    }
                 },
-                onApprove: function (data) {
-                    statusEl.innerText = 'Capturing payment...';
-                    return fetch('{{ path('paypal_capture_order')|e('js') }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orderID: data.orderID }),
-                    })
-                        .then(async (res) => {
-                            const details = await res.json();
-                            if (!res.ok) {
-                                throw new Error(details.error || 'Payment capture failed.');
-                            }
-                            statusEl.innerText = 'Payment completed successfully! You can return to the app.';
-                        })
-                        .catch((err) => {
-                            console.error(err);
-                            statusEl.innerText = err.message || 'Payment failed. Please try again.';
-                        });
+                onApprove: async function (data) {
+                    setStatus('Capturing payment...');
+                    try {
+                        await postJson(captureOrderUrl, { orderID: data.orderID });
+                        setStatus('Payment completed! Return to the Mifania app and tap Confirm Order again.');
+                    } catch (error) {
+                        setStatus(error.message || 'Payment capture failed.', true);
+                        throw error;
+                    }
                 },
                 onCancel: function () {
-                    statusEl.innerText = 'Payment canceled.';
+                    setStatus('Payment canceled.');
                 },
                 onError: function (err) {
-                    console.error(err);
-                    statusEl.innerText = 'An error occurred during payment.';
+                    console.error('PayPal SDK error:', err);
+                    if (!statusEl.innerText || statusEl.innerText === 'Creating order...') {
+                        setStatus(
+                            (err && err.message)
+                                ? err.message
+                                : 'PayPal could not start checkout. Use a sandbox buyer account if PAYPAL_MODE=sandbox.',
+                            true,
+                        );
+                    }
                 },
             }).render('#paypal-button-container');
         </script>
