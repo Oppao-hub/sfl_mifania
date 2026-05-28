@@ -22,11 +22,14 @@ class PayPalController extends AbstractController
     {
         $amount = max(0.01, (float) $request->query->get('amount', 10.00));
 
+        $mode = strtolower(trim($this->paypalMode));
+
         return $this->render('paypal/payment.html.twig', [
             'amount' => number_format($amount, 2, '.', ''),
             'paypalClientId' => $this->paypalClientId,
             'paypalConfigured' => $this->paypalClientId !== '',
-            'paypalMode' => $this->paypalMode,
+            'paypalMode' => $mode !== '' ? $mode : 'sandbox',
+            'isSandbox' => $mode === '' || str_contains($mode, 'sandbox'),
         ]);
     }
 
@@ -55,7 +58,10 @@ class PayPalController extends AbstractController
             return new JsonResponse(['id' => $orderId]);
         } catch (\Throwable $exception) {
             return new JsonResponse(
-                ['error' => 'Unable to create PayPal order. Please try again.'],
+                [
+                    'error' => 'Unable to create PayPal order. Please try again.',
+                    'detail' => $exception->getMessage(),
+                ],
                 502,
             );
         }
@@ -80,7 +86,10 @@ class PayPalController extends AbstractController
             return new JsonResponse($result);
         } catch (\Throwable $exception) {
             return new JsonResponse(
-                ['error' => 'Unable to capture PayPal payment. Please try again.'],
+                [
+                    'error' => 'Unable to capture PayPal payment. Please try again.',
+                    'detail' => $exception->getMessage(),
+                ],
                 502,
             );
         }
