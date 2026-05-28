@@ -155,6 +155,12 @@ class Customer
     #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: 'wishlisted')]
     private Collection $wishlist;
 
+    /**
+     * @var Collection<int, CustomerAddress>
+     */
+    #[ORM\OneToMany(targetEntity: CustomerAddress::class, mappedBy: 'customer', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    private Collection $addresses;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -164,6 +170,7 @@ class Customer
         $this->carts = new ArrayCollection();
         $this->redemptions = new ArrayCollection();
         $this->wishlist = new ArrayCollection();
+        $this->addresses = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -464,6 +471,35 @@ class Customer
     public function removeWishlist(Product $wishlist): static
     {
         $this->wishlist->removeElement($wishlist);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CustomerAddress>
+     */
+    public function getAddresses(): Collection
+    {
+        return $this->addresses;
+    }
+
+    public function addAddress(CustomerAddress $address): static
+    {
+        if (!$this->addresses->contains($address)) {
+            $this->addresses->add($address);
+            $address->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAddress(CustomerAddress $address): static
+    {
+        if ($this->addresses->removeElement($address)) {
+            if ($address->getCustomer() === $this) {
+                $address->setCustomer(null);
+            }
+        }
 
         return $this;
     }
