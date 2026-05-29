@@ -184,11 +184,10 @@ class RealtimeEntitySubscriber
 
     private function hasOrderRelevantChanges(PostUpdateEventArgs $event): bool
     {
-        $changeSet = $event->getEntityChangeSet();
         $relevantFields = ['orderStatus', 'paymentStatus', 'paymentMethod', 'totalAmount'];
 
         foreach ($relevantFields as $field) {
-            if (array_key_exists($field, $changeSet)) {
+            if ($event->hasChangedField($field)) {
                 return true;
             }
         }
