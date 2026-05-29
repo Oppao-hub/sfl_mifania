@@ -68,6 +68,13 @@ export default class extends Controller {
         });
 
         this.socket.on("order_status_update", (data) => {
+            if (data?.message) {
+                this.showNotification({
+                    title: data.title || "Order Status Updated",
+                    message: data.message,
+                    type: data.type || 'order',
+                });
+            }
             refresh({ entity: 'order', orderId: data.orderId, action: 'updated' });
         });
 
