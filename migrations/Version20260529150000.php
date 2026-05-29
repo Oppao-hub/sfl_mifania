@@ -52,6 +52,6 @@ final class Version20260529150000 extends AbstractMigration
             'Migration can only be executed safely on mysql.',
         );
 
-        $this->addSql('DROP TABLE customer_payment_method');
+        $this->addSql('DROP TABLE IF EXISTS customer_payment_method');
     }
 }
