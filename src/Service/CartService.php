@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Entity\Enum\Color;
 use App\Entity\Cart;
 use App\Entity\CartItem;
+use App\Entity\Order;
 use App\Entity\Product;
 use App\Entity\Enum\Size;
 use Doctrine\ORM\EntityManagerInterface;
@@ -202,6 +203,62 @@ class CartService
         $cart->setTotalQuantity(0);
         $cart->setTotalPrice('0.00');
 
+        $this->em->persist($cart);
+        $this->em->flush();
+    }
+
+    /**
+     * Removes only products that were purchased, leaving unchecked cart lines intact.
+     */
+    public function removeOrderItemsFromCart(Order $order, ?int $cartId = null): void
+    {
+        $cart = $this->getCart($cartId);
+        $itemsToRemove = [];
+        $itemsToUpdate = [];
+
+        foreach ($order->getOrderItems() as $orderItem) {
+            $product = $orderItem->getProduct();
+            if (!$product) {
+                continue;
+            }
+
+            $remainingToRemove = (int) ($orderItem->getQuantity() ?? 0);
+            if ($remainingToRemove <= 0) {
+                continue;
+            }
+
+            foreach ($cart->getCartItems() as $cartItem) {
+                if ($remainingToRemove <= 0) {
+                    break;
+                }
+
+                $cartProduct = $cartItem->getProduct();
+                if (!$cartProduct || $cartProduct->getId() !== $product->getId()) {
+                    continue;
+                }
+
+                $cartQty = (int) ($cartItem->getQuantity() ?? 0);
+                if ($cartQty <= $remainingToRemove) {
+                    $remainingToRemove -= $cartQty;
+                    $itemsToRemove[] = $cartItem;
+                } else {
+                    $cartItem->setQuantity($cartQty - $remainingToRemove);
+                    $itemsToUpdate[] = $cartItem;
+                    $remainingToRemove = 0;
+                }
+            }
+        }
+
+        foreach ($itemsToRemove as $cartItem) {
+            $cart->removeCartItem($cartItem);
+            $this->em->remove($cartItem);
+        }
+
+        foreach ($itemsToUpdate as $cartItem) {
+            $this->em->persist($cartItem);
+        }
+
+        $this->recalculateCartTotals($cart);
         $this->em->persist($cart);
         $this->em->flush();
     }
