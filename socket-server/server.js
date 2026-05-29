@@ -23,14 +23,15 @@ const io = require('socket.io')(http, {
 
 // 1. Authentication — room key must match Symfony publish(userId) and web dashboard
 io.use((socket, next) => {
-    const userId = socket.handshake.auth.userId ?? socket.handshake.auth.token;
-    if (!userId) return next(new Error("Authentication error"));
+    const userId = socket.handshake.auth?.userId ?? socket.handshake.auth?.token ?? 'guest';
     socket.userId = String(userId);
     next();
 });
 
 io.on('connection', (socket) => {
     socket.join(`user_${socket.userId}`);
+    // Catalog/stock/product updates reach every connected client (mobile, storefront, dashboard).
+    socket.join('catalog');
     console.log(`User ${socket.userId} connected`);
     socket.on('disconnect', () => {
         console.log(`User ${socket.userId} disconnected`);
@@ -39,10 +40,21 @@ io.on('connection', (socket) => {
 
 // 2. Internal API for Symfony
 app.post('/publish', (req, res) => {
-    const { userId, event, data } = req.body;
-    if (!userId || !event || !data) {
+    const { userId, room, event, data } = req.body;
+    if (!event || data == null) {
         return res.status(400).send('Missing required fields');
     }
+
+    if (room) {
+        io.to(String(room)).emit(event, data);
+        console.log(`[publish] room=${room} event=${event}`);
+        return res.sendStatus(200);
+    }
+
+    if (!userId) {
+        return res.status(400).send('Missing userId or room');
+    }
+
     io.to(`user_${userId}`).emit(event, data);
     console.log(`[publish] user_${userId} event=${event}`);
     res.sendStatus(200);

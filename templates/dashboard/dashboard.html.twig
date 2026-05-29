@@ -150,9 +150,12 @@
         .catch(err => console.error('Error dismissing notification:', err));
     }
 }"
-{% set socket_url = socket_public_url is not empty ? socket_public_url : app.request.schemeAndHttpHost %}
-{{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '" data-notification-socket-url-value="' ~ socket_url ~ '"' : '' }}
-class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300"
+    {% set socket_url = socket_public_url is not empty ? socket_public_url : app.request.schemeAndHttpHost %}
+    {% set socket_user_id = app.user ? app.user.id : 'guest' %}
+    data-controller="notification"
+    data-notification-user-id-value="{{ socket_user_id }}"
+    data-notification-socket-url-value="{{ socket_url }}"
+    class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300"
     data-turbo="false">
 
     {# Impersonation Banner #}
