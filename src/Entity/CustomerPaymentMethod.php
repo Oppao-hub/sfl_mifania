@@ -19,11 +19,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new GetCollection(
             uriTemplate: '/me/saved-payment-methods',
+            security: "is_granted('ROLE_USER')",
             provider: CustomerPaymentMethodsProvider::class,
+            paginationEnabled: false,
             normalizationContext: ['groups' => ['payment_method:read']],
         ),
         new Get(security: "is_granted('ROLE_ADMIN') or object.getCustomer().getUser() == user"),
         new Post(
+            security: "is_granted('ROLE_USER')",
             processor: CustomerPaymentMethodProcessor::class,
             denormalizationContext: ['groups' => ['payment_method:write']],
         ),

@@ -22,6 +22,11 @@ final class Version20260529150000 extends AbstractMigration
             'Migration can only be executed safely on mysql.',
         );
 
+        $tables = $this->connection->createSchemaManager()->listTableNames();
+        if (in_array('customer_payment_method', $tables, true)) {
+            return;
+        }
+
         $this->addSql('CREATE TABLE customer_payment_method (
             id INT AUTO_INCREMENT NOT NULL,
             customer_id INT NOT NULL,
