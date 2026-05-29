@@ -11,6 +11,16 @@ use App\Repository\UserRepository;
  */
 class RealtimeSync
 {
+    /** @var string[] */
+    private const CATALOG_ENTITIES = [
+        'product',
+        'stock',
+        'category',
+        'sub_category',
+        'story',
+        'review',
+    ];
+
     public function __construct(
         private SocketIoPublisher $socketIoPublisher,
         private UserRepository $userRepository,
@@ -33,6 +43,10 @@ class RealtimeSync
 
         if ($customerUserId) {
             $this->publishRefresh($customerUserId, $entityType, $action, $payloadExtra);
+        }
+
+        if (\in_array($entityType, self::CATALOG_ENTITIES, true)) {
+            $this->publishCatalogRefresh($entityType, $action, $payloadExtra);
         }
     }
 
@@ -86,6 +100,19 @@ class RealtimeSync
         $this->publishEntityRemoved('order', $orderId, $customerUserId, [
             'orderId' => (string) $orderId,
         ]);
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     */
+    public function publishCatalogRefresh(string $entity, string $action, array $extra = []): void
+    {
+        $payload = array_merge([
+            'entity' => $entity,
+            'action' => $action,
+        ], $extra);
+
+        $this->socketIoPublisher->publishToRoom('catalog', 'dashboard_refresh', $payload);
     }
 
     /**

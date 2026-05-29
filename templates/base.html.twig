@@ -12,7 +12,10 @@
 <body x-data="{ mobileMenuOpen: false, searchOpen: false }"
     :class="mobileMenuOpen ? 'overflow-hidden' : ''"
     {% set socket_url = socket_public_url is not empty ? socket_public_url : app.request.schemeAndHttpHost %}
-    {{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '" data-notification-socket-url-value="' ~ socket_url ~ '"' : '' }}
+    {% set socket_user_id = app.user ? app.user.id : 'guest' %}
+    data-controller="notification"
+    data-notification-user-id-value="{{ socket_user_id }}"
+    data-notification-socket-url-value="{{ socket_url }}"
     class="bg-app-bg text-brand-dark antialiased flex flex-col min-h-screen relative"
     data-turbo="false">
 

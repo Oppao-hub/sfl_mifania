@@ -3,12 +3,12 @@ import { io } from 'socket.io-client';
 
 export default class extends Controller {
     static values = {
-        userId: String,
+        userId: { type: String, default: 'guest' },
         socketUrl: { type: String, default: "" }
     }
 
     connect() {
-        if (!this.userIdValue || !this.socketUrlValue) return;
+        if (!this.socketUrlValue) return;
 
         this.reloadTimeout = null;
         this.connectSocket();
@@ -28,16 +28,18 @@ export default class extends Controller {
             this.socket.disconnect();
         }
 
+        const userId = this.userIdValue || 'guest';
+
         this.socket = io(this.socketUrlValue, {
             path: '/socket.io',
-            auth: { userId: this.userIdValue, token: this.userIdValue },
+            auth: { userId, token: userId },
             transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionAttempts: Infinity,
         });
 
         this.socket.on("connect", () => {
-            console.info("[realtime] connected", this.socketUrlValue, "room user_" + this.userIdValue);
+            console.info("[realtime] connected", this.socketUrlValue, "user_" + userId);
         });
 
         this.socket.on("connect_error", (err) => {
@@ -114,9 +116,9 @@ export default class extends Controller {
         }
 
         this.reloadTimeout = setTimeout(() => {
-            // Hard reload is more reliable than Turbo for server-rendered dashboard tables.
+            // Hard reload keeps server-rendered dashboard tables and storefront catalog in sync.
             window.location.reload();
-        }, 300);
+        }, 250);
     }
 
     disconnect() {

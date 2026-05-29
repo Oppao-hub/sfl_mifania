@@ -60,7 +60,39 @@ class SocketIoPublisher
     }
 
     /**
-     * @param array{userId: int, event: string, data: array<string, mixed>} $payload
+     * Broadcast to a shared Socket.IO room (e.g. catalog updates for all clients).
+     *
+     * @param array<string, mixed> $data
+     */
+    public function publishToRoom(string $room, string $event, array $data): void
+    {
+        if ($this->publishUrls === []) {
+            $this->logger->error('Socket room publish skipped: no publish URLs configured.');
+
+            return;
+        }
+
+        $payload = [
+            'room' => $room,
+            'event' => $event,
+            'data' => $data,
+        ];
+
+        foreach ($this->publishUrls as $index => $publishUrl) {
+            if ($this->attemptPublish($publishUrl, $payload, 0, $event, $index === 0, $room)) {
+                return;
+            }
+        }
+
+        $this->logger->error('Socket room publish failed on all configured URLs.', [
+            'publishUrls' => $this->publishUrls,
+            'room' => $room,
+            'event' => $event,
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
      */
     private function attemptPublish(
         string $publishUrl,
@@ -68,6 +100,7 @@ class SocketIoPublisher
         int $userId,
         string $event,
         bool $isPrimary,
+        ?string $room = null,
     ): bool {
         try {
             $response = $this->httpClient->request('POST', $publishUrl, [
@@ -90,7 +123,8 @@ class SocketIoPublisher
 
             $this->logger->info('Socket event published.', [
                 'publishUrl' => $publishUrl,
-                'userId' => $userId,
+                'userId' => $userId > 0 ? $userId : null,
+                'room' => $room,
                 'event' => $event,
             ]);
 
