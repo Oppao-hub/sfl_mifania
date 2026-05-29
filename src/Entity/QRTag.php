@@ -6,6 +6,8 @@ use App\Repository\QRTagRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: QRTagRepository::class)]
 class QRTag
@@ -21,6 +23,7 @@ class QRTag
     private ?Product $product = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['product:read'])]
     private ?string $qrCodeValue = null;
 
     #[ORM\Column]
@@ -28,6 +31,7 @@ class QRTag
     private ?\DateTime $dateGenerated = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['product:read'])]
     private ?string $qrImagePath = null;
 
     public function __construct()
@@ -82,5 +86,16 @@ class QRTag
     {
         $this->qrImagePath = $qrImagePath;
         return $this;
+    }
+
+    #[Groups(['product:read'])]
+    #[SerializedName('imageUrl')]
+    public function getQrImageUrl(): ?string
+    {
+        if (!$this->qrImagePath) {
+            return null;
+        }
+
+        return '/uploads/qrcodes/' . $this->qrImagePath;
     }
 }
