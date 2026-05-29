@@ -8,4 +8,5 @@ enum PaymentMethod: string
     case CREDIT = 'Credit Card';
     case BANK_TRANSFER = 'Bank Transfer';
     case PAYPAL = 'Paypal';
+    case WALLET = 'Wallet';
 }
