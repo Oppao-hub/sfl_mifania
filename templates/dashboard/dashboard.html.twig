@@ -73,6 +73,12 @@
     },
 
     init() {
+        window.addEventListener('realtime:refresh', () => {
+            if (window.location.pathname.startsWith('/dashboard')) {
+                this.refreshNotificationsFromServer();
+            }
+        });
+
         window.addEventListener('notify', (event) => {
             this.unreadCount++;
             this.notifications.unshift({
@@ -86,6 +92,21 @@
                 targetUrl: event.detail.targetUrl || '#'
             });
         });
+    },
+
+    refreshNotificationsFromServer() {
+        fetch('{{ path('app_notifications_recent') }}', {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin',
+        })
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(data => {
+            if (Array.isArray(data.notifications)) {
+                this.notifications = data.notifications;
+                this.unreadCount = data.unreadCount ?? this.notifications.filter(n => !n.isRead).length;
+            }
+        })
+        .catch(() => {});
     },
 
     markAllRead() {
