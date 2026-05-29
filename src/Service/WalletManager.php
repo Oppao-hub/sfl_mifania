@@ -53,7 +53,7 @@ class WalletManager
         return $transaction;
     }
 
-    public function refundOrderPayment(Wallet $wallet, Order $order, float $amount): WalletTransaction
+    public function refundOrderPayment(Wallet $wallet, Order $order, float $amount, bool $flush = true): WalletTransaction
     {
         $this->assertPositiveAmount($amount);
 
@@ -63,7 +63,9 @@ class WalletManager
         $transaction = $wallet->deposit($amount, $description);
         $wallet->addWalletTransaction($transaction);
         $this->entityManager->persist($transaction);
-        $this->entityManager->flush();
+        if ($flush) {
+            $this->entityManager->flush();
+        }
 
         return $transaction;
     }

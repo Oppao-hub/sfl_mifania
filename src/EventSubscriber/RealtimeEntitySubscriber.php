@@ -24,6 +24,7 @@ use App\Entity\Wallet;
 use App\Service\RealtimeAudienceResolver;
 use App\Service\RealtimeSync;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Psr\Log\LoggerInterface;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Doctrine\ORM\Events;
@@ -90,11 +91,12 @@ class RealtimeEntitySubscriber
     public function __construct(
         private RealtimeSync $realtimeSync,
         private RealtimeAudienceResolver $audienceResolver,
+        private LoggerInterface $logger,
     ) {}
 
     public function onPostPersist(object $entity): void
     {
-        $this->broadcastChange($entity, 'created');
+        $this->safelyBroadcast(fn () => $this->broadcastChange($entity, 'created'), $entity, 'created');
     }
 
     public function onPostUpdate(object $entity, PostUpdateEventArgs $event): void
@@ -103,35 +105,53 @@ class RealtimeEntitySubscriber
             return;
         }
 
-        if ($entity instanceof Order) {
-            $statusLabel = $entity->getOrderStatus()?->value ?? 'updated';
-            $action = $statusLabel === OrderStatus::CANCELLED->value ? 'cancelled' : 'updated';
-            $this->realtimeSync->publishOrderChange($entity, $action, $statusLabel);
+        $this->safelyBroadcast(function () use ($entity, $event): void {
+            if ($entity instanceof Order) {
+                $statusLabel = $entity->getOrderStatus()?->value ?? 'updated';
+                $action = $statusLabel === OrderStatus::CANCELLED->value ? 'cancelled' : 'updated';
+                $this->realtimeSync->publishOrderChange($entity, $action, $statusLabel);
 
-            return;
-        }
+                return;
+            }
 
-        $this->broadcastChange($entity, 'updated');
+            $this->broadcastChange($entity, 'updated');
+        }, $entity, 'updated');
     }
 
     public function onPreRemove(object $entity, PreRemoveEventArgs $event): void
     {
-        $entityType = $this->audienceResolver->resolveEntityType($entity);
-        $entityId = $this->audienceResolver->resolveEntityId($entity);
+        $this->safelyBroadcast(function () use ($entity): void {
+            $entityType = $this->audienceResolver->resolveEntityType($entity);
+            $entityId = $this->audienceResolver->resolveEntityId($entity);
 
-        if ($entityType === null || $entityId === null) {
-            return;
+            if ($entityType === null || $entityId === null) {
+                return;
+            }
+
+            $customerUserId = $this->audienceResolver->resolveCustomerUserId($entity);
+
+            if ($entity instanceof Order) {
+                $this->realtimeSync->publishOrderRemoved($entityId, $customerUserId);
+
+                return;
+            }
+
+            $this->realtimeSync->publishEntityRemoved($entityType, $entityId, $customerUserId);
+        }, $entity, 'deleted');
+    }
+
+    private function safelyBroadcast(callable $callback, object $entity, string $action): void
+    {
+        try {
+            $callback();
+        } catch (\Throwable $exception) {
+            $this->logger->error('Realtime broadcast failed.', [
+                'action' => $action,
+                'entity' => $entity::class,
+                'entityId' => method_exists($entity, 'getId') ? $entity->getId() : null,
+                'exception' => $exception,
+            ]);
         }
-
-        $customerUserId = $this->audienceResolver->resolveCustomerUserId($entity);
-
-        if ($entity instanceof Order) {
-            $this->realtimeSync->publishOrderRemoved($entityId, $customerUserId);
-
-            return;
-        }
-
-        $this->realtimeSync->publishEntityRemoved($entityType, $entityId, $customerUserId);
     }
 
     private function broadcastChange(object $entity, string $action): void

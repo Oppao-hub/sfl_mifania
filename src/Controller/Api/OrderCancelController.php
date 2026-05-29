@@ -59,7 +59,7 @@ class OrderCancelController extends AbstractController
                 $wallet = $customer->getWallet();
                 $refundAmount = (float) ($order->getTotalAmount() ?? '0');
                 if ($wallet && $refundAmount > 0) {
-                    $walletManager->refundOrderPayment($wallet, $order, $refundAmount);
+                    $walletManager->refundOrderPayment($wallet, $order, $refundAmount, false);
                     $order->setPaymentStatus(PaymentStatus::REFUNDED);
                 }
             }
