@@ -1,12 +1,38 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth.html.twig' %}
 
-{% block title %}Reset your password{% endblock %}
+{% block title %}Set New Password | Mifania{% endblock %}
 
-{% block body %}
-    <h1>Reset your password</h1>
+{% block main_content %}
+    <div class="text-left mb-10 mt-10">
+        <h1 class="text-2xl font-bold text-brand-dark tracking-tight mb-2">Set New Password</h1>
+        <p class="text-sm text-gray-500 font-medium tracking-widest">Choose a strong password for your account.</p>
+    </div>
 
-    {{ form_start(resetForm) }}
-        {{ form_row(resetForm.plainPassword) }}
-        <button class="btn btn-primary">Reset password</button>
+    {% form_theme resetForm 'form/error_theme.html.twig' %}
+
+    {{ form_start(resetForm, {'attr': {'class': 'space-y-6', 'novalidate': 'novalidate'}}) }}
+        <div>
+            {{ form_label(resetForm.plainPassword.first, 'New Password', { label_attr: {'class': 'block text-xs font-bold text-gray-400 tracking-[0.2em] mb-2'} }) }}
+            {{ form_widget(resetForm.plainPassword.first, {'attr': {'class': 'w-full px-4 py-3 bg-white border border-gray-200 rounded-sm focus:border-brand focus:ring-0 text-sm font-bold text-gray-900 transition-colors'}}) }}
+            {{ form_errors(resetForm.plainPassword.first) }}
+        </div>
+
+        <div>
+            {{ form_label(resetForm.plainPassword.second, 'Confirm New Password', { label_attr: {'class': 'block text-xs font-bold text-gray-400 tracking-[0.2em] mb-2'} }) }}
+            {{ form_widget(resetForm.plainPassword.second, {'attr': {'class': 'w-full px-4 py-3 bg-white border border-gray-200 rounded-sm focus:border-brand focus:ring-0 text-sm font-bold text-gray-900 transition-colors'}}) }}
+            {{ form_errors(resetForm.plainPassword.second) }}
+            {{ form_errors(resetForm.plainPassword) }}
+            <p class="text-[10px] text-gray-400 mt-2 font-medium">Must be at least 8 characters with uppercase, lowercase, a number, and a symbol.</p>
+        </div>
+
+        <button type="submit" class="w-full bg-brand text-white h-14 rounded-sm text-sm font-bold tracking-[0.2em] hover:bg-brand-dark transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mt-4 cursor-pointer">
+            Reset Password
+        </button>
     {{ form_end(resetForm) }}
+
+    <div class="mt-2 text-center pt-8">
+        <p class="text-sm text-gray-500 font-medium">
+            <a href="{{ path('app_login') }}" class="font-bold text-brand tracking-widest hover:text-brand-dark transition-colors">Back to Sign In</a>
+        </p>
+    </div>
 {% endblock %}

@@ -1,22 +1,41 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth.html.twig' %}
 
-{% block title %}Reset your password{% endblock %}
+{% block title %}Reset Password | Mifania{% endblock %}
 
-{% block body %}
+{% block main_content %}
+    <div class="text-left mb-10 mt-10">
+        <h1 class="text-2xl font-bold text-brand-dark tracking-tight mb-2">Reset Password</h1>
+        <p class="text-sm text-gray-500 font-medium tracking-widest">Enter your email and we will send you a reset link.</p>
+    </div>
+
     {% for flash_error in app.flashes('reset_password_error') %}
-        <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+        <div class="bg-red-50 text-red-600 p-4 rounded-sm text-xs font-bold tracking-widest border border-red-100 flex items-center gap-3 mb-6">
+            {{ ux_icon('si:error-line', {class: 'w-4 h-4 shrink-0'}) }}
+            <div class="flex-1">{{ flash_error }}</div>
+        </div>
     {% endfor %}
-    <h1>Reset your password</h1>
 
-    {{ form_start(requestForm) }}
-        {{ form_row(requestForm.email) }}
+    {% form_theme requestForm 'form/error_theme.html.twig' %}
+
+    {{ form_start(requestForm, {'attr': {'class': 'space-y-6', 'novalidate': 'novalidate'}}) }}
         <div>
-            <small>
-                Enter your email address, and we will send you a
-                link to reset your password.
-            </small>
+            {{ form_label(requestForm.email, 'Email Address', { label_attr: {'class': 'block text-xs font-bold text-gray-400 tracking-[0.2em] mb-2'} }) }}
+            {{ form_widget(requestForm.email, {'attr': {'class': 'w-full px-4 py-3 bg-white border border-gray-200 rounded-sm focus:border-brand focus:ring-0 text-sm font-bold text-gray-900 transition-colors'}}) }}
+            {{ form_errors(requestForm.email) }}
         </div>
 
-        <button class="btn btn-primary">Send password reset email</button>
+        <button type="submit" class="w-full bg-brand text-white h-14 rounded-sm text-sm font-bold tracking-[0.2em] hover:bg-brand-dark transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mt-4 cursor-pointer">
+            Send Reset Link
+        </button>
     {{ form_end(requestForm) }}
+
+    <div class="mt-2 text-center pt-8">
+        <p class="text-sm text-gray-500 font-medium">
+            Remember your password?
+            <a href="{{ path('app_login') }}" class="font-bold text-brand tracking-widest ml-2 hover:text-brand-dark transition-colors">Sign In</a>
+        </p>
+        <div class="mt-4">
+            <a href="{{ path('app_shop') }}" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-brand transition-colors">Back to Store</a>
+        </div>
+    </div>
 {% endblock %}

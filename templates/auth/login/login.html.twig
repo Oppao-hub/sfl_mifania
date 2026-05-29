@@ -27,7 +27,8 @@
 
         <div>
             <div class="flex justify-between items-end mb-2">
-                    <label for="inputPassword" class="block text-xs font-bold text-gray-400 tracking-[0.2em]">Password</label>
+                <label for="inputPassword" class="block text-xs font-bold text-gray-400 tracking-[0.2em]">Password</label>
+                <a href="{{ path('app_forgot_password_request') }}" class="text-[10px] font-bold text-brand hover:text-brand-dark transition-colors border-b border-transparent hover:border-brand-dark pb-0.5">Forgot password?</a>
             </div>
             <input type="password" name="password" id="inputPassword"
                     class="w-full px-4 py-3 bg-white border border-gray-200 rounded-sm focus:border-brand focus:ring-0 text-sm font-bold text-gray-900 transition-colors"
