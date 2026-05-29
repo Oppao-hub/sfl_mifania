@@ -114,8 +114,14 @@ class ApiGoogleController extends AbstractController
             }
 
             // 3. Check if account is active
+            if ($user->getStatus() === AccountStatus::Deactivated) {
+                return new JsonResponse([
+                    'message' => 'Your account has been deactivated. Please contact an admin to reactivate your account.',
+                ], 403);
+            }
+
             if ($user->getStatus() !== AccountStatus::Active) {
-                return new JsonResponse(['error' => 'Account is ' . strtolower($user->getStatus()->value)], 403);
+                return new JsonResponse(['message' => 'Your account is not active. Please contact support.'], 403);
             }
 
             // 4. Generate JWT
