@@ -8,7 +8,6 @@ use App\Entity\Enum\PaymentMethod;
 use App\Entity\Enum\PaymentStatus;
 use App\Form\OrderType;
 use App\Repository\OrderRepository;
-use App\Service\RealtimeSync;
 use App\Service\RewardManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -77,7 +76,6 @@ final class OrderController extends AbstractController
         Order $order,
         EntityManagerInterface $entityManager,
         RewardManager $rewardManager,
-        RealtimeSync $realtimeSync,
     ): Response
     {
         $previousPaymentStatus = $order->getPaymentStatus();
@@ -93,7 +91,6 @@ final class OrderController extends AbstractController
                 $rewardManager
             );
             $entityManager->flush();
-            $realtimeSync->publishOrderChange($order, 'updated');
 
             $this->addFlash('success', 'Order updated successfully!');
             return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
@@ -145,7 +142,6 @@ final class OrderController extends AbstractController
         EntityManagerInterface $entityManager,
         Request $request,
         RewardManager $rewardManager,
-        RealtimeSync $realtimeSync,
     ): Response
     {
         if (!$this->isCsrfTokenValid('change_payment_status' . $order->getId(), $request->request->get('_token'))) {
@@ -167,7 +163,6 @@ final class OrderController extends AbstractController
                 $rewardManager
             );
             $entityManager->flush();
-            $realtimeSync->publishOrderChange($order, 'updated', $newStatus->value);
             $this->addFlash('success', 'Payment status updated to ' . $newStatus->value);
         }
 
@@ -180,7 +175,6 @@ final class OrderController extends AbstractController
         EntityManagerInterface $entityManager,
         Request $request,
         RewardManager $rewardManager,
-        RealtimeSync $realtimeSync,
     ): Response
     {
         if (!$this->isCsrfTokenValid('change_status' . $order->getId(), $request->request->get('_token'))) {
@@ -202,7 +196,6 @@ final class OrderController extends AbstractController
                 $rewardManager
             );
             $entityManager->flush();
-            $realtimeSync->publishOrderChange($order, 'updated', $newStatus->value);
             $this->addFlash('success', 'Order status updated to ' . $newStatus->value);
         }
 
