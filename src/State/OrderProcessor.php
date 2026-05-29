@@ -10,7 +10,6 @@ use App\Entity\Order;
 use App\Entity\User;
 use App\Service\CartService;
 use App\Service\RewardManager;
-use App\Service\RealtimeSync;
 use App\Service\WalletManager;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -36,7 +35,6 @@ final readonly class OrderProcessor implements ProcessorInterface
         private LoggerInterface $logger,
         private WalletManager $walletManager,
         private EntityManagerInterface $entityManager,
-        private RealtimeSync $realtimeSync,
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -199,10 +197,6 @@ final readonly class OrderProcessor implements ProcessorInterface
                     'customerId' => $customer->getId(),
                     'exception' => $exception,
                 ]);
-            }
-
-            if ($result instanceof Order) {
-                $this->realtimeSync->publishOrderChange($result, 'created');
             }
         }
 

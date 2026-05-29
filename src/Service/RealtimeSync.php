@@ -2,11 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Enum\OrderStatus;
 use App\Entity\Order;
 use App\Repository\UserRepository;
 
 /**
- * Pushes socket events so web dashboard and mobile clients refresh without manual reload.
+ * Pushes socket events so web dashboard, storefront, and mobile clients refresh without manual reload.
  */
 class RealtimeSync
 {
@@ -15,6 +16,81 @@ class RealtimeSync
         private UserRepository $userRepository,
     ) {}
 
+    /**
+     * @param array<string, mixed> $extra
+     */
+    public function publishEntityChange(
+        string $entityType,
+        string $action,
+        array $extra = [],
+        ?int $customerUserId = null,
+    ): void {
+        $payloadExtra = $this->normalizeExtra($entityType, $extra);
+
+        foreach ($this->userRepository->findAllManagement() as $managementUser) {
+            $this->publishRefresh($managementUser->getId(), $entityType, $action, $payloadExtra);
+        }
+
+        if ($customerUserId) {
+            $this->publishRefresh($customerUserId, $entityType, $action, $payloadExtra);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     */
+    public function publishEntityRemoved(
+        string $entityType,
+        int $entityId,
+        ?int $customerUserId = null,
+        array $extra = [],
+    ): void {
+        $payloadExtra = $this->normalizeExtra($entityType, array_merge($extra, [
+            'entityId' => (string) $entityId,
+            'status' => 'deleted',
+            'message' => sprintf('%s #%d was deleted.', $entityType, $entityId),
+        ]));
+
+        $this->publishEntityChange($entityType, 'deleted', $payloadExtra, $customerUserId);
+    }
+
+    public function publishOrderChange(Order $order, string $action, ?string $statusLabel = null): void
+    {
+        $orderId = $order->getId();
+        if ($orderId === null) {
+            return;
+        }
+
+        $orderIdStr = (string) $orderId;
+        $extra = [
+            'entityId' => $orderIdStr,
+            'orderId' => $orderIdStr,
+            'status' => $statusLabel ?? $action,
+            'message' => sprintf('Order #%s %s.', $orderIdStr, $action),
+        ];
+
+        $customerUserId = $order->getCustomer()?->getUser()?->getId();
+        $this->publishEntityChange('order', $action, $extra, $customerUserId);
+
+        if ($customerUserId) {
+            $this->publishRefresh($customerUserId, 'cart', 'updated', ['entity' => 'cart', 'action' => 'updated']);
+        }
+    }
+
+    public function publishOrderRemoved(int $orderId, ?int $customerUserId = null): void
+    {
+        if ($orderId <= 0) {
+            return;
+        }
+
+        $this->publishEntityRemoved('order', $orderId, $customerUserId, [
+            'orderId' => (string) $orderId,
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     */
     public function publishRefresh(int $userId, string $entity, string $action, array $extra = []): void
     {
         $payload = array_merge([
@@ -34,50 +110,24 @@ class RealtimeSync
         }
     }
 
-    public function publishOrderChange(Order $order, string $action, ?string $statusLabel = null): void
+    /**
+     * @param array<string, mixed> $extra
+     *
+     * @return array<string, mixed>
+     */
+    private function normalizeExtra(string $entityType, array $extra): array
     {
-        $orderId = $order->getId();
-        if ($orderId === null) {
-            return;
+        if ($entityType === 'order' && isset($extra['entityId']) && !isset($extra['orderId'])) {
+            $extra['orderId'] = (string) $extra['entityId'];
         }
 
-        $orderIdStr = (string) $orderId;
-        $extra = [
-            'orderId' => $orderIdStr,
-            'status' => $statusLabel ?? $action,
-            'message' => sprintf('Order #%s %s.', $orderIdStr, $action),
-        ];
-
-        $customerUser = $order->getCustomer()?->getUser();
-        if ($customerUser) {
-            $this->publishRefresh($customerUser->getId(), 'order', $action, $extra);
-            $this->publishRefresh($customerUser->getId(), 'cart', 'updated');
+        if ($entityType === 'order' && isset($extra['status'])) {
+            $status = (string) $extra['status'];
+            if ($status === OrderStatus::CANCELLED->value && !isset($extra['action'])) {
+                $extra['action'] = 'cancelled';
+            }
         }
 
-        foreach ($this->userRepository->findAllManagement() as $managementUser) {
-            $this->publishRefresh($managementUser->getId(), 'order', $action, $extra);
-        }
-    }
-
-    public function publishOrderRemoved(int $orderId, ?int $customerUserId = null): void
-    {
-        if ($orderId <= 0) {
-            return;
-        }
-
-        $orderIdStr = (string) $orderId;
-        $extra = [
-            'orderId' => $orderIdStr,
-            'status' => 'deleted',
-            'message' => sprintf('Order #%s was deleted.', $orderIdStr),
-        ];
-
-        if ($customerUserId) {
-            $this->publishRefresh($customerUserId, 'order', 'deleted', $extra);
-        }
-
-        foreach ($this->userRepository->findAllManagement() as $managementUser) {
-            $this->publishRefresh($managementUser->getId(), 'order', 'deleted', $extra);
-        }
+        return $extra;
     }
 }

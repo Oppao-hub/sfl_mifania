@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Repository\ProductRepository;
+use App\Service\RealtimeSync;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -47,6 +48,7 @@ class WishlistController extends AbstractController
         int $id,
         ProductRepository $productRepository,
         EntityManagerInterface $em,
+        RealtimeSync $realtimeSync,
         #[CurrentUser] User $user,
     ): JsonResponse {
         $customer = $user->getCustomer();
@@ -68,6 +70,10 @@ class WishlistController extends AbstractController
         }
 
         $em->flush();
+
+        $realtimeSync->publishEntityChange('wishlist', $added ? 'created' : 'deleted', [
+            'entityId' => (string) $id,
+        ], $user->getId());
 
         $productData = $this->serializer->normalize($product, 'json', ['groups' => 'product:read']);
 
