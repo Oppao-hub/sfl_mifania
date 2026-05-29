@@ -41,9 +41,11 @@ class OrderStatusSubscriber
             return;
         }
 
+        $changeSet = $event->getEntityChangeSet();
+
         // 1. Handle Order Status Change
-        if ($event->hasChangedField('orderStatus')) {
-            $newStatus = $event->getNewValue('orderStatus');
+        if (array_key_exists('orderStatus', $changeSet)) {
+            $newStatus = $changeSet['orderStatus'][1] ?? $order->getOrderStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Processing');
             $body = "Your order #{$order->getId()} is now {$statusLabel}.";
 
@@ -68,8 +70,8 @@ class OrderStatusSubscriber
         }
 
         // 2. Handle Payment Status Change
-        if ($event->hasChangedField('paymentStatus')) {
-            $newStatus = $event->getNewValue('paymentStatus');
+        if (array_key_exists('paymentStatus', $changeSet)) {
+            $newStatus = $changeSet['paymentStatus'][1] ?? $order->getPaymentStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Pending');
             $body = "The payment for order #{$order->getId()} is now {$statusLabel}.";
 
