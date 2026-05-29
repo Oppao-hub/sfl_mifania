@@ -136,7 +136,7 @@ class RealtimeEntitySubscriber
             $customerUserId = $this->audienceResolver->resolveCustomerUserId($entity);
 
             if ($entity instanceof Order) {
-                $this->realtimeSync->publishOrderRemoved($entityId, $customerUserId);
+                $this->realtimeSync->publishOrderRemoved($entity, $customerUserId);
 
                 return;
             }
