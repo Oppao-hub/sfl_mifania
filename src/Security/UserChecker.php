@@ -42,7 +42,9 @@ class UserChecker implements UserCheckerInterface
 
         if ($status === 'Deactivated') {
             // This message will be shown to the user on the login page
-            throw new CustomUserMessageAccountStatusException('Your account has been deactivated. Please contact the administrator.');
+            throw new CustomUserMessageAccountStatusException(
+                'Your account has been deactivated. Please contact an admin to reactivate your account.',
+            );
         }
 
         if ($status === 'Pending') {

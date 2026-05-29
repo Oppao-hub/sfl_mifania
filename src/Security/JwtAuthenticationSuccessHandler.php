@@ -33,7 +33,7 @@ class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInt
         if ($user->getStatus() === AccountStatus::Deactivated) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Your account has been deactivated. Please contact support to reactivate it.',
+                'message' => 'Your account has been deactivated. Please contact an admin to reactivate your account.',
             ], 403);
         }
 
