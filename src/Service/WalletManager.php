@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Customer;
+use App\Entity\Order;
 use App\Entity\Wallet;
 use App\Entity\WalletTransaction;
 use App\Repository\CustomerRepository;
@@ -33,6 +34,40 @@ class WalletManager
     /**
      * @return array{withdrawal: WalletTransaction, deposit: WalletTransaction}
      */
+    public function chargeForOrder(Wallet $wallet, Order $order, float $amount): WalletTransaction
+    {
+        $this->assertPositiveAmount($amount);
+
+        $reference = $order->getReference() ?: sprintf('order-%d', $order->getId() ?? 0);
+        $description = sprintf('Payment for order %s', $reference);
+
+        $transaction = $wallet->withdraw($amount, $description);
+        if (!$transaction) {
+            throw new \InvalidArgumentException('Unable to process wallet payment.');
+        }
+
+        $wallet->addWalletTransaction($transaction);
+        $this->entityManager->persist($transaction);
+        $this->entityManager->flush();
+
+        return $transaction;
+    }
+
+    public function refundOrderPayment(Wallet $wallet, Order $order, float $amount): WalletTransaction
+    {
+        $this->assertPositiveAmount($amount);
+
+        $reference = $order->getReference() ?: sprintf('order-%d', $order->getId() ?? 0);
+        $description = sprintf('Refund for cancelled order %s', $reference);
+
+        $transaction = $wallet->deposit($amount, $description);
+        $wallet->addWalletTransaction($transaction);
+        $this->entityManager->persist($transaction);
+        $this->entityManager->flush();
+
+        return $transaction;
+    }
+
     public function transfer(Wallet $senderWallet, string $recipientEmail, float $amount, ?string $note = null): array
     {
         $this->assertPositiveAmount($amount);

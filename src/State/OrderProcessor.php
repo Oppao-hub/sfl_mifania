@@ -4,14 +4,18 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Entity\Enum\PaymentMethod;
+use App\Entity\Enum\PaymentStatus;
 use App\Entity\Order;
 use App\Entity\User;
-use App\Service\RewardManager;
 use App\Service\CartService;
+use App\Service\RewardManager;
+use App\Service\WalletManager;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Repository\OrderRepository;
 use App\Repository\CustomerAddressRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -29,6 +33,8 @@ final readonly class OrderProcessor implements ProcessorInterface
         private CustomerAddressRepository $customerAddressRepository,
         private RequestStack $requestStack,
         private LoggerInterface $logger,
+        private WalletManager $walletManager,
+        private EntityManagerInterface $entityManager,
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -95,37 +101,78 @@ final readonly class OrderProcessor implements ProcessorInterface
 
         $data->setOriginalAmount(number_format($originalAmount, 2, '.', ''));
 
-        if ($customer) {
-            $wallet = $customer->getWallet();
-            $requestedPoints = max(0, (int) ($data->getPointsRedeemed() ?? 0));
-            if ($requestedPoints > 0) {
-                if (!$wallet || $wallet->getRewardPoints() < $requestedPoints) {
-                    throw new BadRequestHttpException('Insufficient reward points.');
+        $isWalletPayment = $data->getPaymentMethod() === PaymentMethod::WALLET;
+
+        $result = $this->entityManager->wrapInTransaction(function () use (
+            $data,
+            $operation,
+            $uriVariables,
+            $context,
+            $customer,
+            $originalAmount,
+            $isWalletPayment,
+        ) {
+            if ($customer) {
+                $wallet = $customer->getWallet();
+                $requestedPoints = max(0, (int) ($data->getPointsRedeemed() ?? 0));
+                if ($requestedPoints > 0) {
+                    if (!$wallet || $wallet->getRewardPoints() < $requestedPoints) {
+                        throw new BadRequestHttpException('Insufficient reward points.');
+                    }
+
+                    $requestedDiscount = (float) $this->rewardManager->currencyDiscountFromPoints($requestedPoints);
+                    $policyMaxDiscount = $this->rewardManager->maxDiscountForOrder($originalAmount);
+                    if ($policyMaxDiscount <= 0) {
+                        throw new BadRequestHttpException('Order amount is below the minimum for loyalty redemption.');
+                    }
+                    $cappedDiscount = min($requestedDiscount, $originalAmount, $policyMaxDiscount);
+                    $effectivePoints = $this->rewardManager->pointsFromDiscount($cappedDiscount);
+
+                    if ($effectivePoints <= 0 || !$this->rewardManager->consumePoints($customer, $effectivePoints, null, 'REDEEMED_ORDER')) {
+                        throw new BadRequestHttpException('Unable to apply reward points.');
+                    }
+
+                    $data->setPointsRedeemed($effectivePoints);
+                    $data->setDiscountAmount(number_format($cappedDiscount, 2, '.', ''));
+                    $data->setTotalAmount(number_format(max(0, $originalAmount - $cappedDiscount), 2, '.', ''));
+                } else {
+                    $data->setPointsRedeemed(0);
+                    $data->setDiscountAmount('0.00');
                 }
 
-                $requestedDiscount = (float) $this->rewardManager->currencyDiscountFromPoints($requestedPoints);
-                $policyMaxDiscount = $this->rewardManager->maxDiscountForOrder($originalAmount);
-                if ($policyMaxDiscount <= 0) {
-                    throw new BadRequestHttpException('Order amount is below the minimum for loyalty redemption.');
+                if ($isWalletPayment) {
+                    $wallet = $customer->getWallet();
+                    $payableAmount = (float) ($data->getTotalAmount() ?? '0');
+                    if ($payableAmount <= 0) {
+                        throw new BadRequestHttpException('Order amount must be greater than zero.');
+                    }
+                    if (!$wallet) {
+                        throw new BadRequestHttpException('Wallet not found.');
+                    }
+                    if ((float) $wallet->getBalance() < $payableAmount) {
+                        throw new BadRequestHttpException('Insufficient wallet balance.');
+                    }
                 }
-                $cappedDiscount = min($requestedDiscount, $originalAmount, $policyMaxDiscount);
-                $effectivePoints = $this->rewardManager->pointsFromDiscount($cappedDiscount);
-
-                if ($effectivePoints <= 0 || !$this->rewardManager->consumePoints($customer, $effectivePoints, null, 'REDEEMED_ORDER')) {
-                    throw new BadRequestHttpException('Unable to apply reward points.');
-                }
-
-                $data->setPointsRedeemed($effectivePoints);
-                $data->setDiscountAmount(number_format($cappedDiscount, 2, '.', ''));
-                $data->setTotalAmount(number_format(max(0, $originalAmount - $cappedDiscount), 2, '.', ''));
-            } else {
-                $data->setPointsRedeemed(0);
-                $data->setDiscountAmount('0.00');
+            } elseif ($isWalletPayment) {
+                throw new BadRequestHttpException('Wallet payment requires a customer account.');
             }
-        }
 
-        // Persist the order first
-        $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+            $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+
+            if ($isWalletPayment && $customer && $result instanceof Order) {
+                $wallet = $customer->getWallet();
+                if (!$wallet) {
+                    throw new BadRequestHttpException('Wallet not found.');
+                }
+
+                $payableAmount = (float) ($result->getTotalAmount() ?? '0');
+                $this->walletManager->chargeForOrder($wallet, $result, $payableAmount);
+                $result->setPaymentStatus(PaymentStatus::PAID);
+                $this->entityManager->flush();
+            }
+
+            return $result;
+        });
 
         if ($customer) {
             if ($data->getRewardPoints() > 0) {
