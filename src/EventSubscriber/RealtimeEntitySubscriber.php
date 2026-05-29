@@ -21,6 +21,7 @@ use App\Entity\Stock;
 use App\Entity\Story;
 use App\Entity\SubCategory;
 use App\Entity\Wallet;
+use App\Service\OrderChangeBuffer;
 use App\Service\RealtimeAudienceResolver;
 use App\Service\RealtimeSync;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
@@ -91,6 +92,7 @@ class RealtimeEntitySubscriber
     public function __construct(
         private RealtimeSync $realtimeSync,
         private RealtimeAudienceResolver $audienceResolver,
+        private OrderChangeBuffer $changeBuffer,
         private LoggerInterface $logger,
     ) {}
 
@@ -101,11 +103,14 @@ class RealtimeEntitySubscriber
 
     public function onPostUpdate(object $entity, PostUpdateEventArgs $event): void
     {
-        if ($entity instanceof Order && !$this->hasOrderRelevantChanges($event)) {
-            return;
+        if ($entity instanceof Order) {
+            $orderId = $entity->getId();
+            if ($orderId === null || !$this->hasOrderRelevantChanges($orderId)) {
+                return;
+            }
         }
 
-        $this->safelyBroadcast(function () use ($entity, $event): void {
+        $this->safelyBroadcast(function () use ($entity): void {
             if ($entity instanceof Order) {
                 $statusLabel = $entity->getOrderStatus()?->value ?? 'updated';
                 $action = $statusLabel === OrderStatus::CANCELLED->value ? 'cancelled' : 'updated';
@@ -182,9 +187,9 @@ class RealtimeEntitySubscriber
         );
     }
 
-    private function hasOrderRelevantChanges(PostUpdateEventArgs $event): bool
+    private function hasOrderRelevantChanges(int $orderId): bool
     {
-        $changeSet = $event->getEntityChangeSet();
+        $changeSet = $this->changeBuffer->get($orderId);
         $relevantFields = ['orderStatus', 'paymentStatus', 'paymentMethod', 'totalAmount'];
 
         foreach ($relevantFields as $field) {
