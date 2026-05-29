@@ -2,14 +2,12 @@
 
 namespace App\Controller\Authentication;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Service\EmailVerificationResendService;
 use App\Service\EmailVerificationService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class EmailVerificationController extends AbstractController
 {
@@ -38,8 +36,7 @@ final class EmailVerificationController extends AbstractController
     #[Route('/resend-verification', name: 'app_resend_verification')]
     public function resendVerification(
         Request $request,
-        EmailVerificationService $emailVerificationService,
-        EntityManagerInterface $entityManager
+        EmailVerificationResendService $emailVerificationResendService,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
@@ -54,43 +51,20 @@ final class EmailVerificationController extends AbstractController
 
             $email = trim($request->request->get('email', ''));
 
-            if (empty($email)) {
+            if ($email === '') {
                 $this->addFlash('error', 'Please enter your email address.');
                 return $this->redirectToRoute('app_resend_verification');
             }
 
-            $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+            try {
+                $emailVerificationResendService->resendForEmail($email);
+            } catch (\Exception) {
+                $this->addFlash('error', 'There was an issue sending the email. Please try again later.');
 
-            if ($user) {
-                if ($user->getIsVerified()) {
-                    $this->addFlash('info', 'This account is already verified. You can log in.');
-                    return $this->redirectToRoute('app_login');
-                }
-
-                // Generate new token
-                $newToken = $emailVerificationService->generateVerificationToken();
-                $user->setVerificationToken($newToken);
-                $entityManager->flush();
-
-                // Generate URL
-                $verificationUrl = $this->generateUrl(
-                    'app_email_verification',
-                    ['token' => $newToken],
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                );
-
-                try {
-                    $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
-                    return $this->redirectToRoute('app_resend_verification_success');
-                } catch (\Exception $e) {
-                    $this->addFlash('error', 'There was an issue sending the email. Please try again later.');
-                }
-            } else {
-                // For security, still redirect to success page to avoid email harvesting
-                return $this->redirectToRoute('app_resend_verification_success');
+                return $this->redirectToRoute('app_resend_verification');
             }
 
-            return $this->redirectToRoute('app_login');
+            return $this->redirectToRoute('app_resend_verification_success');
         }
 
         return $this->render('auth/verification/resend.html.twig');

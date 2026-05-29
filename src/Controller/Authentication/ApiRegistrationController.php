@@ -6,8 +6,9 @@ use App\Entity\Cart;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Entity\Wallet;
-use App\Service\RegisterNotifier;
 use App\Service\EmailVerificationService;
+use App\Service\PasswordPolicy;
+use App\Service\RegisterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,56 +29,70 @@ class ApiRegistrationController extends AbstractController
         private RegisterNotifier $registerNotifier
     ) {}
 
-    #[Route('/register', name: 'api_register', methods: ['POST','GET'])]
-    public function register(Request $request): JsonResponse
+    #[Route('/register', name: 'api_register', methods: ['POST'])]
+    public function register(Request $request, PasswordPolicy $passwordPolicy): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
+        if (!\is_array($data)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Invalid request body',
+            ], 400);
+        }
+
         // Validate required fields
-        if (!isset($data['firstName']) || !isset($data['lastName']) ||  !isset($data['email']) || !isset($data['password'])) {
+        if (!isset($data['firstName']) || !isset($data['lastName']) || !isset($data['email']) || !isset($data['password'])) {
             return $this->json([
                 'success' => false,
-                'message' => 'First Name, Last Name, email, and password are required'
+                'message' => 'First Name, Last Name, email, and password are required',
             ], 400);
         }
 
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        $email = strtolower(trim((string) $data['email']));
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->json([
                 'success' => false,
-                'message' => 'Invalid email address'
+                'message' => 'Invalid email address',
             ], 400);
         }
 
-        if (\strlen($data['password']) < 6) {
+        $passwordError = $passwordPolicy->validate((string) $data['password']);
+        if ($passwordError !== null) {
             return $this->json([
                 'success' => false,
-                'message' => 'Password must be at least 6 characters long'
+                'message' => $passwordError,
             ], 400);
         }
 
-        // Check if email already exists
-        $existingEmail = $this->entityManager
-        ->getRepository(User::class)
-        ->findOneBy(['email' => $data['email']]);
+        // Check if email already exists (case-insensitive)
+        $existingEmail = $this->entityManager->getRepository(User::class)->findOneBy([
+            'email' => $email,
+        ]) ?? $this->entityManager->createQueryBuilder()
+            ->select('u')
+            ->from(User::class, 'u')
+            ->where('LOWER(u.email) = :email')
+            ->setParameter('email', $email)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
 
         if ($existingEmail) {
             return $this->json([
                 'success' => false,
-                'message' => 'Email already registered'
+                'message' => 'Email already registered',
             ], 409);
         }
 
         // Create new user
         $user = new User();
-        $user->setEmail($data['email']);
+        $user->setEmail($email);
         $user->setRoles(['ROLE_CUSTOMER']);
 
         // Hash password
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
+        $hashedPassword = $this->passwordHasher->hashPassword($user, (string) $data['password']);
         $user->setPassword($hashedPassword);
-
-        // Set default role
-        $user->setRoles(['ROLE_CUSTOMER']);
 
         // Generate verification token
         $verificationToken = $this->emailVerificationService->generateVerificationToken();

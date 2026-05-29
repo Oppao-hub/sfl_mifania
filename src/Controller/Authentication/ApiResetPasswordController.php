@@ -3,9 +3,9 @@
 namespace App\Controller\Authentication;
 
 use App\Entity\User;
-use App\Service\PasswordResetMailerService;
+use App\Service\PasswordPolicy;
+use App\Service\PasswordResetRequestService;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,8 +21,7 @@ class ApiResetPasswordController extends AbstractController
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private EntityManagerInterface $entityManager,
-        private PasswordResetMailerService $passwordResetMailer,
-        private LoggerInterface $logger,
+        private PasswordResetRequestService $passwordResetRequestService,
     ) {
     }
 
@@ -41,31 +40,7 @@ class ApiResetPasswordController extends AbstractController
             throw new BadRequestHttpException('Please enter a valid email address.');
         }
 
-        $user = $this->entityManager->getRepository(User::class)->findOneBy([
-            'email' => $email,
-        ]);
-
-        if ($user) {
-            try {
-                $resetToken = $this->resetPasswordHelper->generateResetToken($user);
-            } catch (ResetPasswordExceptionInterface $e) {
-                $this->logger->warning('Password reset token could not be generated.', [
-                    'email' => $email,
-                    'reason' => $e->getReason(),
-                ]);
-
-                return $this->successRequestResponse();
-            }
-
-            try {
-                $this->passwordResetMailer->sendPasswordResetEmail($user, $resetToken);
-            } catch (\Throwable $e) {
-                $this->logger->error('Failed to send password reset email.', [
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->passwordResetRequestService->sendPasswordResetEmailForAddress($email);
 
         return $this->successRequestResponse();
     }
@@ -74,6 +49,7 @@ class ApiResetPasswordController extends AbstractController
     public function resetPassword(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
+        PasswordPolicy $passwordPolicy,
     ): JsonResponse {
         $payload = json_decode($request->getContent(), true);
 
@@ -89,7 +65,12 @@ class ApiResetPasswordController extends AbstractController
             throw new BadRequestHttpException('Reset token is required.');
         }
 
-        $this->assertPasswordIsValid($newPassword, $confirmPassword);
+        try {
+            $passwordPolicy->assertMatching($newPassword, $confirmPassword);
+            $passwordPolicy->assertValid($newPassword);
+        } catch (\InvalidArgumentException $e) {
+            throw new BadRequestHttpException($e->getMessage());
+        }
 
         try {
             /** @var User $user */
@@ -98,6 +79,10 @@ class ApiResetPasswordController extends AbstractController
             throw new BadRequestHttpException(
                 'This password reset link is invalid or has expired. Please request a new one.',
             );
+        }
+
+        if ($passwordHasher->isPasswordValid($user, $newPassword)) {
+            throw new BadRequestHttpException('Your new password must be different from your current password.');
         }
 
         $this->resetPasswordHelper->removeResetRequest($token);
@@ -117,26 +102,5 @@ class ApiResetPasswordController extends AbstractController
             'success' => true,
             'message' => 'If an account matching your email exists, we sent a password reset link to that address.',
         ]);
-    }
-
-    private function assertPasswordIsValid(string $newPassword, string $confirmPassword): void
-    {
-        if ($newPassword === '' || $confirmPassword === '') {
-            throw new BadRequestHttpException('Password and confirmation are required.');
-        }
-
-        if ($newPassword !== $confirmPassword) {
-            throw new BadRequestHttpException('The password fields must match.');
-        }
-
-        if (\strlen($newPassword) < 8) {
-            throw new BadRequestHttpException('Password must be at least 8 characters long.');
-        }
-
-        if (!preg_match('/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\W_])/', $newPassword)) {
-            throw new BadRequestHttpException(
-                'Password must contain an uppercase letter, a lowercase letter, a number, and a symbol.',
-            );
-        }
     }
 }

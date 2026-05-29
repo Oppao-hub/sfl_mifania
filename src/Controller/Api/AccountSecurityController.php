@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Enum\AccountStatus;
 use App\Entity\User;
+use App\Service\PasswordPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +24,7 @@ class AccountSecurityController extends AbstractController
         Request $request,
         #[CurrentUser] User $user,
         UserPasswordHasherInterface $passwordHasher,
+        PasswordPolicy $passwordPolicy,
         EntityManagerInterface $em,
     ): JsonResponse {
         $payload = json_decode($request->getContent(), true);
@@ -39,18 +41,11 @@ class AccountSecurityController extends AbstractController
             throw new BadRequestHttpException('Current password, new password, and confirmation are required.');
         }
 
-        if ($newPassword !== $confirmPassword) {
-            throw new BadRequestHttpException('The new password fields must match.');
-        }
-
-        if (\strlen($newPassword) < 8) {
-            throw new BadRequestHttpException('Password must be at least 8 characters long.');
-        }
-
-        if (!preg_match('/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\W_])/', $newPassword)) {
-            throw new BadRequestHttpException(
-                'Password must contain an uppercase letter, a lowercase letter, a number, and a symbol.',
-            );
+        try {
+            $passwordPolicy->assertMatching($newPassword, $confirmPassword, 'The new password fields must match.');
+            $passwordPolicy->assertValid($newPassword);
+        } catch (\InvalidArgumentException $e) {
+            throw new BadRequestHttpException($e->getMessage());
         }
 
         if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
