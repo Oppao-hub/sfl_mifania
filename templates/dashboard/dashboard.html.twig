@@ -152,7 +152,8 @@
 }"
 {% set socket_url = socket_public_url is not empty ? socket_public_url : app.request.schemeAndHttpHost %}
 {{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '" data-notification-socket-url-value="' ~ socket_url ~ '"' : '' }}
-class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300">
+class="min-h-screen flex overflow-x-hidden bg-app-bg/30 relative dark:bg-brand-dark/95 transition-colors duration-300"
+    data-turbo="false">
 
     {# Impersonation Banner #}
     {% if is_granted('ROLE_PREVIOUS_ADMIN') %}

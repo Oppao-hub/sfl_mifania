@@ -76,7 +76,8 @@ final class OrderController extends AbstractController
         Request $request,
         Order $order,
         EntityManagerInterface $entityManager,
-        RewardManager $rewardManager
+        RewardManager $rewardManager,
+        RealtimeSync $realtimeSync,
     ): Response
     {
         $previousPaymentStatus = $order->getPaymentStatus();
@@ -92,6 +93,7 @@ final class OrderController extends AbstractController
                 $rewardManager
             );
             $entityManager->flush();
+            $realtimeSync->publishOrderChange($order, 'updated');
 
             $this->addFlash('success', 'Order updated successfully!');
             return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
