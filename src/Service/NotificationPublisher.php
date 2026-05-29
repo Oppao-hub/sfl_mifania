@@ -113,6 +113,8 @@ class NotificationPublisher
             $pushData = [
                 'type' => $type,
                 'targetUrl' => (string) $targetUrl,
+                'title' => $title,
+                'message' => $message,
             ];
 
             if ($type === 'order' && isset($routeParams['id'])) {
