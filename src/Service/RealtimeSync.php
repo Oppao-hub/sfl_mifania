@@ -58,4 +58,26 @@ class RealtimeSync
             $this->publishRefresh($managementUser->getId(), 'order', $action, $extra);
         }
     }
+
+    public function publishOrderRemoved(int $orderId, ?int $customerUserId = null): void
+    {
+        if ($orderId <= 0) {
+            return;
+        }
+
+        $orderIdStr = (string) $orderId;
+        $extra = [
+            'orderId' => $orderIdStr,
+            'status' => 'deleted',
+            'message' => sprintf('Order #%s was deleted.', $orderIdStr),
+        ];
+
+        if ($customerUserId) {
+            $this->publishRefresh($customerUserId, 'order', 'deleted', $extra);
+        }
+
+        foreach ($this->userRepository->findAllManagement() as $managementUser) {
+            $this->publishRefresh($managementUser->getId(), 'order', 'deleted', $extra);
+        }
+    }
 }
