@@ -21,8 +21,11 @@ class PayPalController extends AbstractController
     public function payment(Request $request): Response
     {
         $amount = max(0.01, (float) $request->query->get('amount', 10.00));
+        $purpose = strtolower(trim((string) $request->query->get('purpose', 'order')));
+        $prepareToken = trim((string) $request->query->get('prepare', ''));
 
         $mode = strtolower(trim($this->paypalMode));
+        $isWalletTopUp = $purpose === 'wallet' && $prepareToken !== '';
 
         return $this->render('paypal/payment.html.twig', [
             'amount' => number_format($amount, 2, '.', ''),
@@ -30,6 +33,9 @@ class PayPalController extends AbstractController
             'paypalConfigured' => $this->paypalClientId !== '',
             'paypalMode' => $mode !== '' ? $mode : 'sandbox',
             'isSandbox' => $mode === '' || str_contains($mode, 'sandbox'),
+            'isWalletTopUp' => $isWalletTopUp,
+            'prepareToken' => $prepareToken,
+            'walletCompleteUrl' => $this->generateUrl('api_wallet_paypal_complete'),
         ]);
     }
 
