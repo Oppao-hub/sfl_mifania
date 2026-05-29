@@ -5,9 +5,8 @@ namespace App\Controller\Authentication;
 use App\Entity\User;
 use App\Form\ChangePasswordType;
 use App\Form\ResetPasswordRequestFormType;
-use App\Service\PasswordResetMailerService;
+use App\Service\PasswordResetRequestService;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,8 +26,7 @@ class ResetPasswordController extends AbstractController
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private EntityManagerInterface $entityManager,
-        private PasswordResetMailerService $passwordResetMailer,
-        private LoggerInterface $logger,
+        private PasswordResetRequestService $passwordResetRequestService,
     ) {
     }
 
@@ -132,36 +130,9 @@ class ResetPasswordController extends AbstractController
 
     private function processSendingPasswordResetEmail(string $emailFormData): RedirectResponse
     {
-        $user = $this->entityManager->getRepository(User::class)->findOneBy([
-            'email' => strtolower(trim($emailFormData)),
-        ]);
+        $resetToken = $this->passwordResetRequestService->sendPasswordResetEmailForAddress($emailFormData)
+            ?? $this->resetPasswordHelper->generateFakeResetToken();
 
-        // Do not reveal whether a user account was found or not.
-        if (!$user) {
-            return $this->redirectToRoute('app_check_email');
-        }
-
-        try {
-            $resetToken = $this->resetPasswordHelper->generateResetToken($user);
-        } catch (ResetPasswordExceptionInterface $e) {
-            $this->logger->warning('Password reset token could not be generated.', [
-                'email' => $emailFormData,
-                'reason' => $e->getReason(),
-            ]);
-
-            return $this->redirectToRoute('app_check_email');
-        }
-
-        try {
-            $this->passwordResetMailer->sendPasswordResetEmail($user, $resetToken);
-        } catch (\Throwable $e) {
-            $this->logger->error('Failed to send password reset email.', [
-                'email' => $emailFormData,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        // Store the token object in session for retrieval in check-email route.
         $this->setTokenObjectInSession($resetToken);
 
         return $this->redirectToRoute('app_check_email');

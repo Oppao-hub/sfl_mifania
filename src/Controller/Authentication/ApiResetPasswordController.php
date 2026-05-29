@@ -3,9 +3,8 @@
 namespace App\Controller\Authentication;
 
 use App\Entity\User;
-use App\Service\PasswordResetMailerService;
+use App\Service\PasswordResetRequestService;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,8 +20,7 @@ class ApiResetPasswordController extends AbstractController
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private EntityManagerInterface $entityManager,
-        private PasswordResetMailerService $passwordResetMailer,
-        private LoggerInterface $logger,
+        private PasswordResetRequestService $passwordResetRequestService,
     ) {
     }
 
@@ -41,31 +39,7 @@ class ApiResetPasswordController extends AbstractController
             throw new BadRequestHttpException('Please enter a valid email address.');
         }
 
-        $user = $this->entityManager->getRepository(User::class)->findOneBy([
-            'email' => $email,
-        ]);
-
-        if ($user) {
-            try {
-                $resetToken = $this->resetPasswordHelper->generateResetToken($user);
-            } catch (ResetPasswordExceptionInterface $e) {
-                $this->logger->warning('Password reset token could not be generated.', [
-                    'email' => $email,
-                    'reason' => $e->getReason(),
-                ]);
-
-                return $this->successRequestResponse();
-            }
-
-            try {
-                $this->passwordResetMailer->sendPasswordResetEmail($user, $resetToken);
-            } catch (\Throwable $e) {
-                $this->logger->error('Failed to send password reset email.', [
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $this->passwordResetRequestService->sendPasswordResetEmailForAddress($email);
 
         return $this->successRequestResponse();
     }
