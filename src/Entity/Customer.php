@@ -162,6 +162,12 @@ class Customer
     #[ORM\OneToMany(targetEntity: CustomerAddress::class, mappedBy: 'customer', orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $addresses;
 
+    /**
+     * @var Collection<int, CustomerPaymentMethod>
+     */
+    #[ORM\OneToMany(targetEntity: CustomerPaymentMethod::class, mappedBy: 'customer', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    private Collection $paymentMethods;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -172,6 +178,7 @@ class Customer
         $this->redemptions = new ArrayCollection();
         $this->wishlist = new ArrayCollection();
         $this->addresses = new ArrayCollection();
+        $this->paymentMethods = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -499,6 +506,35 @@ class Customer
         if ($this->addresses->removeElement($address)) {
             if ($address->getCustomer() === $this) {
                 $address->setCustomer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CustomerPaymentMethod>
+     */
+    public function getPaymentMethods(): Collection
+    {
+        return $this->paymentMethods;
+    }
+
+    public function addPaymentMethod(CustomerPaymentMethod $paymentMethod): static
+    {
+        if (!$this->paymentMethods->contains($paymentMethod)) {
+            $this->paymentMethods->add($paymentMethod);
+            $paymentMethod->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removePaymentMethod(CustomerPaymentMethod $paymentMethod): static
+    {
+        if ($this->paymentMethods->removeElement($paymentMethod)) {
+            if ($paymentMethod->getCustomer() === $this) {
+                $paymentMethod->setCustomer(null);
             }
         }
 

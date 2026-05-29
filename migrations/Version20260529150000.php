@@ -12,7 +12,7 @@ final class Version20260529150000 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Add optional courier note to customer_address';
+        return 'Add customer_payment_method table for saved payment methods';
     }
 
     public function up(Schema $schema): void
@@ -22,13 +22,22 @@ final class Version20260529150000 extends AbstractMigration
             'Migration can only be executed safely on mysql.',
         );
 
-        $columns = $this->connection->fetchFirstColumn(
-            "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'customer_address'"
-        );
-
-        if (!in_array('courier_note', $columns, true)) {
-            $this->addSql('ALTER TABLE customer_address ADD courier_note LONGTEXT DEFAULT NULL');
-        }
+        $this->addSql('CREATE TABLE customer_payment_method (
+            id INT AUTO_INCREMENT NOT NULL,
+            customer_id INT NOT NULL,
+            provider_type VARCHAR(32) NOT NULL,
+            card_brand VARCHAR(32) DEFAULT NULL,
+            last_four VARCHAR(4) DEFAULT NULL,
+            expiry_month INT DEFAULT NULL,
+            expiry_year INT DEFAULT NULL,
+            holder_name VARCHAR(120) DEFAULT NULL,
+            is_connected TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
+            updated_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
+            INDEX IDX_CPM_CUSTOMER (customer_id),
+            PRIMARY KEY(id),
+            CONSTRAINT FK_CPM_CUSTOMER FOREIGN KEY (customer_id) REFERENCES customer (id) ON DELETE CASCADE
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
     }
 
     public function down(Schema $schema): void
@@ -38,6 +47,6 @@ final class Version20260529150000 extends AbstractMigration
             'Migration can only be executed safely on mysql.',
         );
 
-        $this->addSql('ALTER TABLE customer_address DROP courier_note');
+        $this->addSql('DROP TABLE customer_payment_method');
     }
 }
