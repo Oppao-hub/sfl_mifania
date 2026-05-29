@@ -59,11 +59,21 @@ class RealtimeSync
         ?int $customerUserId = null,
         array $extra = [],
     ): void {
-        $payloadExtra = $this->normalizeExtra($entityType, array_merge($extra, [
+        $defaults = [
             'entityId' => (string) $entityId,
             'status' => 'deleted',
             'message' => sprintf('%s #%d was deleted.', $entityType, $entityId),
-        ]));
+        ];
+
+        if ($entityType === 'order') {
+            $orderReference = trim((string) ($extra['orderReference'] ?? ''));
+            if ($orderReference !== '') {
+                $defaults['message'] = sprintf('Order %s was deleted.', $orderReference);
+                $defaults['title'] = 'Order Removed';
+            }
+        }
+
+        $payloadExtra = $this->normalizeExtra($entityType, array_merge($defaults, $extra));
 
         $this->publishEntityChange($entityType, 'deleted', $payloadExtra, $customerUserId);
     }
@@ -93,14 +103,18 @@ class RealtimeSync
         }
     }
 
-    public function publishOrderRemoved(int $orderId, ?int $customerUserId = null): void
+    public function publishOrderRemoved(Order $order, ?int $customerUserId = null): void
     {
-        if ($orderId <= 0) {
+        $orderId = $order->getId();
+        if ($orderId === null || $orderId <= 0) {
             return;
         }
 
+        $orderRef = $order->getDisplayReference();
+
         $this->publishEntityRemoved('order', $orderId, $customerUserId, [
             'orderId' => (string) $orderId,
+            'orderReference' => $orderRef,
         ]);
     }
 
@@ -134,6 +148,7 @@ class RealtimeSync
                 'orderId' => (string) $extra['orderId'],
                 'orderReference' => $extra['orderReference'] ?? null,
                 'status' => $extra['status'] ?? $action,
+                'title' => $extra['title'] ?? 'Order Status Updated',
                 'message' => $extra['message'] ?? '',
                 'type' => 'order',
             ]);
