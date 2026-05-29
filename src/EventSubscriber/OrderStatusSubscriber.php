@@ -50,10 +50,12 @@ class OrderStatusSubscriber
 
         $changeSet = $this->changeBuffer->get($orderId);
 
+        $orderRef = $order->getDisplayReference();
+
         if (array_key_exists('orderStatus', $changeSet)) {
             $newStatus = $changeSet['orderStatus'][1] ?? $order->getOrderStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Processing');
-            $body = "Your order #{$orderId} is now {$statusLabel}.";
+            $body = "Your order {$orderRef} is now {$statusLabel}.";
 
             $this->notificationPublisher->send(
                 $user,
@@ -62,7 +64,8 @@ class OrderStatusSubscriber
                 'app_account_order_view',
                 ['id' => $orderId],
                 'order',
-                false
+                false,
+                $orderRef,
             );
 
             try {
@@ -78,7 +81,7 @@ class OrderStatusSubscriber
         if (array_key_exists('paymentStatus', $changeSet)) {
             $newStatus = $changeSet['paymentStatus'][1] ?? $order->getPaymentStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Pending');
-            $body = "The payment for order #{$orderId} is now {$statusLabel}.";
+            $body = "The payment for order {$orderRef} is now {$statusLabel}.";
 
             $this->notificationPublisher->send(
                 $user,
@@ -87,7 +90,8 @@ class OrderStatusSubscriber
                 'app_account_order_view',
                 ['id' => $orderId],
                 'order',
-                false
+                false,
+                $orderRef,
             );
         }
     }

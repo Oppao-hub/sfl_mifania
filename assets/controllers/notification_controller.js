@@ -58,9 +58,10 @@ export default class extends Controller {
         });
 
         this.socket.on("new_order", (data) => {
+            const orderRef = data.orderReference || data.orderId;
             this.showNotification({
                 title: "New Order",
-                message: `Order #${data.orderId} received!`,
+                message: data.message || `Order ${orderRef} received!`,
                 icon: data.icon || null
             });
             refresh({ entity: 'order', orderId: data.orderId, action: 'created' });

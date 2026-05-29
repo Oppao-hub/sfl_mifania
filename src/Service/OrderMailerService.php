@@ -25,7 +25,7 @@ class OrderMailerService
         $email = (new TemplatedEmail())
             ->from('Mifania Sustainable Fashion Line <' . $this->adminEmail . '>')
             ->to($customer->getUser()->getEmail())
-            ->subject('Update regarding your Order #' . $order->getId())
+            ->subject('Update regarding your order ' . $order->getDisplayReference())
             ->htmlTemplate('email/order_status_update.html.twig')
             ->context([
                 'order' => $order,

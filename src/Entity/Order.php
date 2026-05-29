@@ -209,6 +209,17 @@ class Order
     public function getReference(): ?string { return $this->reference; }
     public function setReference(string $reference): static { $this->reference = $reference; return $this; }
 
+    /** Human-readable order identifier for notifications (e.g. MIF-6A19CE50AEF00). */
+    public function getDisplayReference(): string
+    {
+        $reference = trim((string) ($this->reference ?? ''));
+        if ($reference !== '') {
+            return $reference;
+        }
+
+        return $this->id !== null ? (string) $this->id : '';
+    }
+
     public function getCustomer(): ?Customer { return $this->customer; }
     public function setCustomer(?Customer $customer): static { $this->customer = $customer; return $this; }
 
