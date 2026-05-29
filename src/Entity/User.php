@@ -24,7 +24,8 @@ use ApiPlatform\Metadata\Patch;
         new Get(security: "is_granted('ROLE_ADMIN') or object == user"),
         new Patch(security: "is_granted('ROLE_ADMIN') or object == user")
     ],
-    normalizationContext: ['groups' => ['user:read']]
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
