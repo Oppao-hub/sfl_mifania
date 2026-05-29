@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Entity\Enum\AccountStatus;
 use App\Entity\User;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,6 +27,13 @@ class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHandlerInt
                 'success' => false,
                 'message' => 'Please verify your email address before logging in',
                 'verified' => false
+            ], 403);
+        }
+
+        if ($user->getStatus() === AccountStatus::Deactivated) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Your account has been deactivated. Please contact support to reactivate it.',
             ], 403);
         }
 
