@@ -2,3 +2,5 @@ twig:
     default_path: "%kernel.project_dir%/templates"
     paths:
         "%kernel.project_dir%/public/icons": "icons"
+    globals:
+        socket_public_url: '%env(default:socket_public_url_default:SOCKET_PUBLIC_URL)%'

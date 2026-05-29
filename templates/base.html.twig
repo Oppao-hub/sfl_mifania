@@ -11,7 +11,8 @@
 
 <body x-data="{ mobileMenuOpen: false, searchOpen: false }"
     :class="mobileMenuOpen ? 'overflow-hidden' : ''"
-    {{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '" data-notification-socket-url-value="' ~ app.request.schemeAndHttpHost ~ '"' : '' }}
+    {% set socket_url = socket_public_url is not empty ? socket_public_url : app.request.schemeAndHttpHost %}
+    {{ app.user ? 'data-controller="notification" data-notification-user-id-value="' ~ app.user.id ~ '" data-notification-socket-url-value="' ~ socket_url ~ '"' : '' }}
     class="bg-app-bg text-brand-dark antialiased flex flex-col min-h-screen relative">
 
     <div class="flex flex-col min-h-screen animate-page-intro">

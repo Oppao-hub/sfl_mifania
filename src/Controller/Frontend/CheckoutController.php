@@ -126,11 +126,19 @@ class CheckoutController extends AbstractController
             $cartService->clearCart();
 
             // Real-time refresh for customer's open account pages (e.g. order history tab)
+            $orderId = (string) $order->getId();
             $socketIoPublisher->publish($user->getId(), 'dashboard_refresh', [
                 'entity' => 'order',
                 'action' => 'created',
-                'message' => sprintf('Order #%d placed successfully.', $order->getId()),
+                'orderId' => $orderId,
+                'message' => sprintf('Order #%s placed successfully.', $orderId),
                 'targetUrl' => $this->generateUrl('app_account_order_view', ['id' => $order->getId()]),
+            ]);
+            $socketIoPublisher->publish($user->getId(), 'order_status_update', [
+                'orderId' => $orderId,
+                'status' => 'created',
+                'message' => sprintf('Order #%s placed successfully.', $orderId),
+                'type' => 'order',
             ]);
 
             $this->addFlash('success', 'Order placed successfully!');

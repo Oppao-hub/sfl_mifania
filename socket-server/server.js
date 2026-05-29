@@ -1,20 +1,25 @@
-const http = require('http').createServer();
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// Express must own the HTTP server so /publish is reachable from Symfony.
+const http = require('http').createServer(app);
 const io = require('socket.io')(http, {
     path: '/socket.io',
     cors: {
         origin: [
             "https://sfl-mifania.up.railway.app",
+            "https://web-socket-production-29ca.up.railway.app",
             "http://localhost:8000",
             "http://127.0.0.1:8000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3001",
             "http://10.0.2.2:8000",
         ],
         methods: ["GET", "POST"],
     },
 });
-const express = require('express');
-const app = express();
-
-app.use(express.json());
 
 // 1. Authentication — room key must match Symfony publish(userId) and web dashboard
 io.use((socket, next) => {

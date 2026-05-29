@@ -12,7 +12,10 @@ export default class extends Controller {
         this.reloadTimeout = null;
 
         this.socket = io(this.socketUrlValue, {
-            auth: { token: this.userIdValue }
+            path: '/socket.io',
+            auth: { userId: this.userIdValue, token: this.userIdValue },
+            transports: ['websocket', 'polling'],
+            reconnection: true,
         });
 
         this.socket.on("connect", () => {
@@ -31,6 +34,11 @@ export default class extends Controller {
                 message: `Order #${data.orderId} received!`,
                 icon: data.icon || null
             });
+            this.handleRealtimeRefresh({ entity: 'order', orderId: data.orderId });
+        });
+
+        this.socket.on("order_status_update", (data) => {
+            this.handleRealtimeRefresh({ entity: 'order', orderId: data.orderId });
         });
 
         this.socket.on("dashboard_refresh", (data) => {
@@ -84,6 +92,7 @@ export default class extends Controller {
             pathname.startsWith('/checkout') ||
             pathname.startsWith('/wishlist') ||
             pathname.startsWith('/notification') ||
+            pathname.startsWith('/order') ||
             pathname === '/' ||
             pathname.startsWith('/home');
 
