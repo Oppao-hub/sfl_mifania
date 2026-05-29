@@ -10,7 +10,7 @@ use App\Entity\Order;
 use App\Entity\User;
 use App\Service\CartService;
 use App\Service\RewardManager;
-use App\Service\SocketIoPublisher;
+use App\Service\RealtimeSync;
 use App\Service\WalletManager;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -36,7 +36,7 @@ final readonly class OrderProcessor implements ProcessorInterface
         private LoggerInterface $logger,
         private WalletManager $walletManager,
         private EntityManagerInterface $entityManager,
-        private SocketIoPublisher $socketIoPublisher,
+        private RealtimeSync $realtimeSync,
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -201,19 +201,8 @@ final readonly class OrderProcessor implements ProcessorInterface
                 ]);
             }
 
-            $user = $customer->getUser();
-            if ($user && $result instanceof Order && $result->getId()) {
-                $orderId = (string) $result->getId();
-                $this->socketIoPublisher->publish($user->getId(), 'dashboard_refresh', [
-                    'entity' => 'order',
-                    'action' => 'created',
-                    'orderId' => $orderId,
-                    'message' => sprintf('Order #%s placed successfully.', $orderId),
-                ]);
-                $this->socketIoPublisher->publish($user->getId(), 'dashboard_refresh', [
-                    'entity' => 'cart',
-                    'action' => 'updated',
-                ]);
+            if ($result instanceof Order) {
+                $this->realtimeSync->publishOrderChange($result, 'created');
             }
         }
 

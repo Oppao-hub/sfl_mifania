@@ -18,6 +18,44 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 #[Route('/dashboard/notifications')]
 class NotificationController extends AbstractController
 {
+    #[Route('/recent.json', name: 'app_notifications_recent', methods: ['GET'])]
+    public function recent(NotificationRepository $notificationRepository, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $notifications = $notificationRepository->findForUser($user, 50);
+        $payload = [];
+
+        foreach ($notifications as $notification) {
+            $payload[] = [
+                'id' => $notification->getId(),
+                'title' => $notification->getTitle(),
+                'message' => $notification->getMessage(),
+                'type' => $notification->getType(),
+                'isRead' => $notification->isRead(),
+                'createdAt' => $notification->getCreatedAt()?->format('Y-m-d H:i:s'),
+                'relativeTime' => $notification->getCreatedAt()?->format('M d, g:i a'),
+                'targetUrl' => $notification->getTargetUrl()
+                    ? $this->generateUrl('app_notification_read_and_redirect', ['id' => $notification->getId()])
+                    : '#',
+            ];
+        }
+
+        $unreadCount = 0;
+        foreach ($payload as $item) {
+            if (!$item['isRead']) {
+                ++$unreadCount;
+            }
+        }
+
+        return new JsonResponse([
+            'notifications' => $payload,
+            'unreadCount' => $unreadCount,
+        ]);
+    }
+
     #[Route('', name: 'app_notification_index', methods: ['GET'])]
     public function index(NotificationRepository $notificationRepository, #[CurrentUser] ?User $user): Response
     {

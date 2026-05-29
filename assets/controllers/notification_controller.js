@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import { io } from 'socket.io-client';
+import * as Turbo from '@hotwired/turbo';
 
 export default class extends Controller {
     static values = {
@@ -19,12 +20,21 @@ export default class extends Controller {
         });
 
         this.socket.on("connect", () => {
-            console.log("Connected to notification server");
+            console.log("Connected to notification server", this.socketUrlValue);
+        });
+
+        this.socket.on("connect_error", (err) => {
+            console.warn("Socket connection error:", err.message, this.socketUrlValue);
         });
 
         // Listen for generic notification events
         this.socket.on("notification", (data) => {
             this.showNotification(data);
+            this.handleRealtimeRefresh({
+                entity: data?.type || 'system',
+                orderId: data?.orderId,
+                action: 'changed',
+            });
         });
 
         // Specific legacy event handling if needed
@@ -82,34 +92,27 @@ export default class extends Controller {
         }
     }
 
-    handleRealtimeRefresh(data) {
-        const pathname = window.location.pathname;
-        const isAppPage =
-            pathname.startsWith('/dashboard') ||
-            pathname.startsWith('/account') ||
-            pathname.startsWith('/shop') ||
-            pathname.startsWith('/cart') ||
-            pathname.startsWith('/checkout') ||
-            pathname.startsWith('/wishlist') ||
-            pathname.startsWith('/notification') ||
-            pathname.startsWith('/order') ||
-            pathname === '/' ||
-            pathname.startsWith('/home');
+    handleRealtimeRefresh(data = {}) {
+        window.dispatchEvent(new CustomEvent('realtime:refresh', { detail: data }));
 
-        if (!isAppPage) return;
-
-        // Keep UX stable: avoid repeated reload storms on burst updates.
         if (this.reloadTimeout) {
             clearTimeout(this.reloadTimeout);
         }
 
         this.reloadTimeout = setTimeout(() => {
-            if (window.Turbo?.visit) {
-                window.Turbo.visit(window.location.href, { action: 'replace' });
-            } else {
-                window.location.reload();
+            const url = new URL(window.location.href);
+            url.searchParams.set('_rt', String(Date.now()));
+
+            try {
+                if (Turbo.cache?.clear) {
+                    Turbo.cache.clear();
+                }
+                Turbo.visit(url.toString(), { action: 'replace' });
+            } catch (error) {
+                console.warn('Turbo refresh failed, falling back to reload.', error);
+                window.location.assign(url.toString());
             }
-        }, 800);
+        }, 400);
     }
 
     disconnect() {
