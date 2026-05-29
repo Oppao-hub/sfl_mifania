@@ -29,4 +29,17 @@ class ResetPasswordRequestRepository extends ServiceEntityRepository implements 
     {
         return new ResetPasswordRequest($user, $expiresAt, $selector, $hashedToken);
     }
+
+    /**
+     * Clears pending reset requests so a new token can be issued (e.g. web then mobile).
+     */
+    public function removeRequests(User $user): void
+    {
+        $this->createQueryBuilder('r')
+            ->delete()
+            ->where('r.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->execute();
+    }
 }
