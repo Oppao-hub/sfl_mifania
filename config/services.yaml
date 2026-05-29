@@ -70,6 +70,17 @@ services:
         arguments:
             $lexikFailureHandler: '@lexik_jwt_authentication.handler.authentication_failure'
 
+    App\Service\GoogleIdTokenVerifier:
+        arguments:
+            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
+
+    App\EventSubscriber\ApiRateLimitSubscriber:
+        arguments:
+            $authLoginLimiter: '@limiter.auth_login'
+            $authRegisterLimiter: '@limiter.auth_register'
+            $authPasswordResetLimiter: '@limiter.auth_password_reset'
+            $authResendVerificationLimiter: '@limiter.auth_resend_verification'
+
 twig:
     default_path: "%kernel.project_dir%/templates"
     file_name_pattern: "*.twig"
