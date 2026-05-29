@@ -24,7 +24,7 @@ class NotificationPublisher
         private LoggerInterface $logger,
     ) {}
 
-    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true, ?string $orderReference = null): void
+    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true, ?string $orderReference = null, ?int $orderIdOverride = null): void
     {
         try {
             $targetUrl = $this->router->generate($routeName, $routeParams);
@@ -66,8 +66,9 @@ class NotificationPublisher
             $payload['notificationId'] = (string) $notification->getId();
         }
 
-        if ($type === 'order' && isset($routeParams['id'])) {
-            $payload['orderId'] = (string) $routeParams['id'];
+        $orderId = $orderIdOverride ?? ($routeParams['id'] ?? null);
+        if ($type === 'order' && $orderId !== null) {
+            $payload['orderId'] = (string) $orderId;
             if ($orderReference) {
                 $payload['orderReference'] = $orderReference;
             }
@@ -85,8 +86,11 @@ class NotificationPublisher
                 'message' => $message,
             ];
 
-            if ($type === 'order' && isset($routeParams['id'])) {
-                $pushData['orderId'] = (string) $routeParams['id'];
+            if ($type === 'order' && $orderId !== null) {
+                $pushData['orderId'] = (string) $orderId;
+                if ($orderReference) {
+                    $pushData['orderReference'] = $orderReference;
+                }
             }
 
             $pushMessage = CloudMessage::new()
