@@ -188,9 +188,11 @@ final readonly class OrderProcessor implements ProcessorInterface
             }
 
             try {
-                $this->cartService->clearCart();
+                if ($result instanceof Order) {
+                    $this->cartService->removeOrderItemsFromCart($result);
+                }
             } catch (\Throwable $exception) {
-                $this->logger->error('Failed to clear cart after order creation.', [
+                $this->logger->error('Failed to remove purchased items from cart after order creation.', [
                     'orderId' => $data->getId(),
                     'customerId' => $customer->getId(),
                     'exception' => $exception,
