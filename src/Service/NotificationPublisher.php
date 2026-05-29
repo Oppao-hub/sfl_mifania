@@ -6,6 +6,9 @@ use App\Entity\Notification;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Exception\Messaging\NotFound as MessagingNotFound;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 use Psr\Log\LoggerInterface;
@@ -110,6 +113,8 @@ class NotificationPublisher
             $pushData = [
                 'type' => $type,
                 'targetUrl' => (string) $targetUrl,
+                'title' => $title,
+                'message' => $message,
             ];
 
             if ($type === 'order' && isset($routeParams['id'])) {
@@ -119,10 +124,40 @@ class NotificationPublisher
             $pushMessage = CloudMessage::new()
                 ->toToken($deviceToken)
                 ->withNotification(FirebaseNotification::create($title, $message))
-                ->withData($pushData);
+                ->withData($pushData)
+                ->withAndroidConfig(AndroidConfig::fromArray([
+                    'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => 'default',
+                        'sound' => 'default',
+                    ],
+                ]))
+                ->withApnsConfig(ApnsConfig::fromArray([
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'alert' => [
+                                'title' => $title,
+                                'body' => $message,
+                            ],
+                            'sound' => 'default',
+                            'badge' => 1,
+                        ],
+                    ],
+                ]));
 
             try {
                 $this->messaging->send($pushMessage);
+            } catch (MessagingNotFound $e) {
+                $recipient->setDeviceToken(null);
+                $this->em->flush();
+                $this->logger->warning('Removed stale push token after delivery failure.', [
+                    'recipientId' => $recipient->getId(),
+                    'title' => $title,
+                    'type' => $type,
+                ]);
             } catch (\Throwable $e) {
                 $this->logger->warning('Push notification send failed: {message}', [
                     'message' => $e->getMessage(),
