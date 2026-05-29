@@ -54,13 +54,17 @@ class NotificationPublisher
             $this->em->flush();
         }
 
-        // 2. Real-time notification via Socket.io
+        // Real-time in-app notification (data refresh is handled by RealtimeSync)
         $payload = [
             'title' => $title,
             'message' => $message,
             'targetUrl' => $targetUrl,
             'type' => $type,
         ];
+
+        if ($notification->getId() !== null) {
+            $payload['notificationId'] = (string) $notification->getId();
+        }
 
         if ($type === 'order' && isset($routeParams['id'])) {
             $payload['orderId'] = (string) $routeParams['id'];
@@ -71,43 +75,7 @@ class NotificationPublisher
 
         $this->socketIoPublisher->publish($recipient->getId(), 'notification', $payload);
 
-        // 3. Tell dashboard clients to refresh lists/stats without manual reload
-        $refreshPayload = [
-            'entity' => $type,
-            'action' => $this->inferActionFromTitle($title),
-            'message' => $message,
-            'targetUrl' => $targetUrl,
-        ];
-
-        if ($type === 'order' && isset($routeParams['id'])) {
-            $refreshPayload['orderId'] = (string) $routeParams['id'];
-            if ($orderReference) {
-                $refreshPayload['orderReference'] = $orderReference;
-            }
-        }
-
-        $this->socketIoPublisher->publish($recipient->getId(), 'dashboard_refresh', $refreshPayload);
-
-        if ($type === 'order' && isset($routeParams['id'])) {
-            $this->socketIoPublisher->publish($recipient->getId(), 'order_status_update', [
-                'orderId' => (string) $routeParams['id'],
-                'orderReference' => $orderReference,
-                'status' => $this->inferStatusFromMessage($message),
-                'title' => $title,
-                'message' => $message,
-                'type' => $type,
-            ]);
-        }
-
-        if ($type === 'order' && str_contains(strtolower($title), 'created')) {
-            $this->socketIoPublisher->publish($recipient->getId(), 'new_order', [
-                'orderId' => $routeParams['id'] ?? null,
-                'orderReference' => $orderReference,
-                'message' => $message,
-            ]);
-        }
-
-        // 4. Push notification to mobile device (if token is available)
+        // Push notification to mobile device (if token is available)
         $deviceToken = $recipient->getDeviceToken();
         if ($deviceToken) {
             $pushData = [
@@ -167,31 +135,5 @@ class NotificationPublisher
                 ]);
             }
         }
-    }
-
-    private function inferActionFromTitle(string $title): string
-    {
-        $normalized = strtolower($title);
-
-        if (str_contains($normalized, 'created')) {
-            return 'created';
-        }
-        if (str_contains($normalized, 'updated')) {
-            return 'updated';
-        }
-        if (str_contains($normalized, 'removed') || str_contains($normalized, 'deleted')) {
-            return 'deleted';
-        }
-
-        return 'changed';
-    }
-
-    private function inferStatusFromMessage(string $message): string
-    {
-        if (preg_match('/\bis now\s+(.+?)\.?$/i', $message, $matches)) {
-            return trim($matches[1]);
-        }
-
-        return 'updated';
     }
 }
