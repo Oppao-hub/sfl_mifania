@@ -6,6 +6,7 @@ use App\Entity\Customer;
 use App\Entity\User;
 use App\Entity\Wallet;
 use App\Form\CustomerType;
+use App\Service\AdminPasswordResetService;
 use App\Repository\CustomerRepository;
 use App\Repository\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -121,7 +122,13 @@ final class CustomerController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_customer_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Customer $customer, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function edit(
+        Request $request,
+        Customer $customer,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger,
+        AdminPasswordResetService $adminPasswordResetService,
+    ): Response
     {
         $form = $this->createForm(CustomerType::class, $customer, ['is_edit' => true]);
         $form->handleRequest($request);
@@ -169,6 +176,10 @@ final class CustomerController extends AbstractController
         return $this->render('dashboard/customer/edit.html.twig', [
             'customer' => $customer,
             'form' => $form,
+            'oneTimePassword' => $adminPasswordResetService->consumeOneTimePassword(
+                $request,
+                $customer->getUser(),
+            ),
         ]);
     }
 
@@ -210,13 +221,18 @@ final class CustomerController extends AbstractController
 
     #[Route('/user/{id}/reset-password', name: 'app_customer_reset_password')]
     #[IsGranted('ROLE_ADMIN')]
-    public function resetPassword(User $user, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em): Response
-    {
-        $tempPassword = 'password123';
-        $user->setPassword($passwordHasher->hashPassword($user, $tempPassword));
-        $em->flush();
+    public function resetPassword(
+        User $user,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $em,
+        AdminPasswordResetService $adminPasswordResetService,
+    ): Response {
+        $adminPasswordResetService->resetToTemporaryPassword($user, $passwordHasher, $em);
 
-        $this->addFlash('success', 'Password reset to: ' . $tempPassword);
+        $this->addFlash(
+            'success',
+            'A secure temporary password was set. It is shown once on the edit page—copy it before leaving.',
+        );
 
         return $this->redirectToRoute('app_customer_edit', ['id' => $user->getCustomer()->getId()]);
     }
