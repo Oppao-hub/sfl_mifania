@@ -34,8 +34,14 @@ class ApiLoginFailureHandler implements AuthenticationFailureHandlerInterface
         $email = $this->extractEmail($request);
         if ($email !== null) {
             $user = $this->userRepository->findOneBy(['email' => $email]);
-            if ($user !== null && $user->getStatus() === AccountStatus::Deactivated) {
-                return $this->jsonError(self::DEACTIVATED_MESSAGE);
+            if ($user !== null) {
+                if ($user->getStatus() === AccountStatus::Deactivated) {
+                    return $this->jsonError(self::DEACTIVATED_MESSAGE);
+                }
+
+                if (!$user->getIsVerified()) {
+                    return $this->jsonError('Please verify your email address before signing in.');
+                }
             }
         }
 
