@@ -64,7 +64,16 @@ Mifania is a high-end, sustainable fashion e-commerce platform built with Symfon
 
 ## 📡 Real-Time Synchronization (Socket.io)
 
-The project uses a dedicated Node.js server to handle real-time synchronization between the Web Dashboard and the Mobile API.
+The project uses a dedicated Node.js server to handle real-time synchronization between the Web Dashboard, storefront, and the Mobile app.
+
+**Production (Railway):** set on the Symfony service:
+
+- `SOCKET_PUBLIC_URL=https://web-socket-production-29ca.up.railway.app` (browser + mobile clients)
+- `SOCKET_PUBLISH_URL=https://web-socket-production-29ca.up.railway.app/publish` (Symfony → socket internal API)
+
+Redeploy the **socket** service after changing `socket-server/server.js` so `/publish` is live.
+
+Dashboard and storefront pages auto-refresh via Turbo when `dashboard_refresh` / `order_status_update` events arrive (no manual reload).
 
 ### How to Run:
 1. Navigate to the socket server directory:

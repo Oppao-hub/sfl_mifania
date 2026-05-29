@@ -4,7 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    socket_publish_url_default: 'http://127.0.0.1:3001/publish'
+    socket_public_url_default: 'https://web-socket-production-29ca.up.railway.app'
+    socket_publish_url_default: 'https://web-socket-production-29ca.up.railway.app/publish'
     uploads_directory: "%kernel.project_dir%/public/uploads/images"
     product_images_directory: "%kernel.project_dir%/public/uploads/products"
     customer_images_directory: "%kernel.project_dir%/public/uploads/customer/avatars"

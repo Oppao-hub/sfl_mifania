@@ -66,12 +66,28 @@ class NotificationPublisher
         $this->socketIoPublisher->publish($recipient->getId(), 'notification', $payload);
 
         // 3. Tell dashboard clients to refresh lists/stats without manual reload
-        $this->socketIoPublisher->publish($recipient->getId(), 'dashboard_refresh', [
+        $refreshPayload = [
             'entity' => $type,
             'action' => $this->inferActionFromTitle($title),
             'message' => $message,
             'targetUrl' => $targetUrl,
-        ]);
+        ];
+
+        if ($type === 'order' && isset($routeParams['id'])) {
+            $refreshPayload['orderId'] = (string) $routeParams['id'];
+        }
+
+        $this->socketIoPublisher->publish($recipient->getId(), 'dashboard_refresh', $refreshPayload);
+
+        if ($type === 'order' && isset($routeParams['id'])) {
+            $this->socketIoPublisher->publish($recipient->getId(), 'order_status_update', [
+                'orderId' => (string) $routeParams['id'],
+                'status' => $this->inferStatusFromMessage($message),
+                'title' => $title,
+                'message' => $message,
+                'type' => $type,
+            ]);
+        }
 
         if ($type === 'order' && str_contains(strtolower($title), 'created')) {
             $this->socketIoPublisher->publish($recipient->getId(), 'new_order', [
@@ -125,5 +141,14 @@ class NotificationPublisher
         }
 
         return 'changed';
+    }
+
+    private function inferStatusFromMessage(string $message): string
+    {
+        if (preg_match('/\bis now\s+(.+?)\.?$/i', $message, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return 'updated';
     }
 }
