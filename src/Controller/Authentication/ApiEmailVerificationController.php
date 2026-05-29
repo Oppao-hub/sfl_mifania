@@ -2,23 +2,22 @@
 
 namespace App\Controller\Authentication;
 
+use App\Service\EmailVerificationResendService;
 use App\Service\EmailVerificationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[Route('/api')]
 class ApiEmailVerificationController extends AbstractController
 {
     public function __construct(
         private EmailVerificationService $emailVerificationService,
-        private EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     /**
      * Verify email with token
@@ -61,44 +60,26 @@ class ApiEmailVerificationController extends AbstractController
     }
 
     /**
-     * Resend verification email
+     * Resend verification email by address (public — for users who cannot log in yet).
      */
     #[Route('/resend-verification', name: 'api_resend_verification', methods: ['POST'])]
-    public function resendVerification(#[CurrentUser] ?User $user): JsonResponse
-    {
-        if (!$user) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Authentication required'
-            ], 401);
+    public function resendVerification(
+        Request $request,
+        EmailVerificationResendService $emailVerificationResendService,
+    ): JsonResponse {
+        $payload = json_decode($request->getContent(), true);
+        $email = '';
+
+        if (\is_array($payload)) {
+            $email = (string) ($payload['email'] ?? '');
         }
 
-        if ($user->getIsVerified()) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Email is already verified'
-            ], 400);
-        }
-
-        // Generate new token
-        $verificationToken = $this->emailVerificationService->generateVerificationToken();
-        $user->setVerificationToken($verificationToken);
-        $this->entityManager->flush();
-
-        // Create verification URL (for web verification or deep link)
-        $verificationUrl = $this->generateUrl(
-            'app_verify_email',
-            ['token' => $verificationToken],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        );
-
-        // Send email
-        $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+        $emailVerificationResendService->resendForEmail($email);
 
         return $this->json([
             'success' => true,
-            'message' => 'Verification email sent successfully'
-        ], 200);
+            'message' => 'If an account matching your email exists and is not yet verified, we sent a new verification link.',
+        ]);
     }
 
     /**

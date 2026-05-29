@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
+use App\Validator\Constraints\PasswordStrength;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ChangePasswordType extends AbstractType
@@ -38,11 +39,7 @@ class ChangePasswordType extends AbstractType
                 'constraints' => [
                     new Assert\Sequentially([
                         new Assert\NotBlank(['message' => 'Please enter a new password.']),
-                        new Assert\Length(['min' => 8, 'max' => 4096]),
-                        new Assert\Regex([
-                            'pattern' => '/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\W_])/',
-                            'message' => 'Password must contain an uppercase, a lowercase, a number, and a symbol.',
-                        ]),
+                        new PasswordStrength(),
                     ]),
                 ],
             ]);
