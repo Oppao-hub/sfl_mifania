@@ -75,12 +75,14 @@ class RealtimeSync
             return;
         }
 
+        $orderRef = $order->getDisplayReference();
         $orderIdStr = (string) $orderId;
         $extra = [
             'entityId' => $orderIdStr,
             'orderId' => $orderIdStr,
+            'orderReference' => $orderRef,
             'status' => $statusLabel ?? $action,
-            'message' => sprintf('Order #%s %s.', $orderIdStr, $action),
+            'message' => sprintf('Order %s %s.', $orderRef, $action),
         ];
 
         $customerUserId = $order->getCustomer()?->getUser()?->getId();
@@ -130,6 +132,7 @@ class RealtimeSync
         if ($entity === 'order' && isset($extra['orderId'])) {
             $this->socketIoPublisher->publish($userId, 'order_status_update', [
                 'orderId' => (string) $extra['orderId'],
+                'orderReference' => $extra['orderReference'] ?? null,
                 'status' => $extra['status'] ?? $action,
                 'message' => $extra['message'] ?? '',
                 'type' => 'order',

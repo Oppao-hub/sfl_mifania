@@ -158,7 +158,7 @@ class DatabaseNotificationListener
             $titlePrefix = 'Stock';
             $type = 'stock';
         } elseif ($entity instanceof Order) {
-            $name = 'Manifest #' . $entity->getId();
+            $name = $entity->getDisplayReference();
             $route = 'app_order_show';
             $titlePrefix = 'Order';
             $type = 'order';
@@ -260,6 +260,8 @@ class DatabaseNotificationListener
                 }
             }
 
+            $orderReference = $entity instanceof Order ? $entity->getDisplayReference() : null;
+
             $this->notificationPublisher->send(
                 $recipient,
                 "$titlePrefix $action",
@@ -267,7 +269,8 @@ class DatabaseNotificationListener
                 $includeLink && $routeParams !== [] ? $route : 'app_dashboard',
                 $routeParams,
                 $type,
-                $flush
+                $flush,
+                $orderReference,
             );
         }
     }

@@ -21,7 +21,7 @@ class NotificationPublisher
         private LoggerInterface $logger,
     ) {}
 
-    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true): void
+    public function send(User $recipient, string $title, string $message, string $routeName, array $routeParams = [], string $type = 'system', bool $flush = true, ?string $orderReference = null): void
     {
         try {
             $targetUrl = $this->router->generate($routeName, $routeParams);
@@ -61,6 +61,9 @@ class NotificationPublisher
 
         if ($type === 'order' && isset($routeParams['id'])) {
             $payload['orderId'] = (string) $routeParams['id'];
+            if ($orderReference) {
+                $payload['orderReference'] = $orderReference;
+            }
         }
 
         $this->socketIoPublisher->publish($recipient->getId(), 'notification', $payload);
@@ -75,6 +78,9 @@ class NotificationPublisher
 
         if ($type === 'order' && isset($routeParams['id'])) {
             $refreshPayload['orderId'] = (string) $routeParams['id'];
+            if ($orderReference) {
+                $refreshPayload['orderReference'] = $orderReference;
+            }
         }
 
         $this->socketIoPublisher->publish($recipient->getId(), 'dashboard_refresh', $refreshPayload);
@@ -82,6 +88,7 @@ class NotificationPublisher
         if ($type === 'order' && isset($routeParams['id'])) {
             $this->socketIoPublisher->publish($recipient->getId(), 'order_status_update', [
                 'orderId' => (string) $routeParams['id'],
+                'orderReference' => $orderReference,
                 'status' => $this->inferStatusFromMessage($message),
                 'title' => $title,
                 'message' => $message,
@@ -92,6 +99,7 @@ class NotificationPublisher
         if ($type === 'order' && str_contains(strtolower($title), 'created')) {
             $this->socketIoPublisher->publish($recipient->getId(), 'new_order', [
                 'orderId' => $routeParams['id'] ?? null,
+                'orderReference' => $orderReference,
                 'message' => $message,
             ]);
         }

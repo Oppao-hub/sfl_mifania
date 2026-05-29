@@ -127,17 +127,20 @@ class CheckoutController extends AbstractController
 
             // Real-time refresh for customer's open account pages (e.g. order history tab)
             $orderId = (string) $order->getId();
+            $orderRef = $order->getDisplayReference();
             $socketIoPublisher->publish($user->getId(), 'dashboard_refresh', [
                 'entity' => 'order',
                 'action' => 'created',
                 'orderId' => $orderId,
-                'message' => sprintf('Order #%s placed successfully.', $orderId),
+                'orderReference' => $orderRef,
+                'message' => sprintf('Order %s placed successfully.', $orderRef),
                 'targetUrl' => $this->generateUrl('app_account_order_view', ['id' => $order->getId()]),
             ]);
             $socketIoPublisher->publish($user->getId(), 'order_status_update', [
                 'orderId' => $orderId,
+                'orderReference' => $orderRef,
                 'status' => 'created',
-                'message' => sprintf('Order #%s placed successfully.', $orderId),
+                'message' => sprintf('Order %s placed successfully.', $orderRef),
                 'type' => 'order',
             ]);
 
