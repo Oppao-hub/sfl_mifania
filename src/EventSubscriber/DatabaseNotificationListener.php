@@ -123,6 +123,7 @@ class DatabaseNotificationListener
         bool $flush,
     ): void {
         $currentUser = $this->security->getUser();
+        $isOrder = $entity instanceof Order;
         // If it's a new order from a guest or API, we still want to notify management even if no $currentUser
 
         // 1. Identify Entity Type and target Route

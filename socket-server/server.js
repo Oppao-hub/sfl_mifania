@@ -44,6 +44,7 @@ app.post('/publish', (req, res) => {
         return res.status(400).send('Missing required fields');
     }
     io.to(`user_${userId}`).emit(event, data);
+    console.log(`[publish] user_${userId} event=${event}`);
     res.sendStatus(200);
 });
 

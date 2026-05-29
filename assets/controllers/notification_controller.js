@@ -1,6 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
 import { io } from 'socket.io-client';
-import * as Turbo from '@hotwired/turbo';
 
 export default class extends Controller {
     static values = {
@@ -9,50 +8,68 @@ export default class extends Controller {
     }
 
     connect() {
-        if (!this.userIdValue) return;
+        if (!this.userIdValue || !this.socketUrlValue) return;
+
         this.reloadTimeout = null;
+        this.connectSocket();
+        this.onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                if (!this.socket?.connected) {
+                    this.connectSocket();
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
+
+    connectSocket() {
+        if (this.socket) {
+            this.socket.removeAllListeners();
+            this.socket.disconnect();
+        }
 
         this.socket = io(this.socketUrlValue, {
             path: '/socket.io',
             auth: { userId: this.userIdValue, token: this.userIdValue },
             transports: ['websocket', 'polling'],
             reconnection: true,
+            reconnectionAttempts: Infinity,
         });
 
         this.socket.on("connect", () => {
-            console.log("Connected to notification server", this.socketUrlValue);
+            console.info("[realtime] connected", this.socketUrlValue, "room user_" + this.userIdValue);
         });
 
         this.socket.on("connect_error", (err) => {
-            console.warn("Socket connection error:", err.message, this.socketUrlValue);
+            console.warn("[realtime] connection error:", err.message, this.socketUrlValue);
         });
 
-        // Listen for generic notification events
+        const refresh = (data = {}) => this.handleRealtimeRefresh(data);
+
         this.socket.on("notification", (data) => {
             this.showNotification(data);
-            this.handleRealtimeRefresh({
+            refresh({
                 entity: data?.type || 'system',
                 orderId: data?.orderId,
                 action: 'changed',
             });
         });
 
-        // Specific legacy event handling if needed
         this.socket.on("new_order", (data) => {
             this.showNotification({
                 title: "New Order",
                 message: `Order #${data.orderId} received!`,
                 icon: data.icon || null
             });
-            this.handleRealtimeRefresh({ entity: 'order', orderId: data.orderId });
+            refresh({ entity: 'order', orderId: data.orderId, action: 'created' });
         });
 
         this.socket.on("order_status_update", (data) => {
-            this.handleRealtimeRefresh({ entity: 'order', orderId: data.orderId });
+            refresh({ entity: 'order', orderId: data.orderId, action: 'updated' });
         });
 
         this.socket.on("dashboard_refresh", (data) => {
-            this.handleRealtimeRefresh(data);
+            refresh(data);
         });
 
         this.requestPermission();
@@ -73,14 +90,10 @@ export default class extends Controller {
             icon: data.icon || "/favicon.ico",
         };
 
-        // 1. Try Browser Notification (Local Notification)
         if ("Notification" in window && Notification.permission === "granted") {
             new Notification(title, options);
         } else {
-            // 2. Fallback to a UI toast or alert if permission not granted
             console.info("Notification:", title, options.body);
-            
-            // Dispatch a global event for Alpine.js or other listeners
             window.dispatchEvent(new CustomEvent("notify", {
                 detail: {
                     title: title,
@@ -93,6 +106,7 @@ export default class extends Controller {
     }
 
     handleRealtimeRefresh(data = {}) {
+        console.info("[realtime] refresh", data);
         window.dispatchEvent(new CustomEvent('realtime:refresh', { detail: data }));
 
         if (this.reloadTimeout) {
@@ -100,22 +114,13 @@ export default class extends Controller {
         }
 
         this.reloadTimeout = setTimeout(() => {
-            const url = new URL(window.location.href);
-            url.searchParams.set('_rt', String(Date.now()));
-
-            try {
-                if (Turbo.cache?.clear) {
-                    Turbo.cache.clear();
-                }
-                Turbo.visit(url.toString(), { action: 'replace' });
-            } catch (error) {
-                console.warn('Turbo refresh failed, falling back to reload.', error);
-                window.location.assign(url.toString());
-            }
-        }, 400);
+            // Hard reload is more reliable than Turbo for server-rendered dashboard tables.
+            window.location.reload();
+        }, 300);
     }
 
     disconnect() {
+        document.removeEventListener('visibilitychange', this.onVisibilityChange);
         if (this.reloadTimeout) {
             clearTimeout(this.reloadTimeout);
         }
