@@ -3,17 +3,15 @@
 namespace App\Controller\Authentication;
 
 use App\Entity\User;
+use App\Service\PasswordResetMailerService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
@@ -23,11 +21,13 @@ class ApiResetPasswordController extends AbstractController
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private EntityManagerInterface $entityManager,
+        private PasswordResetMailerService $passwordResetMailer,
+        private LoggerInterface $logger,
     ) {
     }
 
     #[Route('/request', name: 'api_reset_password_request', methods: ['POST'])]
-    public function requestReset(Request $request, MailerInterface $mailer): JsonResponse
+    public function requestReset(Request $request): JsonResponse
     {
         $payload = json_decode($request->getContent(), true);
 
@@ -48,31 +48,23 @@ class ApiResetPasswordController extends AbstractController
         if ($user) {
             try {
                 $resetToken = $this->resetPasswordHelper->generateResetToken($user);
-            } catch (ResetPasswordExceptionInterface) {
-                // Do not reveal whether the account exists or why email was not sent.
+            } catch (ResetPasswordExceptionInterface $e) {
+                $this->logger->warning('Password reset token could not be generated.', [
+                    'email' => $email,
+                    'reason' => $e->getReason(),
+                ]);
+
                 return $this->successRequestResponse();
             }
 
-            $webResetUrl = $this->generateUrl(
-                'app_reset_password',
-                ['token' => $resetToken->getToken()],
-                UrlGeneratorInterface::ABSOLUTE_URL,
-            );
-
-            $appResetUrl = sprintf('mifania://reset-password?token=%s', urlencode($resetToken->getToken()));
-
-            $emailMessage = (new TemplatedEmail())
-                ->from(new Address('mifaniapaolo0012@gmail.com', 'Mifania Security'))
-                ->to((string) $user->getEmail())
-                ->subject('Your password reset request')
-                ->htmlTemplate('reset_password/email_api.html.twig')
-                ->context([
-                    'resetToken' => $resetToken,
-                    'webResetUrl' => $webResetUrl,
-                    'appResetUrl' => $appResetUrl,
+            try {
+                $this->passwordResetMailer->sendPasswordResetEmail($user, $resetToken);
+            } catch (\Throwable $e) {
+                $this->logger->error('Failed to send password reset email.', [
+                    'email' => $email,
+                    'error' => $e->getMessage(),
                 ]);
-
-            $mailer->send($emailMessage);
+            }
         }
 
         return $this->successRequestResponse();
@@ -102,7 +94,7 @@ class ApiResetPasswordController extends AbstractController
         try {
             /** @var User $user */
             $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
-        } catch (ResetPasswordExceptionInterface $e) {
+        } catch (ResetPasswordExceptionInterface) {
             throw new BadRequestHttpException(
                 'This password reset link is invalid or has expired. Please request a new one.',
             );
