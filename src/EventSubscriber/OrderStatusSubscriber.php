@@ -4,11 +4,12 @@ namespace App\EventSubscriber;
 
 use App\Entity\Order;
 use App\Service\NotificationPublisher;
+use App\Service\OrderChangeBuffer;
 use App\Service\OrderMailerService;
+use BackedEnum;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\Events;
-use BackedEnum;
 use Psr\Log\LoggerInterface;
 
 #[AsEntityListener(event: Events::postUpdate, entity: Order::class)]
@@ -17,13 +18,14 @@ class OrderStatusSubscriber
     public function __construct(
         private NotificationPublisher $notificationPublisher,
         private OrderMailerService $orderMailerService,
+        private OrderChangeBuffer $changeBuffer,
         private LoggerInterface $logger,
     ) {}
 
     public function postUpdate(Order $order, PostUpdateEventArgs $event): void
     {
         try {
-            $this->notifyCustomerOfChanges($order, $event);
+            $this->notifyCustomerOfChanges($order);
         } catch (\Throwable $exception) {
             $this->logger->error('Order status notification failed.', [
                 'orderId' => $order->getId(),
@@ -32,7 +34,7 @@ class OrderStatusSubscriber
         }
     }
 
-    private function notifyCustomerOfChanges(Order $order, PostUpdateEventArgs $event): void
+    private function notifyCustomerOfChanges(Order $order): void
     {
         $customer = $order->getCustomer();
         $user = $customer ? $customer->getUser() : null;
@@ -41,20 +43,24 @@ class OrderStatusSubscriber
             return;
         }
 
-        $changeSet = $event->getEntityChangeSet();
+        $orderId = $order->getId();
+        if ($orderId === null) {
+            return;
+        }
 
-        // 1. Handle Order Status Change
+        $changeSet = $this->changeBuffer->get($orderId);
+
         if (array_key_exists('orderStatus', $changeSet)) {
             $newStatus = $changeSet['orderStatus'][1] ?? $order->getOrderStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Processing');
-            $body = "Your order #{$order->getId()} is now {$statusLabel}.";
+            $body = "Your order #{$orderId} is now {$statusLabel}.";
 
             $this->notificationPublisher->send(
                 $user,
                 'Order Status Updated',
                 $body,
                 'app_account_order_view',
-                ['id' => $order->getId()],
+                ['id' => $orderId],
                 'order',
                 false
             );
@@ -63,24 +69,23 @@ class OrderStatusSubscriber
                 $this->orderMailerService->sendStatusUpdateEmail($order);
             } catch (\Throwable $exception) {
                 $this->logger->warning('Order status email failed.', [
-                    'orderId' => $order->getId(),
+                    'orderId' => $orderId,
                     'exception' => $exception,
                 ]);
             }
         }
 
-        // 2. Handle Payment Status Change
         if (array_key_exists('paymentStatus', $changeSet)) {
             $newStatus = $changeSet['paymentStatus'][1] ?? $order->getPaymentStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Pending');
-            $body = "The payment for order #{$order->getId()} is now {$statusLabel}.";
+            $body = "The payment for order #{$orderId} is now {$statusLabel}.";
 
             $this->notificationPublisher->send(
                 $user,
                 'Payment Status Updated',
                 $body,
                 'app_account_order_view',
-                ['id' => $order->getId()],
+                ['id' => $orderId],
                 'order',
                 false
             );
