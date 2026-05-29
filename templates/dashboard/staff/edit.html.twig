@@ -6,7 +6,8 @@
     <div class="max-w-5xl mx-auto animate-fadeIn">
         {{ include('dashboard/staff/_form.html.twig', {
             form: form,
-            button_label: 'Update Staff'
+            button_label: 'Update Staff',
+            oneTimePassword: oneTimePassword|default(null),
         }) }}
     </div>
 {% endblock %}

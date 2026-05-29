@@ -5,6 +5,7 @@ namespace App\Controller\Dashboard\Admin;
 use App\Entity\Staff;
 use App\Entity\User;
 use App\Form\StaffType;
+use App\Service\AdminPasswordResetService;
 use App\Repository\StaffRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -91,7 +92,13 @@ final class StaffController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_staff_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Staff $staff, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function edit(
+        Request $request,
+        Staff $staff,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger,
+        AdminPasswordResetService $adminPasswordResetService,
+    ): Response
     {
         $form = $this->createForm(StaffType::class, $staff, ['is_edit' => true]);
         $form->handleRequest($request);
@@ -138,6 +145,10 @@ final class StaffController extends AbstractController
         return $this->render('dashboard/staff/edit.html.twig', [
             'staff' => $staff,
             'form' => $form,
+            'oneTimePassword' => $adminPasswordResetService->consumeOneTimePassword(
+                $request,
+                $staff->getUser(),
+            ),
         ]);
     }
 
@@ -171,13 +182,18 @@ final class StaffController extends AbstractController
     }
 
     #[Route('/user/{id}/reset-password', name: 'app_staff_reset_password')]
-    public function resetPassword(User $user, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em): Response
-    {
-        $tempPassword = 'password123';
-        $user->setPassword($passwordHasher->hashPassword($user, $tempPassword));
-        $em->flush();
+    public function resetPassword(
+        User $user,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $em,
+        AdminPasswordResetService $adminPasswordResetService,
+    ): Response {
+        $adminPasswordResetService->resetToTemporaryPassword($user, $passwordHasher, $em);
 
-        $this->addFlash('success', 'Password reset to: ' . $tempPassword);
+        $this->addFlash(
+            'success',
+            'A secure temporary password was set. It is shown once on the edit page—copy it before leaving.',
+        );
 
         return $this->redirectToRoute('app_staff_edit', ['id' => $user->getStaff()->getId()]);
     }
