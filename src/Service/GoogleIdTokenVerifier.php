@@ -147,16 +147,17 @@ final class GoogleIdTokenVerifier
         $modulus = $this->base64UrlDecode((string) $jwk['n']);
         $exponent = $this->base64UrlDecode((string) $jwk['e']);
 
-        $modulus = $this->encodeLengthPrefixed("\x00".$modulus);
-        $exponent = $this->encodeLengthPrefixed($exponent);
+        if ($modulus !== '' && (\ord($modulus[0]) & 0x80) !== 0) {
+            $modulus = "\x00".$modulus;
+        }
 
-        $rsaPublicKey = $this->encodeLengthPrefixed(
-            "\x30".$this->encodeLengthPrefixed("\x02".$modulus."\x02".$exponent),
-        );
+        $modulusEnc = "\x02".$this->encodeLengthPrefixed($modulus);
+        $exponentEnc = "\x02".$this->encodeLengthPrefixed($exponent);
+        $rsaPublicKey = "\x30".$this->encodeLengthPrefixed($modulusEnc.$exponentEnc);
 
-        $bitString = "\x00".$rsaPublicKey;
+        $bitString = "\x03".$this->encodeLengthPrefixed("\x00".$rsaPublicKey);
         $rsaOid = hex2bin('300D06092A864886F70D0101010500');
-        $publicKeyInfo = "\x30".$this->encodeLengthPrefixed($rsaOid."\x03".$this->encodeLengthPrefixed($bitString));
+        $publicKeyInfo = "\x30".$this->encodeLengthPrefixed($rsaOid.$bitString);
 
         return "-----BEGIN PUBLIC KEY-----\n"
             .chunk_split(base64_encode($publicKeyInfo), 64, "\n")
