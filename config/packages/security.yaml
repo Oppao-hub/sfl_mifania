@@ -65,6 +65,7 @@ security:
         - { path: ^/api/sub_categories, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, roles: PUBLIC_ACCESS }
         - { path: ^/api/stories, roles: PUBLIC_ACCESS }
+        - { path: ^/api/wallet/paypal/complete, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
         # 2. Admin & Staff Rules

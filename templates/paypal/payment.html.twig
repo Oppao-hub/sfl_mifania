@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayPal Payment | Mifania</title>
+    <title>{% if isWalletTopUp|default(false) %}Top Up Wallet{% else %}PayPal Payment{% endif %} | Mifania</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -56,12 +56,20 @@
         #payment-status.error {
             color: #b91c1c;
         }
+        #payment-status.success {
+            color: #166534;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Pay with PayPal</h1>
-        <p class="amount">Amount: ₱{{ amount|default('10.00') }}</p>
+        {% if isWalletTopUp|default(false) %}
+            <h1>Top Up Mifania Wallet</h1>
+            <p class="amount">Amount: ₱{{ amount|default('10.00') }}</p>
+        {% else %}
+            <h1>Pay with PayPal</h1>
+            <p class="amount">Amount: ₱{{ amount|default('10.00') }}</p>
+        {% endif %}
         <p class="mode">PayPal mode: {{ paypalMode|default('sandbox') }}</p>
 
         {% if not paypalConfigured %}
@@ -83,10 +91,14 @@
             const orderAmount = '{{ amount|default("10.00")|e('js') }}';
             const createOrderUrl = '{{ path('paypal_create_order')|e('js') }}';
             const captureOrderUrl = '{{ path('paypal_capture_order')|e('js') }}';
+            const isWalletTopUp = {{ isWalletTopUp|default(false) ? 'true' : 'false' }};
+            const prepareToken = '{{ prepareToken|default('')|e('js') }}';
+            const walletCompleteUrl = '{{ walletCompleteUrl|default('')|e('js') }}';
 
-            function setStatus(message, isError = false) {
+            function setStatus(message, isError = false, isSuccess = false) {
                 statusEl.innerText = message;
                 statusEl.classList.toggle('error', isError);
+                statusEl.classList.toggle('success', isSuccess);
             }
 
             async function postJson(url, payload) {
@@ -105,7 +117,7 @@
 
                 if (!response.ok) {
                     const detail = data.detail ? ` (${data.detail})` : '';
-                    throw new Error((data.error || 'PayPal request failed.') + detail);
+                    throw new Error((data.detail || data.message || data.error || 'PayPal request failed.') + detail);
                 }
 
                 return data;
@@ -129,8 +141,24 @@
                 onApprove: async function (data) {
                     setStatus('Capturing payment...');
                     try {
-                        await postJson(captureOrderUrl, { orderID: data.orderID });
-                        setStatus('Payment completed! Return to the Mifania app and tap Confirm Order again.');
+                        if (isWalletTopUp) {
+                            if (!prepareToken || !walletCompleteUrl) {
+                                throw new Error('Wallet top-up session is invalid. Start again from the app.');
+                            }
+                            const result = await postJson(walletCompleteUrl, {
+                                prepareToken: prepareToken,
+                                paypalOrderId: data.orderID,
+                            });
+                            setStatus(
+                                (result.message || 'Wallet topped up successfully!')
+                                    + ' Return to the Mifania app — your balance is updated.',
+                                false,
+                                true,
+                            );
+                        } else {
+                            await postJson(captureOrderUrl, { orderID: data.orderID });
+                            setStatus('Payment completed! Return to the Mifania app and tap Confirm Order again.');
+                        }
                     } catch (error) {
                         setStatus(error.message || 'Payment capture failed.', true);
                         throw error;
