@@ -64,7 +64,7 @@ class OrderStatusSubscriber
                 'app_account_order_view',
                 ['id' => $orderId],
                 'order',
-                false,
+                true,
                 $orderRef,
             );
 
@@ -90,7 +90,7 @@ class OrderStatusSubscriber
                 'app_account_order_view',
                 ['id' => $orderId],
                 'order',
-                false,
+                true,
                 $orderRef,
             );
         }
