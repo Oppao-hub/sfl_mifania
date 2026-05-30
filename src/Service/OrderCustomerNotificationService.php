@@ -59,6 +59,13 @@ final class OrderCustomerNotificationService
             $sent = true;
         }
 
+        if (array_key_exists('paymentMethod', $changeSet)) {
+            $newMethod = $changeSet['paymentMethod'][1] ?? $order->getPaymentMethod();
+            $methodLabel = $this->normalizeStatusLabel($newMethod, 'Updated');
+            $this->notifyPaymentMethodChange($order, $user, $orderRef, $methodLabel, flush: $flush);
+            $sent = true;
+        }
+
         return $sent;
     }
 
@@ -172,6 +179,54 @@ final class OrderCustomerNotificationService
         ]);
     }
 
+    public function notifyPaymentMethodChange(
+        Order $order,
+        ?User $user = null,
+        ?string $orderRef = null,
+        ?string $methodLabel = null,
+        bool $flush = true,
+    ): void {
+        $orderId = $order->getId();
+        if ($orderId === null) {
+            return;
+        }
+
+        $recipient = $user ?? $this->resolveCustomerUser($order->getCustomer());
+        if (!$recipient) {
+            return;
+        }
+
+        $orderRef ??= $order->getDisplayReference();
+        $methodLabel ??= $this->normalizeStatusLabel($order->getPaymentMethod(), 'Updated');
+        $dedupeKey = sprintf('order:%d:method:%s', $orderId, strtolower($methodLabel));
+
+        if ($this->wasAlreadySent($dedupeKey)) {
+            return;
+        }
+
+        $body = "The payment method for order {$orderRef} is now {$methodLabel}.";
+
+        $this->notificationPublisher->send(
+            $recipient,
+            'Payment Method Updated',
+            $body,
+            'app_account_order_view',
+            ['id' => $orderId],
+            'order',
+            $flush,
+            $orderRef,
+            $orderId,
+        );
+
+        $this->markSent($dedupeKey);
+
+        $this->logger->info('Order payment method notification created.', [
+            'orderId' => $orderId,
+            'recipientId' => $recipient->getId(),
+            'method' => $methodLabel,
+        ]);
+    }
+
     private function resolveCustomerUser(?Customer $customer): ?User
     {
         if (!$customer) {
@@ -179,16 +234,11 @@ final class OrderCustomerNotificationService
         }
 
         $user = $customer->getUser();
-        if ($user) {
+        if ($user instanceof User) {
             return $user;
         }
 
-        return $this->userRepository->createQueryBuilder('u')
-            ->where('u.customer = :customer')
-            ->setParameter('customer', $customer)
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+        return $this->userRepository->findOneByCustomer($customer);
     }
 
     private function normalizeStatusLabel(mixed $status, string $fallback): string
