@@ -8,6 +8,7 @@ use App\Entity\Enum\AccountStatus;
 use App\Entity\User;
 use App\Entity\Wallet;
 use App\Service\GoogleIdTokenVerifier;
+use App\Service\LoginNotificationService;
 use App\Service\RegisterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -27,6 +28,7 @@ class ApiGoogleController extends AbstractController
         private JWTTokenManagerInterface $jwtManager,
         private UserPasswordHasherInterface $passwordHasher,
         private RegisterNotifier $registerNotifier,
+        private LoginNotificationService $loginNotificationService,
         private LoggerInterface $logger,
     ) {
     }
@@ -126,6 +128,18 @@ class ApiGoogleController extends AbstractController
         }
 
         $token = $this->jwtManager->create($user);
+
+        // ApiGoogleController bypasses LoginSuccessEvent — create the same security alert.
+        if (!$isNewUser) {
+            try {
+                $this->loginNotificationService->notifyMobileLogin($user);
+            } catch (\Throwable $exception) {
+                $this->logger->warning('Google login notification failed.', [
+                    'userId' => $user->getId(),
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
 
         $userPayload = [
             'id' => $user->getId(),

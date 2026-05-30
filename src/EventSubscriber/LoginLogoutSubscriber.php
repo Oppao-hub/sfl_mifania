@@ -3,9 +3,8 @@
 namespace App\EventSubscriber;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Service\ActivityLogger;
-use App\Service\NotificationPublisher;
+use App\Service\LoginNotificationService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
@@ -14,8 +13,7 @@ class LoginLogoutSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private ActivityLogger $logger,
-        private NotificationPublisher $notificationPublisher,
-        private UserRepository $userRepository
+        private LoginNotificationService $loginNotificationService,
     ) {
     }
 
@@ -31,74 +29,45 @@ class LoginLogoutSubscriber implements EventSubscriberInterface
     {
         $user = $event->getUser();
 
-        if ($user instanceof User) {
-            $request = $event->getRequest();
-            $path = $request->getPathInfo();
-
-            // LoginSuccessEvent can fire on authenticated requests in stateless flows.
-            // Only create login notifications on explicit login endpoints.
-            $isExplicitLoginEndpoint = in_array($path, [
-                '/login',
-                '/api/login',
-                '/api/login/google',
-                '/connect/google/check',
-            ], true);
-
-            if (!$isExplicitLoginEndpoint) {
-                return;
-            }
-
-            // Google mobile login uses ApiGoogleController (no LoginSuccessEvent).
-            // JSON /api/login is covered here — skip JwtAuthenticationSuccessHandler duplicates.
-            $isApiLogin = str_starts_with($path, '/api/login');
-
-            $loginMethod = match (true) {
-                $isApiLogin => 'Mobile App',
-                str_contains($path, 'google') => 'Google OAuth',
-                default => 'Login Form',
-            };
-
-            $alertTitle = $isApiLogin ? 'Security Alert: Mobile Login' : 'Security Alert: New Login';
-
-            // 1. Notify the User themselves (Security Alert) — once per successful login
-            $this->notificationPublisher->send(
-                $user,
-                $alertTitle,
-                "A new login was detected on your account via {$loginMethod}.",
-                'app_account', // Link to account settings
-                [],
-                'security',
-                false // Don't flush yet
-            );
-
-            // 2. Notify Management (Admins & Staff)
-            $management = $this->userRepository->findAllManagement();
-            foreach ($management as $manager) {
-                if ($manager->getId() === $user->getId()) {
-                    continue;
-                }
-
-                $this->notificationPublisher->send(
-                    $manager,
-                    $isApiLogin ? 'Mobile Login Detected' : 'User Login Detected',
-                    $isApiLogin
-                        ? "User {$user->getEmail()} has logged in via Mobile App."
-                        : "User {$user->getEmail()} has logged into the system.",
-                    'app_dashboard',
-                    [],
-                    'system',
-                    false // Don't flush yet
-                );
-            }
-
-            // 3. Log the Activity AND Flush everything (Log + Notifications)
-            $this->logger->log(
-                'LOGIN',
-                "User {$user->getUserIdentifier()} logged in via {$loginMethod}.",
-                $user,
-                true // Perform Flush here to save everything at once
-            );
+        if (!$user instanceof User) {
+            return;
         }
+
+        $path = $event->getRequest()->getPathInfo();
+
+        // Only create login notifications on explicit login endpoints.
+        $isExplicitLoginEndpoint = \in_array($path, [
+            '/login',
+            '/api/login',
+            '/api/login/google',
+            '/connect/google/check',
+        ], true);
+
+        if (!$isExplicitLoginEndpoint) {
+            return;
+        }
+
+        $isApiLogin = str_starts_with($path, '/api/login');
+
+        $loginMethod = match (true) {
+            $path === '/api/login/google' => 'Google (Mobile App)',
+            $isApiLogin => 'Mobile App',
+            str_contains($path, 'google') => 'Google OAuth',
+            default => 'Login Form',
+        };
+
+        if ($isApiLogin) {
+            $this->loginNotificationService->notifyMobileLogin($user, false);
+        } else {
+            $this->loginNotificationService->notifyWebLogin($user, $loginMethod, false);
+        }
+
+        $this->logger->log(
+            'LOGIN',
+            "User {$user->getUserIdentifier()} logged in via {$loginMethod}.",
+            $user,
+            true,
+        );
     }
 
     public function onLogout(LogoutEvent $event): void
