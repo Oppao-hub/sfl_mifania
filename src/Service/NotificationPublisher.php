@@ -76,6 +76,25 @@ class NotificationPublisher
 
         $this->socketIoPublisher->publish($recipient->getId(), 'notification', $payload);
 
+        if ($type === 'order' && $orderId !== null) {
+            $this->socketIoPublisher->publish($recipient->getId(), 'dashboard_refresh', [
+                'entity' => 'order',
+                'action' => str_contains(strtolower($title), 'cancel') ? 'cancelled' : 'updated',
+                'orderId' => (string) $orderId,
+                'message' => $message,
+                'targetUrl' => $targetUrl,
+            ]);
+
+            $this->socketIoPublisher->publish($recipient->getId(), 'order_status_update', [
+                'orderId' => (string) $orderId,
+                'status' => $this->inferStatusFromMessage($message),
+                'title' => $title,
+                'message' => $message,
+                'type' => $type,
+                'orderReference' => $orderReference,
+            ]);
+        }
+
         // Push notification to mobile device (if token is available)
         $deviceToken = $recipient->getDeviceToken();
         if ($deviceToken) {
@@ -139,5 +158,14 @@ class NotificationPublisher
                 ]);
             }
         }
+    }
+
+    private function inferStatusFromMessage(string $message): string
+    {
+        if (preg_match('/is now (.+?)\./i', $message, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return 'updated';
     }
 }
