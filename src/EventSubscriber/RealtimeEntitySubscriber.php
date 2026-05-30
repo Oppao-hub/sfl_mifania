@@ -22,6 +22,7 @@ use App\Entity\Story;
 use App\Entity\SubCategory;
 use App\Entity\Wallet;
 use App\Service\OrderChangeBuffer;
+use App\Service\OrderCustomerNotificationService;
 use App\Service\RealtimeAudienceResolver;
 use App\Service\RealtimeSync;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
@@ -93,6 +94,7 @@ class RealtimeEntitySubscriber
         private RealtimeSync $realtimeSync,
         private RealtimeAudienceResolver $audienceResolver,
         private OrderChangeBuffer $changeBuffer,
+        private OrderCustomerNotificationService $orderCustomerNotificationService,
         private LoggerInterface $logger,
     ) {}
 
@@ -112,6 +114,8 @@ class RealtimeEntitySubscriber
 
         $this->safelyBroadcast(function () use ($entity): void {
             if ($entity instanceof Order) {
+                $this->orderCustomerNotificationService->notifyFromChangeBuffer($entity);
+
                 $statusLabel = $entity->getOrderStatus()?->value ?? 'updated';
                 $action = $statusLabel === OrderStatus::CANCELLED->value ? 'cancelled' : 'updated';
                 $this->realtimeSync->publishOrderChange($entity, $action, $statusLabel);

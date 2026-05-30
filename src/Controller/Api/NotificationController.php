@@ -18,8 +18,8 @@ class NotificationController extends AbstractController
     {
         if (!$user) return $this->json(['error' => 'Unauthorized'], 401);
 
-        // Fetch unread notifications using our robust repo method
-        $notifications = $repo->findRecent($user, 20);
+        // Fetch recent notifications for the authenticated user (read + unread).
+        $notifications = $repo->findRecent($user, 50);
 
         $data = array_map(function($n) {
             /** @var \App\Entity\Notification $n */
