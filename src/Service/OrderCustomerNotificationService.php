@@ -9,10 +9,7 @@ use App\Repository\UserRepository;
 use BackedEnum;
 use Psr\Log\LoggerInterface;
 
-/**
- * Persists customer inbox notifications and push for order/payment status changes.
- * Request-scoped dedupe prevents duplicate sends when multiple listeners fire.
- */
+/** Persists customer inbox + push notifications for order/payment status changes. */
 final class OrderCustomerNotificationService
 {
     /** @var array<string, true> */
@@ -20,43 +17,49 @@ final class OrderCustomerNotificationService
 
     public function __construct(
         private NotificationPublisher $notificationPublisher,
-        private OrderChangeBuffer $changeBuffer,
         private OrderMailerService $orderMailerService,
         private UserRepository $userRepository,
         private LoggerInterface $logger,
     ) {}
 
-    public function notifyFromChangeBuffer(Order $order): void
+    /**
+     * @param array<string, array{0: mixed, 1: mixed}> $changeSet
+     */
+    public function notifyFromChangeSet(Order $order, array $changeSet, bool $flush = true): bool
     {
         $orderId = $order->getId();
         if ($orderId === null) {
-            return;
+            return false;
         }
 
         $user = $this->resolveCustomerUser($order->getCustomer());
         if (!$user) {
-            $this->logger->info('Order customer notification skipped: no linked user.', [
+            $this->logger->warning('Order customer notification skipped: no linked user.', [
                 'orderId' => $orderId,
                 'customerId' => $order->getCustomer()?->getId(),
             ]);
 
-            return;
+            return false;
         }
 
-        $changeSet = $this->changeBuffer->get($orderId);
         $orderRef = $order->getDisplayReference();
+        $sent = false;
 
         if (array_key_exists('orderStatus', $changeSet)) {
             $newStatus = $changeSet['orderStatus'][1] ?? $order->getOrderStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Processing');
-            $this->notifyOrderStatusChange($order, $user, $orderRef, $statusLabel, sendEmail: true);
+            $this->notifyOrderStatusChange($order, $user, $orderRef, $statusLabel, sendEmail: true, flush: $flush);
+            $sent = true;
         }
 
         if (array_key_exists('paymentStatus', $changeSet)) {
             $newStatus = $changeSet['paymentStatus'][1] ?? $order->getPaymentStatus();
             $statusLabel = $this->normalizeStatusLabel($newStatus, 'Pending');
-            $this->notifyPaymentStatusChange($order, $user, $orderRef, $statusLabel);
+            $this->notifyPaymentStatusChange($order, $user, $orderRef, $statusLabel, flush: $flush);
+            $sent = true;
         }
+
+        return $sent;
     }
 
     public function notifyOrderStatusChange(
@@ -65,6 +68,7 @@ final class OrderCustomerNotificationService
         ?string $orderRef = null,
         ?string $statusLabel = null,
         bool $sendEmail = false,
+        bool $flush = true,
     ): void {
         $orderId = $order->getId();
         if ($orderId === null) {
@@ -93,12 +97,18 @@ final class OrderCustomerNotificationService
             'app_account_order_view',
             ['id' => $orderId],
             'order',
-            true,
+            $flush,
             $orderRef,
             $orderId,
         );
 
         $this->markSent($dedupeKey);
+
+        $this->logger->info('Order status notification created.', [
+            'orderId' => $orderId,
+            'recipientId' => $recipient->getId(),
+            'status' => $statusLabel,
+        ]);
 
         if (!$sendEmail) {
             return;
@@ -119,6 +129,7 @@ final class OrderCustomerNotificationService
         ?User $user = null,
         ?string $orderRef = null,
         ?string $statusLabel = null,
+        bool $flush = true,
     ): void {
         $orderId = $order->getId();
         if ($orderId === null) {
@@ -147,12 +158,18 @@ final class OrderCustomerNotificationService
             'app_account_order_view',
             ['id' => $orderId],
             'order',
-            true,
+            $flush,
             $orderRef,
             $orderId,
         );
 
         $this->markSent($dedupeKey);
+
+        $this->logger->info('Order payment notification created.', [
+            'orderId' => $orderId,
+            'recipientId' => $recipient->getId(),
+            'status' => $statusLabel,
+        ]);
     }
 
     private function resolveCustomerUser(?Customer $customer): ?User

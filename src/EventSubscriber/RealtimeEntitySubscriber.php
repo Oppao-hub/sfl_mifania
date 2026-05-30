@@ -9,7 +9,6 @@ use App\Entity\Category;
 use App\Entity\Customer;
 use App\Entity\CustomerAddress;
 use App\Entity\CustomerPaymentMethod;
-use App\Entity\Enum\OrderStatus;
 use App\Entity\Order;
 use App\Entity\Product;
 use App\Entity\ProductReview;
@@ -21,8 +20,6 @@ use App\Entity\Stock;
 use App\Entity\Story;
 use App\Entity\SubCategory;
 use App\Entity\Wallet;
-use App\Service\OrderChangeBuffer;
-use App\Service\OrderCustomerNotificationService;
 use App\Service\RealtimeAudienceResolver;
 use App\Service\RealtimeSync;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
@@ -93,8 +90,6 @@ class RealtimeEntitySubscriber
     public function __construct(
         private RealtimeSync $realtimeSync,
         private RealtimeAudienceResolver $audienceResolver,
-        private OrderChangeBuffer $changeBuffer,
-        private OrderCustomerNotificationService $orderCustomerNotificationService,
         private LoggerInterface $logger,
     ) {}
 
@@ -105,26 +100,12 @@ class RealtimeEntitySubscriber
 
     public function onPostUpdate(object $entity, PostUpdateEventArgs $event): void
     {
+        // Order notifications + socket are handled in OrderPostFlushSubscriber.
         if ($entity instanceof Order) {
-            $orderId = $entity->getId();
-            if ($orderId === null || !$this->hasOrderRelevantChanges($orderId)) {
-                return;
-            }
+            return;
         }
 
-        $this->safelyBroadcast(function () use ($entity): void {
-            if ($entity instanceof Order) {
-                $this->orderCustomerNotificationService->notifyFromChangeBuffer($entity);
-
-                $statusLabel = $entity->getOrderStatus()?->value ?? 'updated';
-                $action = $statusLabel === OrderStatus::CANCELLED->value ? 'cancelled' : 'updated';
-                $this->realtimeSync->publishOrderChange($entity, $action, $statusLabel);
-
-                return;
-            }
-
-            $this->broadcastChange($entity, 'updated');
-        }, $entity, 'updated');
+        $this->safelyBroadcast(fn () => $this->broadcastChange($entity, 'updated'), $entity, 'updated');
     }
 
     public function onPreRemove(object $entity, PreRemoveEventArgs $event): void
@@ -189,19 +170,5 @@ class RealtimeEntitySubscriber
             $extra,
             $this->audienceResolver->resolveCustomerUserId($entity),
         );
-    }
-
-    private function hasOrderRelevantChanges(int $orderId): bool
-    {
-        $changeSet = $this->changeBuffer->get($orderId);
-        $relevantFields = ['orderStatus', 'paymentStatus', 'paymentMethod', 'totalAmount'];
-
-        foreach ($relevantFields as $field) {
-            if (array_key_exists($field, $changeSet)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
