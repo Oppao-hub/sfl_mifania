@@ -4,15 +4,11 @@ namespace App\EventSubscriber;
 
 use App\Entity\Order;
 use App\Service\OrderChangeBuffer;
-use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 
-/**
- * Records order field changes during preUpdate for postUpdate listeners.
- * Doctrine ORM 3.x PostUpdateEventArgs no longer exposes the change set.
- */
+/** Records order field changes in preUpdate; processing happens in OrderPostFlushSubscriber. */
 final class OrderPreUpdateSubscriber
 {
     public function __construct(
@@ -28,11 +24,5 @@ final class OrderPreUpdateSubscriber
         }
 
         $this->changeBuffer->record($orderId, $event->getEntityChangeSet());
-    }
-
-    #[AsDoctrineListener(event: Events::postFlush)]
-    public function onPostFlush(): void
-    {
-        $this->changeBuffer->flush();
     }
 }

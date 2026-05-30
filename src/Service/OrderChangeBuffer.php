@@ -4,7 +4,7 @@ namespace App\Service;
 
 /**
  * Captures order field changes during preUpdate (ORM 3.x no longer exposes
- * change sets on PostUpdateEventArgs) for postUpdate listeners.
+ * change sets on PostUpdateEventArgs) for postFlush listeners.
  */
 final class OrderChangeBuffer
 {
@@ -31,9 +31,20 @@ final class OrderChangeBuffer
         return $this->changes[$orderId] ?? [];
     }
 
-    public function clear(int $orderId): void
+    public function hasPending(): bool
     {
-        unset($this->changes[$orderId]);
+        return $this->changes !== [];
+    }
+
+    /**
+     * @return array<int, array<string, array{0: mixed, 1: mixed}>>
+     */
+    public function pullAll(): array
+    {
+        $pending = $this->changes;
+        $this->changes = [];
+
+        return $pending;
     }
 
     public function flush(): void
