@@ -16,6 +16,7 @@ use Psr\Log\LoggerInterface;
  * Creates customer notifications and socket events AFTER the order flush completes.
  * Running inside postUpdate + nested flush was preventing notifications from being saved.
  */
+#[AsDoctrineListener(event: Events::postFlush)]
 final class OrderPostFlushSubscriber
 {
     /** @var list<string> */
@@ -29,8 +30,7 @@ final class OrderPostFlushSubscriber
         private LoggerInterface $logger,
     ) {}
 
-    #[AsDoctrineListener(event: Events::postFlush)]
-    public function onPostFlush(): void
+    public function postFlush(): void
     {
         if (!$this->changeBuffer->hasPending()) {
             return;
@@ -49,7 +49,6 @@ final class OrderPostFlushSubscriber
             }
 
             try {
-                // flush:true is safe here (postFlush) — same pattern as OrderRemovalSubscriber.
                 $this->orderCustomerNotificationService->notifyFromChangeSet($order, $changeSet, flush: true);
 
                 $statusLabel = $order->getOrderStatus()?->value ?? 'updated';

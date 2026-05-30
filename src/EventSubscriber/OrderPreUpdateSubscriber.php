@@ -9,13 +9,13 @@ use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 
 /** Records order field changes in preUpdate; processing happens in OrderPostFlushSubscriber. */
+#[AsEntityListener(event: Events::preUpdate, entity: Order::class)]
 final class OrderPreUpdateSubscriber
 {
     public function __construct(
         private OrderChangeBuffer $changeBuffer,
     ) {}
 
-    #[AsEntityListener(event: Events::preUpdate, method: 'preUpdate', entity: Order::class)]
     public function preUpdate(Order $order, PreUpdateEventArgs $event): void
     {
         $orderId = $order->getId();

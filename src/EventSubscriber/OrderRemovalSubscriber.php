@@ -12,6 +12,7 @@ use Doctrine\ORM\Events;
 use Psr\Log\LoggerInterface;
 
 #[AsEntityListener(event: Events::postRemove, entity: Order::class)]
+#[AsDoctrineListener(event: Events::postFlush)]
 class OrderRemovalSubscriber
 {
     /** @var list<array{userId: int, orderId: int, orderRef: string}> */
@@ -38,8 +39,7 @@ class OrderRemovalSubscriber
         ];
     }
 
-    #[AsDoctrineListener(event: Events::postFlush)]
-    public function onPostFlush(): void
+    public function postFlush(): void
     {
         if ($this->pendingRemovals === []) {
             return;
