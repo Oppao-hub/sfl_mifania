@@ -37,7 +37,6 @@ final class OrderPostFlushSubscriber
         }
 
         $pendingChanges = $this->changeBuffer->pullAll();
-        $needsFlush = false;
 
         foreach ($pendingChanges as $orderId => $changeSet) {
             if (!$this->hasRelevantChanges($changeSet)) {
@@ -50,9 +49,8 @@ final class OrderPostFlushSubscriber
             }
 
             try {
-                if ($this->orderCustomerNotificationService->notifyFromChangeSet($order, $changeSet, flush: false)) {
-                    $needsFlush = true;
-                }
+                // flush:true is safe here (postFlush) — same pattern as OrderRemovalSubscriber.
+                $this->orderCustomerNotificationService->notifyFromChangeSet($order, $changeSet, flush: true);
 
                 $statusLabel = $order->getOrderStatus()?->value ?? 'updated';
                 $action = $statusLabel === OrderStatus::CANCELLED->value ? 'cancelled' : 'updated';
@@ -63,10 +61,6 @@ final class OrderPostFlushSubscriber
                     'exception' => $exception,
                 ]);
             }
-        }
-
-        if ($needsFlush) {
-            $this->entityManager->flush();
         }
     }
 

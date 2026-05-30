@@ -88,6 +88,11 @@ class DatabaseNotificationListener
 
     public function onUpdated(object $entity): void
     {
+        // Customer order notifications are handled in OrderPostFlushSubscriber.
+        if ($entity instanceof Order) {
+            return;
+        }
+
         $this->handleNotification('Updated', $entity);
     }
 
