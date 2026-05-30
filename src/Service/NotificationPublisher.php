@@ -97,7 +97,13 @@ class NotificationPublisher
 
         // Push notification to mobile device (if token is available)
         $deviceToken = $recipient->getDeviceToken();
-        if ($deviceToken) {
+        if (!$deviceToken) {
+            $this->logger->info('Push notification skipped: recipient has no device token.', [
+                'recipientId' => $recipient->getId(),
+                'title' => $title,
+                'type' => $type,
+            ]);
+        } else {
             $pushData = [
                 'type' => $type,
                 'targetUrl' => (string) $targetUrl,
@@ -141,6 +147,11 @@ class NotificationPublisher
 
             try {
                 $this->messaging->send($pushMessage);
+                $this->logger->info('Push notification sent.', [
+                    'recipientId' => $recipient->getId(),
+                    'title' => $title,
+                    'type' => $type,
+                ]);
             } catch (MessagingNotFound $e) {
                 $recipient->setDeviceToken(null);
                 $this->em->flush();
