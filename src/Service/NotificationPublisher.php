@@ -159,4 +159,13 @@ class NotificationPublisher
             }
         }
     }
+
+    private function inferStatusFromMessage(string $message): string
+    {
+        if (preg_match('/is now (.+?)\./i', $message, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return 'updated';
+    }
 }
